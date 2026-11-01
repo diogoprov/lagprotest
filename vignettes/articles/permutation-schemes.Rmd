@@ -1,0 +1,187 @@
+---
+title: "Choosing a permutation scheme"
+bibliography: ../references.bib
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`lagged_protest()` offers three ways of building the null distribution of
+the Procrustes statistic *m*²: phase-randomized surrogates
+(`permutation = "phase"`, the default), cyclic shifts of the full series
+(`permutation = "cyclic"`, optionally with time reversal through `mirror`),
+and free permutation of rows (`permutation = "free"`). This article
+summarizes a simulation study of the three schemes and turns it into
+practical advice. The main points are:
+
+* free permutation should not be used with seasonal or autocorrelated
+  series;
+* the raw p-value at the optimal lag is liberal whatever the scheme, so the
+  global p-value (`fit$p.global`) is the one to report;
+* for the global p-value, phase surrogates combine good calibration with high
+  power, whereas cyclic shifts are calibrated but have low power;
+* no scheme is calibrated when the seasonal period differs from the series
+  length, and strong autocorrelation in short series makes all schemes
+  somewhat liberal.
+
+## The simulation study
+
+Series were generated with `simulate_lagged_series()` (see
+[Simulating lagged series](simulating-series.html) for how it works): seasonal sinusoids plus
+AR(1) noise, with `Y` either independent of `X` (Type I error) or following
+`X` with a known lag (power). Each of 983 scenarios was replicated 1000
+times. The design crossed:
+
+* series length: 12, 24, 48 and 96 time points;
+* number of variables in `X` and `Y`: 2, 5 and 10;
+* AR(1) autocorrelation of the noise: 0, 0.3, 0.5, 0.7 and 0.9;
+* relation between the seasonal period and the series length: one complete
+  cycle (period = *n*), several complete annual cycles (period = 12 with
+  *n* ≥ 24), an incomplete cycle (period = 0.75 *n*) and no seasonality
+  (amplitude 0);
+* scheme: phase (199 surrogates), cyclic with and without mirror, and free
+  permutation (199 permutations, as a reference).
+
+Lags 0–3 were scanned for *n* = 12 and 0–6 otherwise. The rejection rates
+below use α = 0.05; with 1000 replicates, a rate of 0.05 has a 95% binomial
+interval of about 0.037–0.064.
+
+```{r data}
+cal <- read.csv("calibration_v2.csv")
+type1 <- subset(cal, block == "type1")
+complete <- subset(type1, period_type != "mismatch")
+power <- subset(cal, block == "power")
+
+rate_table <- function(data, by, value) {
+  agg <- aggregate(data[[value]], data[c(by, "scheme")], mean)
+  wide <- reshape(agg, idvar = by, timevar = "scheme", direction = "wide")
+  names(wide) <- sub("^x\\.", "", names(wide))
+  wide <- wide[order(wide[[by]]), ]
+  rownames(wide) <- NULL
+  wide
+}
+```
+
+## Free permutation
+
+Standard PROTEST permutes rows freely, which assumes that time points are
+exchangeable [@jackson1995protest; @perezneto2001protest]. Two independent
+seasonal series violate this assumption, because both carry temporal
+structure that row permutation destroys [@legendre2002spatial]:
+
+```{r free}
+free <- subset(cal, block == "free")
+aggregate(cbind(global = global) ~ n, data = free, FUN = mean)
+```
+
+The test rejects the null hypothesis in practically every replicate, so
+free permutation is kept in the package only as a reference.
+
+## Reporting the optimal lag
+
+The usual way of reading a lag scan is to pick the lag with the smallest
+*m*² and report its p-value. That p-value ignores both the number of lags
+examined and the fact that the lag was chosen after looking at all of them.
+In series spanning complete cycles, it rejected the null far more often than
+α under every scheme (the zero for the cyclic scheme without mirror at
+*n* = 12 only reflects its 11 shifts, which cannot produce a p-value below
+0.083):
+
+```{r optimal}
+knitr::kable(rate_table(complete, "n", "opt_sig"), digits = 3,
+             caption = "Type I error of the raw p-value at the optimal lag.")
+```
+
+The global p-value avoids this. It compares the observed minimum *m*² across
+lags with the minimum across lags under each permutation (a max-statistic
+test), so it is the p-value of the whole scan-and-select procedure.
+
+## Calibration of the global p-value
+
+With series spanning complete cycles, the global p-value was close to the
+nominal level under all three schemes for weak to moderate autocorrelation:
+
+```{r global-ar}
+knitr::kable(rate_table(complete, "autocorr", "global"), digits = 3,
+             caption = "Type I error of the global p-value by AR(1) autocorrelation.")
+```
+
+Strong autocorrelation made all schemes liberal, most of all the phase
+scheme. The excess was concentrated in short series and in series with many
+variables, and faded with length:
+
+```{r global-strong}
+strong <- subset(complete, autocorr >= 0.7)
+knitr::kable(rate_table(strong, "n", "global"), digits = 3,
+             caption = "Type I error of the global p-value, AR(1) of 0.7 and 0.9.")
+knitr::kable(rate_table(strong, "p", "global"), digits = 3,
+             caption = "Same, by number of variables.")
+```
+
+The cyclic scheme without mirror cannot reject at *n* = 12: its 11 shifts
+give a smallest attainable p-value of 1/12 = 0.083.
+
+## Power of the global p-value
+
+The two schemes that respect the temporal structure differ sharply in
+power. Shifting `Y` by *s* positions and then applying lag *k* pairs the same
+rows as lag *k* + *s* without a shift, so when several lags are scanned some
+cyclic permutations reproduce the true alignment at another lag. The null
+distribution of the minimum *m*² then contains the signal itself, and the
+global p-value loses power. Phase surrogates are new series rather than
+shifts of the observed one and do not have this problem
+[@ebisuzaki1997]:
+
+```{r power, fig.alt = "Power of the global p-value against series length for the cyclic scheme with mirror and the phase scheme."}
+pw <- aggregate(global ~ n + scheme, data = power, FUN = mean)
+pw <- reshape(pw, idvar = "n", timevar = "scheme", direction = "wide")
+names(pw) <- sub("^global\\.", "", names(pw))
+matplot(pw$n, pw[, c("cyclic_mirror", "phase")], type = "b", pch = c(1, 19),
+        lty = 1, col = c("grey50", "black"), log = "x", ylim = c(0, 1),
+        xaxt = "n", xlab = "Number of time points", ylab = "Power (global p)")
+axis(1, at = pw$n)
+legend("bottomright", c("cyclic (mirror)", "phase"), pch = c(1, 19),
+       col = c("grey50", "black"), bty = "n")
+knitr::kable(pw, digits = 3)
+```
+
+Both schemes recovered the true lag equally well, because the optimal lag
+does not depend on the null distribution:
+
+```{r recovery}
+aggregate(opt_true ~ n + scheme, data = power, FUN = mean)
+```
+
+## When the period differs from the series length
+
+Both the cyclic and the phase schemes treat the series as periodic with
+period *n*. When the series does not close a cycle, all schemes failed:
+
+```{r mismatch}
+mismatch <- subset(type1, period_type == "mismatch")
+knitr::kable(rate_table(mismatch, "n", "global"), digits = 3,
+             caption = "Type I error of the global p-value, period = 0.75 n.")
+```
+
+This failure is not specific to a scheme. Two series with the same seasonal
+period trace the same trajectory shape in multivariate space, and Procrustes
+rotation can superimpose them whatever the phase difference between them.
+Concordance between two series sharing a period therefore reflects their
+common periodicity unless the null model preserves it, which the cyclic
+shift does only when the period equals *n* [@kalyuzhny2020cyclic]. For such
+data, restrict the analysis to whole cycles, or remove the seasonal component
+first and test for concordance beyond it.
+
+## Recommendations
+
+* Use the default `permutation = "phase"` with a large `nperm` (999 or more)
+  and a `seed`, and report `fit$p.global` for the optimal lag together with
+  the lag profile.
+* Make sure the series spans whole cycles of any seasonal signal.
+* With short series (*n* ≤ 48) that are strongly autocorrelated, report the
+  cyclic result as a conservative check; with `mirror = FALSE` it was the
+  least liberal scheme in that range, at the cost of power.
+* Do not use `permutation = "free"` for time series.
+
+## References

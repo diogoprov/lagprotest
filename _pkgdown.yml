@@ -12,3 +12,14 @@ reference:
   - title: Simulation
     contents:
       - simulate_lagged_series
+
+articles:
+  - title: Get started
+    navbar: ~
+    contents:
+      - lagprotest
+  - title: Articles
+    navbar: Articles
+    contents:
+      - articles/permutation-schemes
+      - articles/simulating-series
