@@ -1,6 +1,13 @@
 # Articles
 
-### All vignettes
+### Get started
 
 - [Getting started with
   lagprotest](https://provetelab.org/lagprotest/articles/lagprotest.md):
+
+### Articles
+
+- [Choosing a permutation
+  scheme](https://provetelab.org/lagprotest/articles/permutation-schemes.md):
+- [Simulating lagged
+  series](https://provetelab.org/lagprotest/articles/simulating-series.md):

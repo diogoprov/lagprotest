@@ -3,7 +3,9 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   lagprotest: lagprotest.html
-last_built: 2026-11-01T22:58Z
+  articles/permutation-schemes: permutation-schemes.html
+  articles/simulating-series: simulating-series.html
+last_built: 2026-11-01T23:34Z
 urls:
   reference: https://provetelab.org/lagprotest/reference
   article: https://provetelab.org/lagprotest/articles
