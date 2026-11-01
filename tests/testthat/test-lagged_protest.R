@@ -55,6 +55,24 @@ test_that("output is well formed", {
   expect_invisible(plot(fit))
 })
 
+test_that("p-values are raw by default and adjusted on request", {
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+  expect_equal(fit$p.adjust.method, "none")
+  expect_equal(fit$profile$p.adjusted, fit$profile$p.value)
+  best <- fit$profile$lag == fit$optimal_lag
+  expect_equal(fit$p.value, fit$profile$p.value[best])
+  expect_equal(fit$p.adjusted, fit$p.value)
+  expect_equal(fit$n_perm, 22L)
+  expect_output(print(fit), "not corrected")
+
+  holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, p.adjust.method = "holm")
+  expect_equal(holm$profile$p.adjusted,
+               p.adjust(holm$profile$p.value, method = "holm"))
+  expect_equal(holm$p.value, fit$p.value)
+  expect_equal(holm$p.adjusted, holm$profile$p.adjusted[best])
+  expect_output(print(holm), "adjusted p")
+})
+
 test_that("bidirectional adds negative lags", {
   fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, bidirectional = TRUE)
   expect_equal(fit$profile$lag, -2:2)

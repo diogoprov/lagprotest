@@ -27,9 +27,15 @@
 #'
 #' P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 #' permuted \eqn{m^2} values smaller than or equal to the observed one and
-#' `N` the number of permutations, and adjusted across lags with
-#' [stats::p.adjust()]. Note that \eqn{m^2} values at different lags are
-#' based on different numbers of rows (`n - |k|`).
+#' `N` the number of permutations. By default (`p.adjust.method = "none"`)
+#' they are not corrected for testing several lags, nor for selecting the lag
+#' with the smallest \eqn{m^2}; the p-value at the optimal lag should therefore
+#' be read together with the whole lag profile. Any method of
+#' [stats::p.adjust()] can be requested instead, and both raw and adjusted
+#' values are returned. With few permutations, as in the cyclic scheme,
+#' corrections such as Holm may make significance unattainable. Note that
+#' \eqn{m^2} values at different lags are based on different numbers of rows
+#' (`n - |k|`).
 #'
 #' @param X,Y Numeric matrices or data frames with rows as ordered time
 #'   points and columns as variables, or `dist` objects, which are converted
@@ -45,7 +51,7 @@
 #' @param scale Logical; z-score the columns of `X` and `Y` (computed on the
 #'   full series) before analysis. Ignored for `dist` inputs.
 #' @param p.adjust.method Correction for multiple lags, passed to
-#'   [stats::p.adjust()].
+#'   [stats::p.adjust()]. Defaults to `"none"`.
 #' @param seed Optional integer seed for `permutation = "free"`. The global
 #'   random number stream is left untouched.
 #'
@@ -55,7 +61,11 @@
 #'     \item{`m2`}{\eqn{m^2} at the optimal lag.}
 #'     \item{`r`}{Procrustes correlation, \eqn{\sqrt{1 - m^2}}, at the
 #'       optimal lag.}
-#'     \item{`p.value`}{Adjusted p-value at the optimal lag.}
+#'     \item{`p.value`}{Raw permutation p-value at the optimal lag.}
+#'     \item{`p.adjusted`}{P-value at the optimal lag adjusted with
+#'       `p.adjust.method` (equal to `p.value` when `"none"`).}
+#'     \item{`n_perm`}{Number of permutations at the optimal lag (the exact
+#'       count for the cyclic scheme).}
 #'     \item{`profile`}{Data frame with `lag`, `n` (rows used), `m2`, `r`,
 #'       `p.value`, `p.adjusted` and `nperm` for every lag.}
 #'     \item{`residuals`}{Data frame of per-observation Procrustes residuals
@@ -78,7 +88,7 @@
 lagged_protest <- function(X, Y, lags = 0:6,
                            permutation = c("cyclic", "free"),
                            nperm = 999, mirror = TRUE, bidirectional = FALSE,
-                           scale = TRUE, p.adjust.method = "holm",
+                           scale = TRUE, p.adjust.method = "none",
                            seed = NULL) {
   call <- match.call()
   permutation <- match.arg(permutation)
@@ -151,7 +161,9 @@ lagged_protest <- function(X, Y, lags = 0:6,
       optimal_lag = k_best,
       m2 = observed[best],
       r = profile$r[best],
-      p.value = profile$p.adjusted[best],
+      p.value = profile$p.value[best],
+      p.adjusted = profile$p.adjusted[best],
+      n_perm = profile$nperm[best],
       profile = profile,
       residuals = res,
       procrustes = fit,

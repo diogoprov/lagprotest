@@ -9,16 +9,26 @@ print.lagged_protest <- function(x, digits = 3, ...) {
   }
   cat("Permutation: ", scheme, "; n = ", x$n, " time points\n", sep = "")
   cat("P-value adjustment across lags: ", x$p.adjust.method, "\n\n", sep = "")
+  adjusted <- x$p.adjust.method != "none"
   cat("Optimal lag: ", x$optimal_lag,
       "  (m2 = ", format(x$m2, digits = digits),
       ", r = ", format(x$r, digits = digits),
-      ", adjusted p = ", format(x$p.value, digits = digits), ")\n\n", sep = "")
+      ", p = ", format(x$p.value, digits = digits),
+      if (adjusted) paste0(", adjusted p = ",
+                           format(x$p.adjusted, digits = digits)),
+      ")\n\n", sep = "")
   cat("Lag profile:\n")
-  print(x$profile, digits = digits, row.names = FALSE)
+  profile <- x$profile
+  if (!adjusted) profile$p.adjusted <- NULL
+  print(profile, digits = digits, row.names = FALSE)
   if (x$permutation == "cyclic") {
     p_min <- 1 / (max(x$profile$nperm) + 1)
     cat("\nSmallest attainable raw p-value: ",
         format(p_min, digits = digits), "\n", sep = "")
+  }
+  if (!adjusted) {
+    cat("P-values are not corrected for testing several lags",
+        "or for selecting the optimal lag.\n")
   }
   invisible(x)
 }
@@ -51,7 +61,8 @@ residuals.lagged_protest <- function(object, ...) {
 #' Plots \eqn{m^2} against lag. The dashed line is the `alpha` quantile of
 #' the permutation null distribution at each lag (unadjusted); observed
 #' values below it are significant at that level before correction. Filled
-#' points mark lags whose adjusted p-value is below `alpha`.
+#' points mark lags whose p-value (adjusted, if `p.adjust.method` was not
+#' `"none"`) is below `alpha`.
 #'
 #' @param x A `"lagged_protest"` object.
 #' @param alpha Significance level.

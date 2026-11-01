@@ -65,9 +65,25 @@ fit
 ```
 
 The profile lists, for every lag, the number of rows used (`n`), *m*², the
-Procrustes correlation *r* = √(1 − *m*²), the raw permutation p-value and the
-p-value adjusted across lags (Holm by default; see `p.adjust.method`). The
-optimal lag here is the true one, 2.
+Procrustes correlation *r* = √(1 − *m*²), the permutation p-value and the
+number of permutations. The optimal lag here is the true one, 2.
+
+By default the p-values are not corrected for testing several lags, nor for
+choosing the lag with the smallest *m*² after looking at the profile. The
+p-value at the optimal lag is therefore optimistic and should be read
+together with the whole profile: a clear minimum at one lag, flanked by
+weaker concordance at neighboring lags, is stronger evidence than a single
+small p-value. A correction across lags can be requested with
+`p.adjust.method`; raw and adjusted values are then both reported:
+
+```{r holm}
+fit_holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, p.adjust.method = "holm")
+fit_holm$profile[, c("lag", "p.value", "p.adjusted")]
+```
+
+With only 22 cyclic permutations, a raw p-value at its minimum of 0.043
+becomes 0.217 after Holm correction across five lags, so significance at
+α = 0.05 is unattainable with this design (see Caveats).
 
 `summary()` returns the profile as a data frame, with the optimal lag
 flagged:
@@ -85,8 +101,8 @@ plot(fit)
 The solid line is the observed *m*² at each lag. The dashed line is the 5%
 quantile of the permutation null distribution at that lag: observed values
 below it are significant at α = 0.05 before correction. Filled points mark
-lags that remain significant after adjustment, and the dotted vertical line
-marks the optimal lag.
+lags with p < 0.05 (after adjustment, if one was requested), and the dotted
+vertical line marks the optimal lag.
 
 ## Residuals per observation
 
