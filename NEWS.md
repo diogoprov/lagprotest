@@ -1,4 +1,4 @@
-# lagprotest (development version)
+# lagprotest 0.2.0
 
 ## Breaking changes
 
