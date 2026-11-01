@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+type: software
+title: "lagprotest: Lagged Procrustean Randomization Test for Multivariate Time Series"
+abstract: >-
+  R package that extends the Procrustean randomization test (PROTEST) to
+  ordered multivariate series. Concordance between two configurations is
+  scanned across candidate temporal lags, and significance at each lag is
+  assessed by permutation, either by cyclic shifts of the full series or by
+  free permutation of rows. Returns the lag profile, the lag of maximal
+  concordance and per-observation Procrustes residuals.
+authors:
+  - family-names: Provete
+    given-names: Diogo B.
+    orcid: "https://orcid.org/0000-0002-0097-0651"
+version: 0.1.0
+date-released: "2026-11-01"
+license: MIT
+repository-code: "https://github.com/diogoprov/lagprotest"
+keywords:
+  - R
+  - Procrustes analysis
+  - PROTEST
+  - permutation test
+  - time series
+  - temporal lag
+  - multivariate analysis
+  - ecology

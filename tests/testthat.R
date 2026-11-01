@@ -1,4 +1,4 @@
 library(testthat)
-library(laggedPROTEST)
+library(lagprotest)
 
-test_check("laggedPROTEST")
+test_check("lagprotest")

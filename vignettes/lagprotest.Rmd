@@ -1,0 +1,159 @@
+---
+title: "Getting started with lagprotest"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Getting started with lagprotest}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6,
+                      fig.height = 4)
+```
+
+```{r setup}
+library(lagprotest)
+```
+
+## The question
+
+PROTEST [@jackson1995protest; @perezneto2001protest] measures how well two
+multivariate configurations of the same observations match after Procrustes
+superimposition, and tests that match by permutation. When the observations
+are ordered time points, for example monthly means of a set of environmental
+variables and of a set of phenotypic traits, concordance may be strongest not
+between contemporaneous rows but after a delay: the response may track its
+driver with a lag of *k* time units.
+
+`lagged_protest()` asks at which lag the two series match best. For each
+candidate lag *k*, row *t* of `X` is paired with row *t + k* of `Y`, the
+series are truncated to their `n - k` overlapping rows, and the symmetric
+Procrustes statistic *m*² is computed. Lower *m*² means stronger
+concordance. Each lag is tested by permutation, and the lag with the smallest
+*m*² is reported together with the full lag profile.
+
+## Input data
+
+Both inputs have one row per time point, in temporal order, and the same
+number of rows. Columns are variables and need not be the same in number or
+kind. `X` is the configuration expected to lead (the driver); `Y` the one
+expected to follow. Inputs can be matrices, data frames or `dist` objects;
+dissimilarities are converted to principal coordinates, so any dissimilarity
+measure suited to the data can be used upstream.
+
+Here we simulate a 12-month series of five variables (`X`) and a response
+(`Y`) that follows `X` with a lag of two months:
+
+```{r simulate}
+sim <- simulate_lagged_series(n_times = 12, true_lag = 2, autocorr = 0.5,
+                              noise_sd = 0.5, seed = 1)
+dim(sim$X)
+dim(sim$Y)
+```
+
+`simulate_lagged_series()` builds seasonal sinusoids plus AR(1) noise. With
+`true_lag = NULL` it returns two independent series, which is useful for
+checking Type I error.
+
+## Running the test
+
+```{r fit}
+fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+fit
+```
+
+The profile lists, for every lag, the number of rows used (`n`), *m*², the
+Procrustes correlation *r* = √(1 − *m*²), the raw permutation p-value and the
+p-value adjusted across lags (Holm by default; see `p.adjust.method`). The
+optimal lag here is the true one, 2.
+
+`summary()` returns the profile as a data frame, with the optimal lag
+flagged:
+
+```{r summary}
+summary(fit)
+```
+
+## Plotting the lag profile
+
+```{r plot, fig.alt = "Lag profile: m2 against lag, with a dashed line for the 5% quantile of the permutation null distribution at each lag."}
+plot(fit)
+```
+
+The solid line is the observed *m*² at each lag. The dashed line is the 5%
+quantile of the permutation null distribution at that lag: observed values
+below it are significant at α = 0.05 before correction. Filled points mark
+lags that remain significant after adjustment, and the dotted vertical line
+marks the optimal lag.
+
+## Residuals per observation
+
+Procrustes residuals show which time points fit the superimposition well
+and which deviate, at the optimal lag:
+
+```{r residuals}
+residuals(fit)
+```
+
+Each row pairs a time point of `X` (`x_row`) with the time point of `Y` it is
+matched to (`y_row`). Row names of the inputs, such as month labels, are
+carried through.
+
+## Choosing the permutation scheme
+
+Standard PROTEST permutes rows freely, which assumes that time points are
+exchangeable under the null hypothesis. Seasonal or otherwise autocorrelated
+series are not: two independent series that both cycle annually will often
+look concordant against a null that destroys their temporal structure, a
+problem shared with other permutation tests on autocorrelated data
+[@legendre2002spatial].
+
+`lagged_protest()` therefore defaults to `permutation = "cyclic"`. The full
+`Y` series is cyclically shifted by 1, …, n − 1 positions, and also
+time-reversed when `mirror = TRUE`, *before* the lag is applied. Each permuted
+series keeps its autocorrelation. All shifts are enumerated, so the test is
+exact and needs no random seed. `permutation = "free"` reproduces the
+behaviour of `vegan::protest()` [@vegan].
+
+The difference matters. Under independence, a small simulation with
+12 monthly samples gives:
+
+```{r calibration}
+reject <- function(permutation, n_rep) {
+  rates <- rowMeans(vapply(seq_len(n_rep), function(i) {
+    s <- simulate_lagged_series(n_times = 12, autocorr = 0, noise_sd = 0.3,
+                                seed = i)
+    fit <- lagged_protest(s$X, s$Y, lags = 0:3, permutation = permutation,
+                          nperm = 99, seed = i)
+    fit$profile$p.value < 0.05
+  }, logical(4)))
+  setNames(rates, paste("lag", 0:3))
+}
+rbind(cyclic = reject("cyclic", 100), free = reject("free", 50))
+```
+
+Rejection rates stay near the nominal 0.05 with
+cyclic shifts and approach 1 with free permutation.
+
+## Caveats
+
+* **Complete cycles.** Cyclic shifting treats the series as one closed
+  cycle. This is appropriate when the series spans whole cycles, such as
+  12 monthly samples of an annual cycle. Cyclic-shift null models can be
+  biased when this does not hold [@kalyuzhny2020cyclic]; for series whose
+  period differs from their length, a phase-randomisation surrogate
+  [@ebisuzaki1997] is a better reference.
+* **Few permutations.** With `n` time points there are only `2(n − 1)`
+  cyclic permutations, so the smallest attainable p-value is
+  `1 / (2(n − 1) + 1)`, 0.043 for `n = 12`. Corrections across many lags may
+  then be unattainable at α = 0.05; report raw and adjusted p-values together
+  with the lag profile.
+* **Different window sizes.** *m*² at lag *k* is based on `n − k` rows, so
+  long lags rest on fewer observations. Keep the candidate lags within a
+  range justified by the biology of the system.
+* **Scaling.** With `scale = TRUE` (default) variables are standardised on
+  the full series before truncation.
+
+## References

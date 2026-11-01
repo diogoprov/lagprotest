@@ -1,9 +1,9 @@
-# laggedPROTEST
+# lagprotest <img src="man/figures/logo.png" align="right" height="139" alt="lagprotest hex logo" />
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-**laggedPROTEST** extends the Procrustean randomization test (PROTEST) to
+**lagprotest** extends the Procrustean randomization test (PROTEST) to
 ordered multivariate series. It scans Procrustes concordance between two
 configurations across candidate temporal lags, tests each lag by
 permutation, and returns the lag profile, the lag of maximal concordance
@@ -23,13 +23,13 @@ Two permutation schemes are available:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("diogoprov/laggedPROTEST")
+remotes::install_github("diogoprov/lagprotest")
 ```
 
 ## Example
 
 ```r
-library(laggedPROTEST)
+library(lagprotest)
 
 # Two 12-month series in which X leads Y by 2 months
 sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.5,

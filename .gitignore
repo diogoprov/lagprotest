@@ -4,3 +4,4 @@
 .DS_Store
 # Source material (manuscript code, unpublished raw data) stays out of git
 dev/
+docs

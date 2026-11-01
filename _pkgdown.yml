@@ -1,0 +1,14 @@
+url: https://provetelab.org/lagprotest/
+template:
+  bootstrap: 5
+
+reference:
+  - title: Lagged PROTEST
+    contents:
+      - lagged_protest
+      - plot.lagged_protest
+      - summary.lagged_protest
+      - residuals.lagged_protest
+  - title: Simulation
+    contents:
+      - simulate_lagged_series

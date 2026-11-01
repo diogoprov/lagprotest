@@ -1,0 +1,14 @@
+# lagprotest 0.1.0
+
+First public release.
+
+* `lagged_protest()` scans Procrustes concordance between two ordered
+  multivariate series across candidate lags and tests each lag by
+  permutation. Two schemes are available: cyclic shifts of the full
+  series, optionally with time reversal (default), and free row
+  permutation as in `vegan::protest()`. P-values are adjusted across lags.
+  Accepts matrices, data frames or `dist` objects (converted by PCoA).
+* `print()`, `summary()`, `plot()` and `residuals()` methods for the
+  lag profile, the optimal lag and per-observation Procrustes residuals.
+* `simulate_lagged_series()` generates seasonal series with AR(1) noise
+  and a known lag, for calibration and power studies.
