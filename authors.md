@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/diogoprov/lagprotest/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/diogoprov/lagprotest/blob/v0.1.0/DESCRIPTION)
 
 Provete D (2026). *lagprotest: Lagged Procrustean Randomization Test for
 Multivariate Time Series*. R package version 0.1.0,
