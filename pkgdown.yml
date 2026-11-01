@@ -1,0 +1,9 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  lagprotest: lagprotest.html
+last_built: 2026-11-01T14:27Z
+urls:
+  reference: https://provetelab.org/lagprotest/reference
+  article: https://provetelab.org/lagprotest/articles
