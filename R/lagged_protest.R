@@ -13,25 +13,26 @@
 #'
 #' Three permutation schemes are available:
 #'
-#' * `"cyclic"` (default): the full `Y` series is cyclically shifted by
+#' * `"phase"` (default): `nperm` phase-randomized surrogates of `Y` are
+#'   drawn. Each surrogate keeps the amplitude spectrum of every column of
+#'   `Y` (hence its autocorrelation) and the cross-spectra among its columns,
+#'   but receives new Fourier phases, shared by all columns. Surrogates are
+#'   applied jointly to all lags and do not reproduce the observed alignment,
+#'   which makes this the recommended scheme for the global p-value. It
+#'   assumes a stationary `Y` and treats the series as periodic with period
+#'   `n`. In simulations, it was liberal for short, strongly autocorrelated
+#'   series (AR(1) of 0.7 or more with `n` of 48 or less).
+#' * `"cyclic"`: the full `Y` series is cyclically shifted by
 #'   `1, ..., n - 1` positions before lagging, and optionally also
 #'   time-reversed (`mirror = TRUE`). This keeps the temporal autocorrelation
 #'   of `Y` under the null. All `n - 1` (or `2(n - 1)`) shifts are enumerated,
-#'   so `nperm` is ignored, and the smallest attainable p-value is
+#'   so `nperm` and `seed` are ignored, and the smallest attainable p-value is
 #'   `1 / (2(n - 1) + 1)` (0.043 for `n = 12` with `mirror = TRUE`). The scheme
 #'   assumes the series spans complete cycles, i.e., that its period matches
 #'   the number of rows (e.g., 12 monthly samples of an annual cycle).
 #'   Because a shift of `Y` combined with lag `k` is equivalent to another
 #'   lag, some shifts reproduce the observed alignment at other lags; the
 #'   global p-value (see below) is then valid but has low power.
-#' * `"phase"`: `nperm` phase-randomized surrogates of `Y` are drawn. Each
-#'   surrogate keeps the amplitude spectrum of every column of `Y` (hence its
-#'   autocorrelation) and the cross-spectra among its columns, but receives
-#'   new Fourier phases, shared by all columns. Surrogates are applied jointly
-#'   to all lags and do not reproduce the observed alignment, which makes
-#'   this the recommended scheme for the global p-value. It assumes a
-#'   stationary `Y`; like the cyclic scheme, it treats the series as
-#'   periodic with period `n`.
 #' * `"free"`: rows of `Y` are permuted at random within the overlapping
 #'   window, as in [vegan::protest()]. This assumes exchangeable rows and can
 #'   strongly inflate Type I error when both series are autocorrelated.
@@ -61,7 +62,7 @@
 #'   points and columns as variables, or `dist` objects, which are converted
 #'   to principal coordinates. Both must have the same number of rows.
 #' @param lags Integer vector of non-negative candidate lags.
-#' @param permutation Permutation scheme, `"cyclic"`, `"phase"` or `"free"`.
+#' @param permutation Permutation scheme, `"phase"`, `"cyclic"` or `"free"`.
 #' @param nperm Number of surrogates (`permutation = "phase"`) or random
 #'   permutations (`permutation = "free"`). Ignored for the cyclic scheme,
 #'   whose permutations are enumerated.
@@ -105,16 +106,17 @@
 #' @examples
 #' sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
 #'                               seed = 1)
-#' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+#' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1)
 #' fit
-#' fit_phase <- lagged_protest(sim$X, sim$Y, lags = 0:4,
-#'                             permutation = "phase", seed = 1)
-#' fit_phase$p.global
+#' fit$p.global
+#' fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
+#'                              permutation = "cyclic")
+#' fit_cyclic$profile
 #' plot(fit)
 #' residuals(fit)
 #' @export
 lagged_protest <- function(X, Y, lags = 0:6,
-                           permutation = c("cyclic", "phase", "free"),
+                           permutation = c("phase", "cyclic", "free"),
                            nperm = 999, mirror = TRUE, bidirectional = FALSE,
                            scale = TRUE, p.adjust.method = "none",
                            seed = NULL) {

@@ -5,7 +5,7 @@ test_that("cyclic lagged PROTEST recovers a known lag", {
   res <- vapply(seq_len(100), function(i) {
     s <- simulate_lagged_series(n_times = 12, true_lag = 2, autocorr = 0.5,
                                 noise_sd = 0.5, seed = i)
-    fit <- lagged_protest(s$X, s$Y, lags = 0:3)
+    fit <- lagged_protest(s$X, s$Y, lags = 0:3, permutation = "cyclic")
     c(found = fit$optimal_lag == 2,
       significant = fit$profile$p.value[fit$profile$lag == 2] < 0.05)
   }, logical(2))

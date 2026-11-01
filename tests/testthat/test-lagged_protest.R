@@ -33,9 +33,10 @@ test_that("an exact lagged copy gives m2 = 0 at the true lag", {
 })
 
 test_that("cyclic permutation enumerates 2(n - 1) or n - 1 shifts", {
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:3)
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, permutation = "cyclic")
   expect_equal(unique(fit$profile$nperm), 22L)
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, mirror = FALSE)
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, permutation = "cyclic",
+                        mirror = FALSE)
   expect_equal(unique(fit$profile$nperm), 11L)
   expect_true(all(fit$profile$p.value >= 1 / 12))
 })
@@ -55,8 +56,14 @@ test_that("output is well formed", {
   expect_invisible(plot(fit))
 })
 
+test_that("phase is the default scheme", {
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 49, seed = 1)
+  expect_equal(fit$permutation, "phase")
+  expect_equal(unique(fit$profile$nperm), 49L)
+})
+
 test_that("p-values are raw by default and adjusted on request", {
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "cyclic")
   expect_equal(fit$p.adjust.method, "none")
   expect_equal(fit$profile$p.adjusted, fit$profile$p.value)
   best <- fit$profile$lag == fit$optimal_lag
@@ -65,7 +72,8 @@ test_that("p-values are raw by default and adjusted on request", {
   expect_equal(fit$n_perm, 22L)
   expect_output(print(fit), "not corrected")
 
-  holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, p.adjust.method = "holm")
+  holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "cyclic",
+                         p.adjust.method = "holm")
   expect_equal(holm$profile$p.adjusted,
                p.adjust(holm$profile$p.value, method = "holm"))
   expect_equal(holm$p.value, fit$p.value)
