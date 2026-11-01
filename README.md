@@ -2,6 +2,9 @@
 
 <!-- badges: start -->
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23860109.svg)](https://doi.org/10.5281/zenodo.23860109)
+[![R-CMD-check](https://github.com/diogoprov/lagprotest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/diogoprov/lagprotest/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/diogoprov/lagprotest/graph/badge.svg)](https://app.codecov.io/gh/diogoprov/lagprotest)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 **lagprotest** extends the Procrustean randomization test (PROTEST) to
@@ -54,3 +57,9 @@ manuscript in preparation.
 ## License
 
 MIT
+
+## Code of Conduct
+
+Please note that the lagprotest project is released with a
+[Contributor Code of Conduct](https://provetelab.org/lagprotest/CODE_OF_CONDUCT.html).
+By contributing to this project, you agree to abide by its terms.

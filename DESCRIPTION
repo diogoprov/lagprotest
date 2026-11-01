@@ -1,6 +1,6 @@
 Package: lagprotest
 Title: Lagged Procrustean Randomization Test for Multivariate Time Series
-Version: 0.1.0
+Version: 0.1.0.9000
 Authors@R:
     person("Diogo B.", "Provete", email = "dbprovete@gmail.com",
            role = c("aut", "cre"),
@@ -25,9 +25,11 @@ Imports:
 Suggests:
     knitr,
     rmarkdown,
+    spelling,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://github.com/diogoprov/lagprotest, https://provetelab.org/lagprotest/
 BugReports: https://github.com/diogoprov/lagprotest/issues
 Config/roxygen2/version: 8.1.1
+Language: en-US
