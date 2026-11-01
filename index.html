@@ -60,25 +60,33 @@
 </div>
 <!-- badges: start -->
 
-<p><strong>lagprotest</strong> extends the Procrustean randomization test (PROTEST) to ordered multivariate series. It scans Procrustes concordance between two configurations across candidate temporal lags, tests each lag by permutation, and returns the lag profile, the lag of maximal concordance (minimum <em>m</em>²) and per-observation Procrustes residuals.</p>
-<p>Two permutation schemes are available:</p>
+<p><strong>lagprotest</strong> extends the Procrustean randomization test (PROTEST) to ordered multivariate series. It scans Procrustes concordance between two configurations across candidate temporal lags, tests each lag by permutation, and returns the lag profile, the lag of maximal concordance (minimum <em>m</em>²), a global p-value that accounts for scanning several lags and selecting the best one, and per-observation Procrustes residuals.</p>
+<p>Three permutation schemes are available:</p>
 <ul>
 <li>
-<code>permutation = "cyclic"</code> (default): cyclic shifts of the full series, optionally with its time reversal, applied before lagging. This keeps temporal autocorrelation under the null and assumes the series spans complete cycles (e.g., 12 monthly samples of an annual cycle).</li>
+<code>permutation = "phase"</code> (default): phase-randomized surrogates of <code>Y</code>, which keep the autocorrelation of each variable and the cross-correlations among them. Recommended for the global p-value.</li>
+<li>
+<code>permutation = "cyclic"</code>: cyclic shifts of the full series, optionally with its time reversal, applied before lagging. Keeps temporal autocorrelation under the null, but the global p-value has low power.</li>
 <li>
 <code>permutation = "free"</code>: free permutation of rows within the overlapping window, as in <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code>. Rows are assumed exchangeable, which autocorrelated series violate; Type I error can be severely inflated.</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<p>From <a href="https://diogoprov.r-universe.dev/lagprotest" class="external-link">r-universe</a>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"lagprotest"</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://diogoprov.r-universe.dev"</span>,</span>
+<span>                           <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Or the development version from GitHub:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"diogoprov/lagprotest"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/diogoprov/lagprotest" class="external-link">lagprotest</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Two 12-month series in which X leads Y by 2 months</span></span>
@@ -152,6 +160,7 @@
 <li><a href="https://doi.org/10.5281/zenodo.23860109" class="external-link"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.23860109.svg" alt="DOI"></a></li>
 <li><a href="https://github.com/diogoprov/lagprotest/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/diogoprov/lagprotest/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://app.codecov.io/gh/diogoprov/lagprotest" class="external-link"><img src="https://codecov.io/gh/diogoprov/lagprotest/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://diogoprov.r-universe.dev/lagprotest" class="external-link"><img src="https://diogoprov.r-universe.dev/badges/lagprotest" alt="r-universe"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 </ul>
 </div>

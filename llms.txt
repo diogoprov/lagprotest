@@ -4,14 +4,17 @@
 ordered multivariate series. It scans Procrustes concordance between two
 configurations across candidate temporal lags, tests each lag by
 permutation, and returns the lag profile, the lag of maximal concordance
-(minimum *m*²) and per-observation Procrustes residuals.
+(minimum *m*²), a global p-value that accounts for scanning several lags
+and selecting the best one, and per-observation Procrustes residuals.
 
-Two permutation schemes are available:
+Three permutation schemes are available:
 
-- `permutation = "cyclic"` (default): cyclic shifts of the full series,
-  optionally with its time reversal, applied before lagging. This keeps
-  temporal autocorrelation under the null and assumes the series spans
-  complete cycles (e.g., 12 monthly samples of an annual cycle).
+- `permutation = "phase"` (default): phase-randomized surrogates of `Y`,
+  which keep the autocorrelation of each variable and the
+  cross-correlations among them. Recommended for the global p-value.
+- `permutation = "cyclic"`: cyclic shifts of the full series, optionally
+  with its time reversal, applied before lagging. Keeps temporal
+  autocorrelation under the null, but the global p-value has low power.
 - `permutation = "free"`: free permutation of rows within the
   overlapping window, as in
   [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html).
@@ -19,6 +22,17 @@ Two permutation schemes are available:
   Type I error can be severely inflated.
 
 ## Installation
+
+From [r-universe](https://diogoprov.r-universe.dev/lagprotest):
+
+``` r
+
+install.packages("lagprotest",
+                 repos = c("https://diogoprov.r-universe.dev",
+                           "https://cloud.r-project.org"))
+```
+
+Or the development version from GitHub:
 
 ``` r
 
