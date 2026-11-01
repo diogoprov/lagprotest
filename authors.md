@@ -11,13 +11,13 @@ Source:
 [`DESCRIPTION`](https://github.com/diogoprov/lagprotest/blob/main/DESCRIPTION)
 
 Provete D (2026). *lagprotest: Lagged Procrustean Randomization Test for
-Multivariate Time Series*. R package version 0.1.0.9000,
+Multivariate Time Series*. R package version 0.2.0,
 <https://github.com/diogoprov/lagprotest>.
 
     @Manual{,
       title = {lagprotest: Lagged Procrustean Randomization Test for Multivariate Time Series},
       author = {Diogo B. Provete},
       year = {2026},
-      note = {R package version 0.1.0.9000},
+      note = {R package version 0.2.0},
       url = {https://github.com/diogoprov/lagprotest},
     }

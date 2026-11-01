@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Lagged Procrustean Randomization Test for Multivariate Time Series">
-<meta name="description" content="Extends the Procrustean randomization test (PROTEST) to ordered multivariate series. Concordance between two configurations is scanned across candidate temporal lags, and significance at each lag is assessed by permutation, either by cyclic shifts of the full series (preserving temporal autocorrelation) or by free permutation of rows. Returns the lag profile, the lag of maximal concordance and per-observation Procrustes residuals.">
-<meta property="og:description" content="Extends the Procrustean randomization test (PROTEST) to ordered multivariate series. Concordance between two configurations is scanned across candidate temporal lags, and significance at each lag is assessed by permutation, either by cyclic shifts of the full series (preserving temporal autocorrelation) or by free permutation of rows. Returns the lag profile, the lag of maximal concordance and per-observation Procrustes residuals.">
+<meta name="description" content="Extends the Procrustean randomization test (PROTEST) to ordered multivariate series. Concordance between two configurations is scanned across candidate temporal lags. Significance is assessed with phase-randomized surrogates (default), cyclic shifts of the full series or free permutation of rows, and a global max-statistic p-value accounts for scanning several lags and selecting the best one. Returns the lag profile, the lag of maximal concordance and per-observation Procrustes residuals.">
+<meta property="og:description" content="Extends the Procrustean randomization test (PROTEST) to ordered multivariate series. Concordance between two configurations is scanned across candidate temporal lags. Significance is assessed with phase-randomized surrogates (default), cyclic shifts of the full series or free permutation of rows, and a global max-statistic p-value accounts for scanning several lags and selecting the best one. Returns the lag profile, the lag of maximal concordance and per-observation Procrustes residuals.">
 <meta property="og:image" content="https://provetelab.org/lagprotest/logo.svg">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
