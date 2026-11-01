@@ -8,7 +8,7 @@ lagged_protest(
   X,
   Y,
   lags = 0:6,
-  permutation = c("cyclic", "free"),
+  permutation = c("cyclic", "phase", "free"),
   nperm = 999,
   mirror = TRUE,
   bidirectional = FALSE,
@@ -24,10 +24,11 @@ to principal coordinates. Both must have the same number of rows.}
 
 \item{lags}{Integer vector of non-negative candidate lags.}
 
-\item{permutation}{Permutation scheme, \code{"cyclic"} or \code{"free"}.}
+\item{permutation}{Permutation scheme, \code{"cyclic"}, \code{"phase"} or \code{"free"}.}
 
-\item{nperm}{Number of random permutations per lag when
-\code{permutation = "free"}.}
+\item{nperm}{Number of surrogates (\code{permutation = "phase"}) or random
+permutations (\code{permutation = "free"}). Ignored for the cyclic scheme,
+whose permutations are enumerated.}
 
 \item{mirror}{Logical; with \code{permutation = "cyclic"}, also use the
 time-reversed shifts of \code{Y}, doubling the permutation set.}
@@ -38,11 +39,12 @@ time-reversed shifts of \code{Y}, doubling the permutation set.}
 \item{scale}{Logical; z-score the columns of \code{X} and \code{Y} (computed on the
 full series) before analysis. Ignored for \code{dist} inputs.}
 
-\item{p.adjust.method}{Correction for multiple lags, passed to
-\code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"none"}.}
+\item{p.adjust.method}{Correction of the per-lag p-values for multiple
+lags: \code{"maxT"} for the single-step max-statistic adjustment, or any
+method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"none"}.}
 
-\item{seed}{Optional integer seed for \code{permutation = "free"}. The global
-random number stream is left untouched.}
+\item{seed}{Optional integer seed for the \code{"phase"} and \code{"free"} schemes.
+The global random number stream is left untouched.}
 }
 \value{
 An object of class \code{"lagged_protest"}, a list with:
@@ -54,14 +56,17 @@ optimal lag.}
 \item{\code{p.value}}{Raw permutation p-value at the optimal lag.}
 \item{\code{p.adjusted}}{P-value at the optimal lag adjusted with
 \code{p.adjust.method} (equal to \code{p.value} when \code{"none"}).}
-\item{\code{n_perm}}{Number of permutations at the optimal lag (the exact
-count for the cyclic scheme).}
+\item{\code{p.global}}{Max-statistic p-value of the scan across lags,
+accounting for testing several lags and selecting the optimal one.}
+\item{\code{n_perm}}{Number of permutations or surrogates at the optimal
+lag (the exact count for the cyclic scheme).}
 \item{\code{profile}}{Data frame with \code{lag}, \code{n} (rows used), \code{m2}, \code{r},
 \code{p.value}, \code{p.adjusted} and \code{nperm} for every lag.}
 \item{\code{residuals}}{Data frame of per-observation Procrustes residuals
 at the optimal lag, with the paired row labels of \code{X} and \code{Y}.}
 \item{\code{procrustes}}{The \code{\link[vegan:procrustes]{vegan::procrustes()}} fit at the optimal lag.}
-\item{\code{null}}{List of permuted \eqn{m^2} values, one element per lag.}
+\item{\code{null}}{List of permuted \eqn{m^2} values, one element per lag;
+element \code{i} of every vector comes from the same permutation.}
 \item{\code{permutation}, \code{p.adjust.method}, \code{n}, \code{call}}{Settings used.}
 }
 }
@@ -78,7 +83,7 @@ when \code{bidirectional = TRUE}. The statistic at each lag is the symmetric
 Procrustes sum of squares \eqn{m^2} from \code{\link[vegan:procrustes]{vegan::procrustes()}}; the lag of
 maximal concordance is the one with the smallest \eqn{m^2}.
 
-Two permutation schemes are available:
+Three permutation schemes are available:
 \itemize{
 \item \code{"cyclic"} (default): the full \code{Y} series is cyclically shifted by
 \verb{1, ..., n - 1} positions before lagging, and optionally also
@@ -88,6 +93,17 @@ so \code{nperm} is ignored, and the smallest attainable p-value is
 \code{1 / (2(n - 1) + 1)} (0.043 for \code{n = 12} with \code{mirror = TRUE}). The scheme
 assumes the series spans complete cycles, i.e., that its period matches
 the number of rows (e.g., 12 monthly samples of an annual cycle).
+Because a shift of \code{Y} combined with lag \code{k} is equivalent to another
+lag, some shifts reproduce the observed alignment at other lags; the
+global p-value (see below) is then valid but has low power.
+\item \code{"phase"}: \code{nperm} phase-randomized surrogates of \code{Y} are drawn. Each
+surrogate keeps the amplitude spectrum of every column of \code{Y} (hence its
+autocorrelation) and the cross-spectra among its columns, but receives
+new Fourier phases, shared by all columns. Surrogates are applied jointly
+to all lags and do not reproduce the observed alignment, which makes
+this the recommended scheme for the global p-value. It assumes a
+stationary \code{Y}; like the cyclic scheme, it treats the series as
+periodic with period \code{n}.
 \item \code{"free"}: rows of \code{Y} are permuted at random within the overlapping
 window, as in \code{\link[vegan:protest]{vegan::protest()}}. This assumes exchangeable rows and can
 strongly inflate Type I error when both series are autocorrelated.
@@ -95,12 +111,21 @@ strongly inflate Type I error when both series are autocorrelated.
 
 P-values are computed as \code{(b + 1) / (N + 1)}, where \code{b} is the number of
 permuted \eqn{m^2} values smaller than or equal to the observed one and
-\code{N} the number of permutations. By default (\code{p.adjust.method = "none"})
-they are not corrected for testing several lags, nor for selecting the lag
-with the smallest \eqn{m^2}; the p-value at the optimal lag should therefore
-be read together with the whole lag profile. Any method of
-\code{\link[stats:p.adjust]{stats::p.adjust()}} can be requested instead, and both raw and adjusted
-values are returned. With few permutations, as in the cyclic scheme,
+\code{N} the number of permutations. Each permutation is applied jointly to all
+lags.
+
+The per-lag p-values (\code{p.value}) are not corrected for testing several
+lags, nor for selecting the lag with the smallest \eqn{m^2}. Reporting the
+raw p-value at the optimal lag therefore inflates Type I error roughly to
+the rate at which any lag is significant. The global p-value (\code{p.global})
+accounts for both: it compares the observed minimum \eqn{m^2} across lags
+with the distribution of the minimum across lags under each permutation
+(a max-statistic test), so it is the p-value of the whole
+scan-and-select procedure and is the one to report for the optimal lag.
+With \code{p.adjust.method = "maxT"}, every lag receives the corresponding
+single-step max-statistic adjusted p-value, and the adjusted p-value at
+the optimal lag equals \code{p.global}. Any method of \code{\link[stats:p.adjust]{stats::p.adjust()}} can be
+requested instead; with few permutations, as in the cyclic scheme,
 corrections such as Holm may make significance unattainable. Note that
 \eqn{m^2} values at different lags are based on different numbers of rows
 (\verb{n - |k|}).
@@ -110,6 +135,9 @@ sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
                               seed = 1)
 fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
 fit
+fit_phase <- lagged_protest(sim$X, sim$Y, lags = 0:4,
+                            permutation = "phase", seed = 1)
+fit_phase$p.global
 plot(fit)
 residuals(fit)
 }

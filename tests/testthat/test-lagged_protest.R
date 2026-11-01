@@ -73,6 +73,44 @@ test_that("p-values are raw by default and adjusted on request", {
   expect_output(print(holm), "adjusted p")
 })
 
+test_that("the global p-value is the max-statistic over lags", {
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+  null_min <- do.call(pmin, unname(fit$null))
+  expect_equal(fit$p.global,
+               (sum(null_min <= fit$m2) + 1) / (length(null_min) + 1))
+  expect_gte(fit$p.global, fit$p.value)
+  expect_output(print(fit), "Global p")
+
+  maxt <- lagged_protest(sim$X, sim$Y, lags = 0:4, p.adjust.method = "maxT")
+  expect_equal(maxt$p.adjusted, maxt$p.global)
+  expect_true(all(maxt$profile$p.adjusted >= maxt$profile$p.value))
+})
+
+test_that("phase surrogates keep the amplitude and cross-spectra of Y", {
+  Y <- scale(sim$Y)
+  Ys <- with_seed(3, phase_surrogate(Y))
+  expect_equal(dim(Ys), dim(Y))
+  expect_equal(Mod(mvfft(Ys)), Mod(mvfft(Y)), ignore_attr = TRUE)
+  expect_equal(crossprod(Ys), crossprod(Y), ignore_attr = TRUE)
+  expect_false(isTRUE(all.equal(Ys, Y, check.attributes = FALSE)))
+  # odd n
+  Y7 <- Y[1:11, ]
+  Ys7 <- with_seed(3, phase_surrogate(Y7))
+  expect_equal(Mod(mvfft(Ys7)), Mod(mvfft(Y7)), ignore_attr = TRUE)
+})
+
+test_that("the phase scheme is reproducible and uses nperm surrogates", {
+  a <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "phase",
+                      nperm = 99, seed = 4)
+  b <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "phase",
+                      nperm = 99, seed = 4)
+  expect_identical(a$profile, b$profile)
+  expect_identical(a$p.global, b$p.global)
+  expect_equal(unique(a$profile$nperm), 99L)
+  expect_true(is.na(a$mirror))
+  expect_output(print(a), "phase-randomized")
+})
+
 test_that("bidirectional adds negative lags", {
   fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, bidirectional = TRUE)
   expect_equal(fit$profile$lag, -2:2)
