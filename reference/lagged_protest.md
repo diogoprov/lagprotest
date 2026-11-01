@@ -10,7 +10,7 @@ lagged_protest(
   X,
   Y,
   lags = 0:6,
-  permutation = c("cyclic", "phase", "free"),
+  permutation = c("phase", "cyclic", "free"),
   nperm = 999,
   mirror = TRUE,
   bidirectional = FALSE,
@@ -34,7 +34,7 @@ lagged_protest(
 
 - permutation:
 
-  Permutation scheme, `"cyclic"`, `"phase"` or `"free"`.
+  Permutation scheme, `"phase"`, `"cyclic"` or `"free"`.
 
 - nperm:
 
@@ -141,27 +141,29 @@ the lag of maximal concordance is the one with the smallest \\m^2\\.
 
 Three permutation schemes are available:
 
-- `"cyclic"` (default): the full `Y` series is cyclically shifted by
+- `"phase"` (default): `nperm` phase-randomized surrogates of `Y` are
+  drawn. Each surrogate keeps the amplitude spectrum of every column of
+  `Y` (hence its autocorrelation) and the cross-spectra among its
+  columns, but receives new Fourier phases, shared by all columns.
+  Surrogates are applied jointly to all lags and do not reproduce the
+  observed alignment, which makes this the recommended scheme for the
+  global p-value. It assumes a stationary `Y` and treats the series as
+  periodic with period `n`. In simulations, it was liberal for short,
+  strongly autocorrelated series (AR(1) of 0.7 or more with `n` of 48 or
+  less).
+
+- `"cyclic"`: the full `Y` series is cyclically shifted by
   `1, ..., n - 1` positions before lagging, and optionally also
   time-reversed (`mirror = TRUE`). This keeps the temporal
   autocorrelation of `Y` under the null. All `n - 1` (or `2(n - 1)`)
-  shifts are enumerated, so `nperm` is ignored, and the smallest
-  attainable p-value is `1 / (2(n - 1) + 1)` (0.043 for `n = 12` with
-  `mirror = TRUE`). The scheme assumes the series spans complete cycles,
-  i.e., that its period matches the number of rows (e.g., 12 monthly
-  samples of an annual cycle). Because a shift of `Y` combined with lag
-  `k` is equivalent to another lag, some shifts reproduce the observed
-  alignment at other lags; the global p-value (see below) is then valid
-  but has low power.
-
-- `"phase"`: `nperm` phase-randomized surrogates of `Y` are drawn. Each
-  surrogate keeps the amplitude spectrum of every column of `Y` (hence
-  its autocorrelation) and the cross-spectra among its columns, but
-  receives new Fourier phases, shared by all columns. Surrogates are
-  applied jointly to all lags and do not reproduce the observed
-  alignment, which makes this the recommended scheme for the global
-  p-value. It assumes a stationary `Y`; like the cyclic scheme, it
-  treats the series as periodic with period `n`.
+  shifts are enumerated, so `nperm` and `seed` are ignored, and the
+  smallest attainable p-value is `1 / (2(n - 1) + 1)` (0.043 for
+  `n = 12` with `mirror = TRUE`). The scheme assumes the series spans
+  complete cycles, i.e., that its period matches the number of rows
+  (e.g., 12 monthly samples of an annual cycle). Because a shift of `Y`
+  combined with lag `k` is equivalent to another lag, some shifts
+  reproduce the observed alignment at other lags; the global p-value
+  (see below) is then valid but has low power.
 
 - `"free"`: rows of `Y` are permuted at random within the overlapping
   window, as in
@@ -201,33 +203,38 @@ corrections such as Holm may make significance unattainable. Note that
 ``` r
 sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
                               seed = 1)
-fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1)
 fit
 #> 
 #> Lagged PROTEST
 #> 
-#> Call: lagged_protest(X = sim$X, Y = sim$Y, lags = 0:4)
-#> Permutation: cyclic shift with mirror; n = 12 time points
+#> Call: lagged_protest(X = sim$X, Y = sim$Y, lags = 0:4, seed = 1)
+#> Permutation: phase-randomized surrogates; n = 12 time points
 #> P-value adjustment across lags: none
 #> 
-#> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.0435)
-#> Global p across lags (max-statistic): 0.13
+#> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.001)
+#> Global p across lags (max-statistic): 0.004
 #> 
 #> Lag profile:
 #>  lag  n     m2     r p.value nperm
-#>    0 12 0.1532 0.920  1.0000    22
-#>    1 11 0.1000 0.949  0.0870    22
-#>    2 10 0.0496 0.975  0.0435    22
-#>    3  9 0.1303 0.933  0.7391    22
-#>    4  8 0.1516 0.921  0.9130    22
-#> 
-#> Smallest attainable raw p-value: 0.0435
+#>    0 12 0.1532 0.920   0.969   999
+#>    1 11 0.1000 0.949   0.145   999
+#>    2 10 0.0496 0.975   0.001   999
+#>    3  9 0.1303 0.933   0.725   999
+#>    4  8 0.1516 0.921   0.850   999
 #> Per-lag p-values are not corrected for testing several lags or for selecting
 #> the optimal lag; report the global p for the optimal lag.
-fit_phase <- lagged_protest(sim$X, sim$Y, lags = 0:4,
-                            permutation = "phase", seed = 1)
-fit_phase$p.global
+fit$p.global
 #> [1] 0.004
+fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
+                             permutation = "cyclic")
+fit_cyclic$profile
+#>   lag  n         m2         r    p.value p.adjusted nperm
+#> 1   0 12 0.15315445 0.9202421 1.00000000 1.00000000    22
+#> 2   1 11 0.10003719 0.9486637 0.08695652 0.08695652    22
+#> 3   2 10 0.04963006 0.9748692 0.04347826 0.04347826    22
+#> 4   3  9 0.13033905 0.9325561 0.73913043 0.73913043    22
+#> 5   4  8 0.15160634 0.9210829 0.91304348 0.91304348    22
 plot(fit)
 
 residuals(fit)

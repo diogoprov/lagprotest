@@ -4,6 +4,12 @@
 
 ### Breaking changes
 
+- The default permutation scheme is now `permutation = "phase"`
+  (phase-randomized surrogates), which retains power for the global
+  p-value across lags. Use `permutation = "cyclic"` for the previous
+  behavior; the phase scheme is random, so set `seed` for reproducible
+  results.
+
 - [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
   now defaults to `p.adjust.method = "none"`, because corrections such
   as Holm are often unattainable with the few permutations of the cyclic

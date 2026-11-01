@@ -54,34 +54,36 @@ error.
 
 ``` r
 
-fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 999, seed = 1)
 fit
 #> 
 #> Lagged PROTEST
 #> 
-#> Call: lagged_protest(X = sim$X, Y = sim$Y, lags = 0:4)
-#> Permutation: cyclic shift with mirror; n = 12 time points
+#> Call: lagged_protest(X = sim$X, Y = sim$Y, lags = 0:4, nperm = 999, seed = 1)
+#> Permutation: phase-randomized surrogates; n = 12 time points
 #> P-value adjustment across lags: none
 #> 
-#> Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.0435)
-#> Global p across lags (max-statistic): 0.13
+#> Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.001)
+#> Global p across lags (max-statistic): 0.003
 #> 
 #> Lag profile:
 #>  lag  n     m2     r p.value nperm
-#>    0 12 0.3103 0.830  0.9565    22
-#>    1 11 0.2078 0.890  0.0870    22
-#>    2 10 0.0922 0.953  0.0435    22
-#>    3  9 0.2748 0.852  0.7391    22
-#>    4  8 0.3046 0.834  0.9130    22
-#> 
-#> Smallest attainable raw p-value: 0.0435
+#>    0 12 0.3103 0.830   0.962   999
+#>    1 11 0.2078 0.890   0.138   999
+#>    2 10 0.0922 0.953   0.001   999
+#>    3  9 0.2748 0.852   0.818   999
+#>    4  8 0.3046 0.834   0.876   999
 #> Per-lag p-values are not corrected for testing several lags or for selecting
 #> the optimal lag; report the global p for the optimal lag.
 ```
 
-The profile lists, for every lag, the number of rows used (`n`), *m*²,
-the Procrustes correlation *r* = √(1 − *m*²), the permutation p-value
-and the number of permutations. The optimal lag here is the true one, 2.
+By default the null distribution comes from phase-randomized surrogates
+of `Y` (see [Choosing the permutation
+scheme](#choosing-the-permutation-scheme)); `seed` makes the result
+reproducible. The profile lists, for every lag, the number of rows used
+(`n`), *m*², the Procrustes correlation *r* = √(1 − *m*²), the
+permutation p-value and the number of surrogates. The optimal lag here
+is the true one, 2.
 
 The per-lag p-values are not corrected for testing several lags, nor for
 choosing the lag with the smallest *m*² after looking at the profile.
@@ -91,18 +93,11 @@ to report for the optimal lag is the global p-value, printed below the
 optimal lag and stored in `fit$p.global`. It compares the observed
 minimum *m*² across lags with the minimum across lags obtained under
 each permutation (a max-statistic test), so it is the p-value of the
-whole scan-and-select procedure.
-
-With the default cyclic scheme the global p-value is valid but has low
-power (see [Choosing the permutation
-scheme](#choosing-the-permutation-scheme)). Phase-randomized surrogates
-are better suited to it:
+whole scan-and-select procedure:
 
 ``` r
 
-fit_phase <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "phase",
-                            nperm = 999, seed = 1)
-fit_phase$p.global
+fit$p.global
 #> [1] 0.003
 ```
 
@@ -114,7 +109,8 @@ instead, and raw and adjusted values are then both reported:
 
 ``` r
 
-fit_holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, p.adjust.method = "holm")
+fit_holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "cyclic",
+                           p.adjust.method = "holm")
 fit_holm$profile[, c("lag", "p.value", "p.adjusted")]
 #>   lag    p.value p.adjusted
 #> 1   0 0.95652174  1.0000000
@@ -124,9 +120,10 @@ fit_holm$profile[, c("lag", "p.value", "p.adjusted")]
 #> 5   4 0.91304348  1.0000000
 ```
 
-With only 22 cyclic permutations, a raw p-value at its minimum of 0.043
-becomes 0.217 after Holm correction across five lags, so significance at
-α = 0.05 is unattainable with this design (see Caveats).
+With the cyclic scheme and `n = 12` there are only 22 permutations, so a
+raw p-value at its minimum of 0.043 becomes 0.217 after Holm correction
+across five lags, and significance at α = 0.05 is unattainable (see
+Caveats).
 
 [`summary()`](https://rdrr.io/r/base/summary.html) returns the profile
 as a data frame, with the optimal lag flagged:
@@ -134,12 +131,12 @@ as a data frame, with the optimal lag flagged:
 ``` r
 
 summary(fit)
-#>   lag  n         m2         r    p.value p.adjusted nperm optimal
-#> 1   0 12 0.31032769 0.8304651 0.95652174 0.95652174    22   FALSE
-#> 2   1 11 0.20776926 0.8900734 0.08695652 0.08695652    22   FALSE
-#> 3   2 10 0.09221418 0.9527779 0.04347826 0.04347826    22    TRUE
-#> 4   3  9 0.27479436 0.8515901 0.73913043 0.73913043    22   FALSE
-#> 5   4  8 0.30456477 0.8339276 0.91304348 0.91304348    22   FALSE
+#>   lag  n         m2         r p.value p.adjusted nperm optimal
+#> 1   0 12 0.31032769 0.8304651   0.962      0.962   999   FALSE
+#> 2   1 11 0.20776926 0.8900734   0.138      0.138   999   FALSE
+#> 3   2 10 0.09221418 0.9527779   0.001      0.001   999    TRUE
+#> 4   3  9 0.27479436 0.8515901   0.818      0.818   999   FALSE
+#> 5   4  8 0.30456477 0.8339276   0.876      0.876   999   FALSE
 ```
 
 ## Plotting the lag profile
@@ -196,15 +193,16 @@ autocorrelated data (Legendre et al. 2002).
 [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
 offers two schemes that keep the temporal structure of `Y`:
 
-- `permutation = "cyclic"` (default) shifts the full `Y` series
-  cyclically by 1, …, n − 1 positions, and also time-reverses it when
-  `mirror = TRUE`, *before* the lag is applied. Each permuted series
-  keeps its autocorrelation. All shifts are enumerated, so the test
-  needs no random seed.
-- `permutation = "phase"` draws `nperm` phase-randomized surrogates of
-  `Y` (Ebisuzaki 1997). Each surrogate keeps the amplitude spectrum of
-  every column of `Y`, and hence its autocorrelation, as well as the
-  cross-spectra among the columns, but receives new Fourier phases.
+- `permutation = "phase"` (default) draws `nperm` phase-randomized
+  surrogates of `Y` (Ebisuzaki 1997). Each surrogate keeps the amplitude
+  spectrum of every column of `Y`, and hence its autocorrelation, as
+  well as the cross-spectra among the columns, but receives new Fourier
+  phases.
+- `permutation = "cyclic"` shifts the full `Y` series cyclically by 1,
+  …, n − 1 positions, and also time-reverses it when `mirror = TRUE`,
+  *before* the lag is applied. Each permuted series keeps its
+  autocorrelation. All shifts are enumerated, so the test needs no
+  random seed.
 
 `permutation = "free"` reproduces the behavior of
 [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html)
@@ -233,7 +231,7 @@ rates <- function(true_lag, n_rep) {
   res <- vapply(seq_len(n_rep), function(i) {
     s <- simulate_lagged_series(n_times = 24, period = 24, true_lag = true_lag,
                                 autocorr = 0.5, noise_sd = 0.5, seed = i)
-    cyc <- lagged_protest(s$X, s$Y, lags = 0:4)
+    cyc <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "cyclic")
     pha <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "phase",
                           nperm = 99, seed = i)
     fre <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "free",
@@ -267,9 +265,16 @@ nominal level, but only the phase scheme retains power.
   difference. Concordance should then be read as possibly arising from
   shared seasonality alone; removing the seasonal component before the
   analysis is one way to test for concordance beyond it.
-- **Strong autocorrelation.** With very strong AR(1) autocorrelation
-  (0.9) and short series, Type I error exceeded the nominal level under
-  both schemes in the same simulations.
+- **Strong autocorrelation.** In simulations with 1000 replicates per
+  scenario, the global p-value of the phase scheme kept Type I error at
+  0.047–0.053 for AR(1) autocorrelation up to 0.5, but reached 0.063 at
+  0.7 and 0.129 at 0.9 (averaged over series length and number of
+  variables), and 0.15–0.19 with 12–24 time points or 10 variables. The
+  excess faded with longer series (0.063 at AR(1) = 0.9 with 96 time
+  points). The cyclic scheme without mirror was less affected (0.081 at
+  0.9) but had much lower power. For short, strongly autocorrelated
+  series, report the cyclic result alongside the phase one, and estimate
+  the autocorrelation of the series.
 - **Few permutations.** With `n` time points there are only `2(n − 1)`
   cyclic permutations, so the smallest attainable p-value is
   `1 / (2(n − 1) + 1)`, 0.043 for `n = 12`. Corrections across many lags
