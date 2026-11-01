@@ -151,7 +151,7 @@ therefore defaults to `permutation = "cyclic"`. The full `Y` series is
 cyclically shifted by 1, …, n − 1 positions, and also time-reversed when
 `mirror = TRUE`, *before* the lag is applied. Each permuted series keeps
 its autocorrelation. All shifts are enumerated, so the test is exact and
-needs no random seed. `permutation = "free"` reproduces the behaviour of
+needs no random seed. `permutation = "free"` reproduces the behavior of
 [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html)
 (Oksanen et al. 2026).
 
@@ -185,7 +185,7 @@ approach 1 with free permutation.
   cycle. This is appropriate when the series spans whole cycles, such as
   12 monthly samples of an annual cycle. Cyclic-shift null models can be
   biased when this does not hold (Kalyuzhny 2020); for series whose
-  period differs from their length, a phase-randomisation surrogate
+  period differs from their length, a phase-randomization surrogate
   (Ebisuzaki 1997) is a better reference.
 - **Few permutations.** With `n` time points there are only `2(n − 1)`
   cyclic permutations, so the smallest attainable p-value is
@@ -195,7 +195,7 @@ approach 1 with free permutation.
 - **Different window sizes.** *m*² at lag *k* is based on `n − k` rows,
   so long lags rest on fewer observations. Keep the candidate lags
   within a range justified by the biology of the system.
-- **Scaling.** With `scale = TRUE` (default) variables are standardised
+- **Scaling.** With `scale = TRUE` (default) variables are standardized
   on the full series before truncation.
 
 ## References

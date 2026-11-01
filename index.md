@@ -54,3 +54,10 @@ manuscript in preparation.
 ## License
 
 MIT
+
+## Code of Conduct
+
+Please note that the lagprotest project is released with a [Contributor
+Code of
+Conduct](https://provetelab.org/lagprotest/CODE_OF_CONDUCT.html). By
+contributing to this project, you agree to abide by its terms.

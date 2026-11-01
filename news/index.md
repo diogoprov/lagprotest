@@ -1,5 +1,13 @@
 # Changelog
 
+## lagprotest (development version)
+
+- Continuous integration: R CMD check on macOS, Windows and Ubuntu, and
+  test coverage reporting, via GitHub Actions.
+- Spell check of the documentation, contributing guide, code of conduct
+  and issue templates.
+- The vignette now uses US English spelling.
+
 ## lagprotest 0.1.0
 
 First public release.
