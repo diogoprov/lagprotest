@@ -15,6 +15,7 @@ authors:
     orcid: "https://orcid.org/0000-0002-0097-0651"
 version: 0.1.0
 date-released: "2026-11-01"
+doi: 10.5281/zenodo.23860109
 license: MIT
 repository-code: "https://github.com/diogoprov/lagprotest"
 keywords:

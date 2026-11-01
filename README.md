@@ -1,6 +1,7 @@
 # lagprotest <img src="man/figures/logo.png" align="right" height="139" alt="lagprotest hex logo" />
 
 <!-- badges: start -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23860109.svg)](https://doi.org/10.5281/zenodo.23860109)
 <!-- badges: end -->
 
 **lagprotest** extends the Procrustean randomization test (PROTEST) to
