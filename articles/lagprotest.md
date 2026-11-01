@@ -61,25 +61,50 @@ fit
 #> 
 #> Call: lagged_protest(X = sim$X, Y = sim$Y, lags = 0:4)
 #> Permutation: cyclic shift with mirror; n = 12 time points
-#> P-value adjustment across lags: holm
+#> P-value adjustment across lags: none
 #> 
-#> Optimal lag: 2  (m2 = 0.0922, r = 0.953, adjusted p = 0.217)
+#> Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.0435)
 #> 
 #> Lag profile:
-#>  lag  n     m2     r p.value p.adjusted nperm
-#>    0 12 0.3103 0.830  0.9565      1.000    22
-#>    1 11 0.2078 0.890  0.0870      0.348    22
-#>    2 10 0.0922 0.953  0.0435      0.217    22
-#>    3  9 0.2748 0.852  0.7391      1.000    22
-#>    4  8 0.3046 0.834  0.9130      1.000    22
+#>  lag  n     m2     r p.value nperm
+#>    0 12 0.3103 0.830  0.9565    22
+#>    1 11 0.2078 0.890  0.0870    22
+#>    2 10 0.0922 0.953  0.0435    22
+#>    3  9 0.2748 0.852  0.7391    22
+#>    4  8 0.3046 0.834  0.9130    22
 #> 
 #> Smallest attainable raw p-value: 0.0435
+#> P-values are not corrected for testing several lags or for selecting the optimal lag.
 ```
 
 The profile lists, for every lag, the number of rows used (`n`), *m*²,
-the Procrustes correlation *r* = √(1 − *m*²), the raw permutation
-p-value and the p-value adjusted across lags (Holm by default; see
-`p.adjust.method`). The optimal lag here is the true one, 2.
+the Procrustes correlation *r* = √(1 − *m*²), the permutation p-value
+and the number of permutations. The optimal lag here is the true one, 2.
+
+By default the p-values are not corrected for testing several lags, nor
+for choosing the lag with the smallest *m*² after looking at the
+profile. The p-value at the optimal lag is therefore optimistic and
+should be read together with the whole profile: a clear minimum at one
+lag, flanked by weaker concordance at neighboring lags, is stronger
+evidence than a single small p-value. A correction across lags can be
+requested with `p.adjust.method`; raw and adjusted values are then both
+reported:
+
+``` r
+
+fit_holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, p.adjust.method = "holm")
+fit_holm$profile[, c("lag", "p.value", "p.adjusted")]
+#>   lag    p.value p.adjusted
+#> 1   0 0.95652174  1.0000000
+#> 2   1 0.08695652  0.3478261
+#> 3   2 0.04347826  0.2173913
+#> 4   3 0.73913043  1.0000000
+#> 5   4 0.91304348  1.0000000
+```
+
+With only 22 cyclic permutations, a raw p-value at its minimum of 0.043
+becomes 0.217 after Holm correction across five lags, so significance at
+α = 0.05 is unattainable with this design (see Caveats).
 
 [`summary()`](https://rdrr.io/r/base/summary.html) returns the profile
 as a data frame, with the optimal lag flagged:
@@ -88,11 +113,11 @@ as a data frame, with the optimal lag flagged:
 
 summary(fit)
 #>   lag  n         m2         r    p.value p.adjusted nperm optimal
-#> 1   0 12 0.31032769 0.8304651 0.95652174  1.0000000    22   FALSE
-#> 2   1 11 0.20776926 0.8900734 0.08695652  0.3478261    22   FALSE
-#> 3   2 10 0.09221418 0.9527779 0.04347826  0.2173913    22    TRUE
-#> 4   3  9 0.27479436 0.8515901 0.73913043  1.0000000    22   FALSE
-#> 5   4  8 0.30456477 0.8339276 0.91304348  1.0000000    22   FALSE
+#> 1   0 12 0.31032769 0.8304651 0.95652174 0.95652174    22   FALSE
+#> 2   1 11 0.20776926 0.8900734 0.08695652 0.08695652    22   FALSE
+#> 3   2 10 0.09221418 0.9527779 0.04347826 0.04347826    22    TRUE
+#> 4   3  9 0.27479436 0.8515901 0.73913043 0.73913043    22   FALSE
+#> 5   4  8 0.30456477 0.8339276 0.91304348 0.91304348    22   FALSE
 ```
 
 ## Plotting the lag profile
@@ -109,8 +134,8 @@ lag.](lagprotest_files/figure-html/plot-1.png)
 The solid line is the observed *m*² at each lag. The dashed line is the
 5% quantile of the permutation null distribution at that lag: observed
 values below it are significant at α = 0.05 before correction. Filled
-points mark lags that remain significant after adjustment, and the
-dotted vertical line marks the optimal lag.
+points mark lags with p \< 0.05 (after adjustment, if one was
+requested), and the dotted vertical line marks the optimal lag.
 
 ## Residuals per observation
 

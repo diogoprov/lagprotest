@@ -3,7 +3,8 @@
 Plots \\m^2\\ against lag. The dashed line is the `alpha` quantile of
 the permutation null distribution at each lag (unadjusted); observed
 values below it are significant at that level before correction. Filled
-points mark lags whose adjusted p-value is below `alpha`.
+points mark lags whose p-value (adjusted, if `p.adjust.method` was not
+`"none"`) is below `alpha`.
 
 ## Usage
 

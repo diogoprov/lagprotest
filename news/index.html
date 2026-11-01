@@ -34,10 +34,18 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-development-version">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> now defaults to <code>p.adjust.method = "none"</code>, because corrections such as Holm are often unattainable with the few permutations of the cyclic scheme. <code>$p.value</code> is now the raw p-value at the optimal lag; the adjusted value is in the new <code>$p.adjusted</code> element, and the number of permutations in <code>$n_perm</code>. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> warns when p-values are unadjusted.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="infrastructure-development-version">Infrastructure<a class="anchor" aria-label="anchor" href="#infrastructure-development-version"></a></h3>
 <ul><li>Continuous integration: R CMD check on macOS, Windows and Ubuntu, and test coverage reporting, via GitHub Actions.</li>
 <li>Spell check of the documentation, contributing guide, code of conduct and issue templates.</li>
 <li>The vignette now uses US English spelling.</li>
 </ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="lagprotest-010">lagprotest 0.1.0<a class="anchor" aria-label="anchor" href="#lagprotest-010"></a></h2>
 <p>First public release.</p>

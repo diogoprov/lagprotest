@@ -37,7 +37,7 @@ sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.5,
                               seed = 1)
 
 fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
-fit             # lag profile, optimal lag, adjusted p-value
+fit             # lag profile, optimal lag and p-values
 plot(fit)       # m2 against lag, with the permutation null quantile
 residuals(fit)  # per-observation residuals at the optimal lag
 ```

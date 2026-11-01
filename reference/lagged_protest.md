@@ -15,7 +15,7 @@ lagged_protest(
   mirror = TRUE,
   bidirectional = FALSE,
   scale = TRUE,
-  p.adjust.method = "holm",
+  p.adjust.method = "none",
   seed = NULL
 )
 ```
@@ -57,7 +57,8 @@ lagged_protest(
 - p.adjust.method:
 
   Correction for multiple lags, passed to
-  [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html).
+  [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html). Defaults
+  to `"none"`.
 
 - seed:
 
@@ -82,7 +83,17 @@ An object of class `"lagged_protest"`, a list with:
 
 - `p.value`:
 
-  Adjusted p-value at the optimal lag.
+  Raw permutation p-value at the optimal lag.
+
+- `p.adjusted`:
+
+  P-value at the optimal lag adjusted with `p.adjust.method` (equal to
+  `p.value` when `"none"`).
+
+- `n_perm`:
+
+  Number of permutations at the optimal lag (the exact count for the
+  cyclic scheme).
 
 - `profile`:
 
@@ -139,10 +150,15 @@ Two permutation schemes are available:
 
 P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 permuted \\m^2\\ values smaller than or equal to the observed one and
-`N` the number of permutations, and adjusted across lags with
-[`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html). Note that
-\\m^2\\ values at different lags are based on different numbers of rows
-(`n - |k|`).
+`N` the number of permutations. By default (`p.adjust.method = "none"`)
+they are not corrected for testing several lags, nor for selecting the
+lag with the smallest \\m^2\\; the p-value at the optimal lag should
+therefore be read together with the whole lag profile. Any method of
+[`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) can be
+requested instead, and both raw and adjusted values are returned. With
+few permutations, as in the cyclic scheme, corrections such as Holm may
+make significance unattainable. Note that \\m^2\\ values at different
+lags are based on different numbers of rows (`n - |k|`).
 
 ## See also
 
@@ -161,19 +177,20 @@ fit
 #> 
 #> Call: lagged_protest(X = sim$X, Y = sim$Y, lags = 0:4)
 #> Permutation: cyclic shift with mirror; n = 12 time points
-#> P-value adjustment across lags: holm
+#> P-value adjustment across lags: none
 #> 
-#> Optimal lag: 2  (m2 = 0.0496, r = 0.975, adjusted p = 0.217)
+#> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.0435)
 #> 
 #> Lag profile:
-#>  lag  n     m2     r p.value p.adjusted nperm
-#>    0 12 0.1532 0.920  1.0000      1.000    22
-#>    1 11 0.1000 0.949  0.0870      0.348    22
-#>    2 10 0.0496 0.975  0.0435      0.217    22
-#>    3  9 0.1303 0.933  0.7391      1.000    22
-#>    4  8 0.1516 0.921  0.9130      1.000    22
+#>  lag  n     m2     r p.value nperm
+#>    0 12 0.1532 0.920  1.0000    22
+#>    1 11 0.1000 0.949  0.0870    22
+#>    2 10 0.0496 0.975  0.0435    22
+#>    3  9 0.1303 0.933  0.7391    22
+#>    4  8 0.1516 0.921  0.9130    22
 #> 
 #> Smallest attainable raw p-value: 0.0435
+#> P-values are not corrected for testing several lags or for selecting the optimal lag.
 plot(fit)
 
 residuals(fit)

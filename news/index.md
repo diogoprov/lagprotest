@@ -2,6 +2,19 @@
 
 ## lagprotest (development version)
 
+### Breaking changes
+
+- [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+  now defaults to `p.adjust.method = "none"`, because corrections such
+  as Holm are often unattainable with the few permutations of the cyclic
+  scheme. `$p.value` is now the raw p-value at the optimal lag; the
+  adjusted value is in the new `$p.adjusted` element, and the number of
+  permutations in `$n_perm`.
+  [`print()`](https://rdrr.io/r/base/print.html) warns when p-values are
+  unadjusted.
+
+### Infrastructure
+
 - Continuous integration: R CMD check on macOS, Windows and Ubuntu, and
   test coverage reporting, via GitHub Actions.
 - Spell check of the documentation, contributing guide, code of conduct

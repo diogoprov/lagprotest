@@ -51,7 +51,7 @@ candidate temporal lags and tests it by permutation at each lag.</p>
 <span>  mirror <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  bidirectional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  scale <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  p.adjust.method <span class="op">=</span> <span class="st">"holm"</span>,</span>
+<span>  p.adjust.method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -96,7 +96,7 @@ full series) before analysis. Ignored for <code>dist</code> inputs.</p></dd>
 
 <dt id="arg-p-adjust-method">p.adjust.method<a class="anchor" aria-label="anchor" href="#arg-p-adjust-method"></a></dt>
 <dd><p>Correction for multiple lags, passed to
-<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>.</p></dd>
+<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>. Defaults to <code>"none"</code>.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
@@ -117,7 +117,15 @@ random number stream is left untouched.</p></dd>
 optimal lag.</p></dd>
 
 <dt><code>p.value</code></dt>
-<dd><p>Adjusted p-value at the optimal lag.</p></dd>
+<dd><p>Raw permutation p-value at the optimal lag.</p></dd>
+
+<dt><code>p.adjusted</code></dt>
+<dd><p>P-value at the optimal lag adjusted with
+<code>p.adjust.method</code> (equal to <code>p.value</code> when <code>"none"</code>).</p></dd>
+
+<dt><code>n_perm</code></dt>
+<dd><p>Number of permutations at the optimal lag (the exact
+count for the cyclic scheme).</p></dd>
 
 <dt><code>profile</code></dt>
 <dd><p>Data frame with <code>lag</code>, <code>n</code> (rows used), <code>m2</code>, <code>r</code>,
@@ -160,9 +168,15 @@ window, as in <code><a href="https://vegandevs.github.io/vegan/reference/procrus
 strongly inflate Type I error when both series are autocorrelated.</p></li>
 </ul><p>P-values are computed as <code>(b + 1) / (N + 1)</code>, where <code>b</code> is the number of
 permuted \(m^2\) values smaller than or equal to the observed one and
-<code>N</code> the number of permutations, and adjusted across lags with
-<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>. Note that \(m^2\) values at different lags are
-based on different numbers of rows (<code>n - |k|</code>).</p>
+<code>N</code> the number of permutations. By default (<code>p.adjust.method = "none"</code>)
+they are not corrected for testing several lags, nor for selecting the lag
+with the smallest \(m^2\); the p-value at the optimal lag should therefore
+be read together with the whole lag profile. Any method of
+<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code> can be requested instead, and both raw and adjusted
+values are returned. With few permutations, as in the cyclic scheme,
+corrections such as Holm may make significance unattainable. Note that
+\(m^2\) values at different lags are based on different numbers of rows
+(<code>n - |k|</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -180,19 +194,20 @@ based on different numbers of rows (<code>n - |k|</code>).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call: lagged_protest(X = sim$X, Y = sim$Y, lags = 0:4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Permutation: cyclic shift with mirror; n = 12 time points</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P-value adjustment across lags: holm</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P-value adjustment across lags: none</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Optimal lag: 2  (m2 = 0.0496, r = 0.975, adjusted p = 0.217)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.0435)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Lag profile:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  lag  n     m2     r p.value p.adjusted nperm</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    0 12 0.1532 0.920  1.0000      1.000    22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    1 11 0.1000 0.949  0.0870      0.348    22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    2 10 0.0496 0.975  0.0435      0.217    22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    3  9 0.1303 0.933  0.7391      1.000    22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    4  8 0.1516 0.921  0.9130      1.000    22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  lag  n     m2     r p.value nperm</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    0 12 0.1532 0.920  1.0000    22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1 11 0.1000 0.949  0.0870    22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    2 10 0.0496 0.975  0.0435    22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    3  9 0.1303 0.933  0.7391    22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    4  8 0.1516 0.921  0.9130    22</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Smallest attainable raw p-value: 0.0435</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P-values are not corrected for testing several lags or for selecting the optimal lag.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="lagged_protest-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
