@@ -115,7 +115,7 @@ problem shared with other permutation tests on autocorrelated data
 time-reversed when `mirror = TRUE`, *before* the lag is applied. Each permuted
 series keeps its autocorrelation. All shifts are enumerated, so the test is
 exact and needs no random seed. `permutation = "free"` reproduces the
-behaviour of `vegan::protest()` [@vegan].
+behavior of `vegan::protest()` [@vegan].
 
 The difference matters. Under independence, a small simulation with
 12 monthly samples gives:
@@ -143,7 +143,7 @@ cyclic shifts and approach 1 with free permutation.
   cycle. This is appropriate when the series spans whole cycles, such as
   12 monthly samples of an annual cycle. Cyclic-shift null models can be
   biased when this does not hold [@kalyuzhny2020cyclic]; for series whose
-  period differs from their length, a phase-randomisation surrogate
+  period differs from their length, a phase-randomization surrogate
   [@ebisuzaki1997] is a better reference.
 * **Few permutations.** With `n` time points there are only `2(n − 1)`
   cyclic permutations, so the smallest attainable p-value is
@@ -153,7 +153,7 @@ cyclic shifts and approach 1 with free permutation.
 * **Different window sizes.** *m*² at lag *k* is based on `n − k` rows, so
   long lags rest on fewer observations. Keep the candidate lags within a
   range justified by the biology of the system.
-* **Scaling.** With `scale = TRUE` (default) variables are standardised on
+* **Scaling.** With `scale = TRUE` (default) variables are standardized on
   the full series before truncation.
 
 ## References
