@@ -20,5 +20,6 @@
 Plots \eqn{m^2} against lag. The dashed line is the \code{alpha} quantile of
 the permutation null distribution at each lag (unadjusted); observed
 values below it are significant at that level before correction. Filled
-points mark lags whose adjusted p-value is below \code{alpha}.
+points mark lags whose p-value (adjusted, if \code{p.adjust.method} was not
+\code{"none"}) is below \code{alpha}.
 }

@@ -13,7 +13,7 @@ lagged_protest(
   mirror = TRUE,
   bidirectional = FALSE,
   scale = TRUE,
-  p.adjust.method = "holm",
+  p.adjust.method = "none",
   seed = NULL
 )
 }
@@ -39,7 +39,7 @@ time-reversed shifts of \code{Y}, doubling the permutation set.}
 full series) before analysis. Ignored for \code{dist} inputs.}
 
 \item{p.adjust.method}{Correction for multiple lags, passed to
-\code{\link[stats:p.adjust]{stats::p.adjust()}}.}
+\code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"none"}.}
 
 \item{seed}{Optional integer seed for \code{permutation = "free"}. The global
 random number stream is left untouched.}
@@ -51,7 +51,11 @@ An object of class \code{"lagged_protest"}, a list with:
 \item{\code{m2}}{\eqn{m^2} at the optimal lag.}
 \item{\code{r}}{Procrustes correlation, \eqn{\sqrt{1 - m^2}}, at the
 optimal lag.}
-\item{\code{p.value}}{Adjusted p-value at the optimal lag.}
+\item{\code{p.value}}{Raw permutation p-value at the optimal lag.}
+\item{\code{p.adjusted}}{P-value at the optimal lag adjusted with
+\code{p.adjust.method} (equal to \code{p.value} when \code{"none"}).}
+\item{\code{n_perm}}{Number of permutations at the optimal lag (the exact
+count for the cyclic scheme).}
 \item{\code{profile}}{Data frame with \code{lag}, \code{n} (rows used), \code{m2}, \code{r},
 \code{p.value}, \code{p.adjusted} and \code{nperm} for every lag.}
 \item{\code{residuals}}{Data frame of per-observation Procrustes residuals
@@ -91,9 +95,15 @@ strongly inflate Type I error when both series are autocorrelated.
 
 P-values are computed as \code{(b + 1) / (N + 1)}, where \code{b} is the number of
 permuted \eqn{m^2} values smaller than or equal to the observed one and
-\code{N} the number of permutations, and adjusted across lags with
-\code{\link[stats:p.adjust]{stats::p.adjust()}}. Note that \eqn{m^2} values at different lags are
-based on different numbers of rows (\verb{n - |k|}).
+\code{N} the number of permutations. By default (\code{p.adjust.method = "none"})
+they are not corrected for testing several lags, nor for selecting the lag
+with the smallest \eqn{m^2}; the p-value at the optimal lag should therefore
+be read together with the whole lag profile. Any method of
+\code{\link[stats:p.adjust]{stats::p.adjust()}} can be requested instead, and both raw and adjusted
+values are returned. With few permutations, as in the cyclic scheme,
+corrections such as Holm may make significance unattainable. Note that
+\eqn{m^2} values at different lags are based on different numbers of rows
+(\verb{n - |k|}).
 }
 \examples{
 sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
