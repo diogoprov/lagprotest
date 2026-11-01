@@ -5,15 +5,16 @@ title: "lagprotest: Lagged Procrustean Randomization Test for Multivariate Time 
 abstract: >-
   R package that extends the Procrustean randomization test (PROTEST) to
   ordered multivariate series. Concordance between two configurations is
-  scanned across candidate temporal lags, and significance at each lag is
-  assessed by permutation, either by cyclic shifts of the full series or by
-  free permutation of rows. Returns the lag profile, the lag of maximal
-  concordance and per-observation Procrustes residuals.
+  scanned across candidate temporal lags. Significance is assessed with
+  phase-randomized surrogates (default), cyclic shifts of the full series or
+  free permutation of rows, and a global max-statistic p-value accounts for
+  scanning several lags and selecting the best one. Returns the lag profile,
+  the lag of maximal concordance and per-observation Procrustes residuals.
 authors:
   - family-names: Provete
     given-names: Diogo B.
     orcid: "https://orcid.org/0000-0002-0097-0651"
-version: 0.1.0
+version: 0.2.0
 date-released: "2026-11-01"
 doi: 10.5281/zenodo.23860109
 license: MIT
