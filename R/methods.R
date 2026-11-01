@@ -2,11 +2,11 @@
 print.lagged_protest <- function(x, digits = 3, ...) {
   cat("\nLagged PROTEST\n\n")
   cat("Call: ", deparse(x$call, width.cutoff = 70L), "\n", sep = "")
-  scheme <- if (x$permutation == "cyclic") {
-    paste0("cyclic shift", if (isTRUE(x$mirror)) " with mirror", "")
-  } else {
-    "free row permutation"
-  }
+  scheme <- switch(x$permutation,
+    cyclic = paste0("cyclic shift", if (isTRUE(x$mirror)) " with mirror"),
+    phase = "phase-randomized surrogates",
+    free = "free row permutation"
+  )
   cat("Permutation: ", scheme, "; n = ", x$n, " time points\n", sep = "")
   cat("P-value adjustment across lags: ", x$p.adjust.method, "\n\n", sep = "")
   adjusted <- x$p.adjust.method != "none"
@@ -16,7 +16,9 @@ print.lagged_protest <- function(x, digits = 3, ...) {
       ", p = ", format(x$p.value, digits = digits),
       if (adjusted) paste0(", adjusted p = ",
                            format(x$p.adjusted, digits = digits)),
-      ")\n\n", sep = "")
+      ")\n", sep = "")
+  cat("Global p across lags (max-statistic): ",
+      format(x$p.global, digits = digits), "\n\n", sep = "")
   cat("Lag profile:\n")
   profile <- x$profile
   if (!adjusted) profile$p.adjusted <- NULL
@@ -27,8 +29,9 @@ print.lagged_protest <- function(x, digits = 3, ...) {
         format(p_min, digits = digits), "\n", sep = "")
   }
   if (!adjusted) {
-    cat("P-values are not corrected for testing several lags",
-        "or for selecting the optimal lag.\n")
+    cat("Per-lag p-values are not corrected for testing several lags",
+        "or for selecting\nthe optimal lag; report the global p for the",
+        "optimal lag.\n")
   }
   invisible(x)
 }

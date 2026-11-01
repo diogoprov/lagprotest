@@ -24,3 +24,20 @@ test_that("free permutation inflates Type I error for seasonal series", {
   rate <- reject_by_lag(50, "free", autocorr = 0, noise_sd = 0.3)
   expect_true(all(rate > 0.5))
 })
+
+global_reject <- function(n_rep, permutation, ...) {
+  mean(vapply(seq_len(n_rep), function(i) {
+    s <- simulate_lagged_series(n_times = 24, period = 24, seed = i, ...)
+    fit <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = permutation,
+                          nperm = 99, seed = i)
+    fit$p.global < 0.05
+  }, logical(1)))
+}
+
+test_that("the global p-value keeps Type I error near alpha", {
+  skip_on_cran()
+  expect_lte(global_reject(300, "phase", autocorr = 0.5, noise_sd = 0.5),
+             0.09)
+  expect_lte(global_reject(300, "cyclic", autocorr = 0.5, noise_sd = 0.5),
+             0.09)
+})

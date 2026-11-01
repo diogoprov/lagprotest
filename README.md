@@ -39,11 +39,16 @@ library(lagprotest)
 sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.5,
                               seed = 1)
 
-fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
-fit             # lag profile, optimal lag and p-values
+fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "phase",
+                      seed = 1)
+fit             # lag profile, optimal lag, per-lag and global p-values
 plot(fit)       # m2 against lag, with the permutation null quantile
 residuals(fit)  # per-observation residuals at the optimal lag
 ```
+
+Report the global p-value (`fit$p.global`) for the optimal lag: it accounts
+for scanning several lags and selecting the best one, whereas the per-lag
+p-values do not.
 
 Inputs can be matrices or data frames (rows = ordered time points,
 columns = variables) or `dist` objects, which are converted to principal
