@@ -124,6 +124,7 @@ independent series, which is useful for checking Type I error.</p>
 <span><span class="co">#&gt; P-value adjustment across lags: none</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.0435)</span></span>
+<span><span class="co">#&gt; Global p across lags (max-statistic): 0.13</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Lag profile:</span></span>
 <span><span class="co">#&gt;  lag  n     m2     r p.value nperm</span></span>
@@ -134,20 +135,38 @@ independent series, which is useful for checking Type I error.</p>
 <span><span class="co">#&gt;    4  8 0.3046 0.834  0.9130    22</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Smallest attainable raw p-value: 0.0435</span></span>
-<span><span class="co">#&gt; P-values are not corrected for testing several lags or for selecting the optimal lag.</span></span></code></pre></div>
+<span><span class="co">#&gt; Per-lag p-values are not corrected for testing several lags or for selecting</span></span>
+<span><span class="co">#&gt; the optimal lag; report the global p for the optimal lag.</span></span></code></pre></div>
 <p>The profile lists, for every lag, the number of rows used
 (<code>n</code>), <em>m</em>², the Procrustes correlation <em>r</em> =
 √(1 − <em>m</em>²), the permutation p-value and the number of
 permutations. The optimal lag here is the true one, 2.</p>
-<p>By default the p-values are not corrected for testing several lags,
-nor for choosing the lag with the smallest <em>m</em>² after looking at
-the profile. The p-value at the optimal lag is therefore optimistic and
-should be read together with the whole profile: a clear minimum at one
-lag, flanked by weaker concordance at neighboring lags, is stronger
-evidence than a single small p-value. A correction across lags can be
-requested with <code>p.adjust.method</code>; raw and adjusted values are
-then both reported:</p>
+<p>The per-lag p-values are not corrected for testing several lags, nor
+for choosing the lag with the smallest <em>m</em>² after looking at the
+profile. Reporting the raw p-value at the optimal lag therefore inflates
+Type I error to roughly the rate at which <em>any</em> lag is
+significant. The p-value to report for the optimal lag is the global
+p-value, printed below the optimal lag and stored in
+<code>fit$p.global</code>. It compares the observed minimum <em>m</em>²
+across lags with the minimum across lags obtained under each permutation
+(a max-statistic test), so it is the p-value of the whole
+scan-and-select procedure.</p>
+<p>With the default cyclic scheme the global p-value is valid but has
+low power (see <a href="#choosing-the-permutation-scheme">Choosing the
+permutation scheme</a>). Phase-randomized surrogates are better suited
+to it:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_phase</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, permutation <span class="op">=</span> <span class="st">"phase"</span>,</span>
+<span>                            nperm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">fit_phase</span><span class="op">$</span><span class="va">p.global</span></span>
+<span><span class="co">#&gt; [1] 0.003</span></span></code></pre></div>
+<p>Per-lag p-values can also be corrected.
+<code>p.adjust.method = "maxT"</code> gives the single-step
+max-statistic adjusted p-value of every lag, whose value at the optimal
+lag equals the global p-value; any method of
+<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code> can be used instead, and raw and adjusted
+values are then both reported:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_holm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, p.adjust.method <span class="op">=</span> <span class="st">"holm"</span><span class="op">)</span></span>
 <span><span class="va">fit_holm</span><span class="op">$</span><span class="va">profile</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lag"</span>, <span class="st">"p.value"</span>, <span class="st">"p.adjusted"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;   lag    p.value p.adjusted</span></span>
@@ -162,7 +181,7 @@ significance at α = 0.05 is unattainable with this design (see
 Caveats).</p>
 <p><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> returns the profile as a data frame, with the
 optimal lag flagged:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   lag  n         m2         r    p.value p.adjusted nperm optimal</span></span>
 <span><span class="co">#&gt; 1   0 12 0.31032769 0.8304651 0.95652174 0.95652174    22   FALSE</span></span>
@@ -174,7 +193,7 @@ optimal lag flagged:</p>
 <div class="section level2">
 <h2 id="plotting-the-lag-profile">Plotting the lag profile<a class="anchor" aria-label="anchor" href="#plotting-the-lag-profile"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="lagprotest_files/figure-html/plot-1.png" class="r-plt" alt="Lag profile: m2 against lag, with a dashed line for the 5% quantile of the permutation null distribution at each lag." width="576"></p>
 <p>The solid line is the observed <em>m</em>² at each lag. The dashed
@@ -189,7 +208,7 @@ lag.</p>
 </h2>
 <p>Procrustes residuals show which time points fit the superimposition
 well and which deviate, at the optimal lag:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    x_row y_row   residual</span></span>
 <span><span class="co">#&gt; 1      1     3 0.09796321</span></span>
@@ -217,51 +236,93 @@ annually will often look concordant against a null that destroys their
 temporal structure, a problem shared with other permutation tests on
 autocorrelated data <span class="citation">(Legendre et al.
 2002)</span>.</p>
-<p><code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> therefore defaults to
-<code>permutation = "cyclic"</code>. The full <code>Y</code> series is
-cyclically shifted by 1, …, n − 1 positions, and also time-reversed when
-<code>mirror = TRUE</code>, <em>before</em> the lag is applied. Each
-permuted series keeps its autocorrelation. All shifts are enumerated, so
-the test is exact and needs no random seed.
-<code>permutation = "free"</code> reproduces the behavior of
+<p><code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> offers two schemes that keep the
+temporal structure of <code>Y</code>:</p>
+<ul>
+<li>
+<code>permutation = "cyclic"</code> (default) shifts the full
+<code>Y</code> series cyclically by 1, …, n − 1 positions, and also
+time-reverses it when <code>mirror = TRUE</code>, <em>before</em> the
+lag is applied. Each permuted series keeps its autocorrelation. All
+shifts are enumerated, so the test needs no random seed.</li>
+<li>
+<code>permutation = "phase"</code> draws <code>nperm</code>
+phase-randomized surrogates of <code>Y</code> <span class="citation">(Ebisuzaki 1997)</span>. Each surrogate keeps the
+amplitude spectrum of every column of <code>Y</code>, and hence its
+autocorrelation, as well as the cross-spectra among the columns, but
+receives new Fourier phases.</li>
+</ul>
+<p><code>permutation = "free"</code> reproduces the behavior of
 <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code> <span class="citation">(<span class="nocase">Oksanen et al.</span> 2026)</span>.</p>
-<p>The difference matters. Under independence, a small simulation with
-12 monthly samples gives:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">reject</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">permutation</span>, <span class="va">n_rep</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">rates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n_rep</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="fl">12</span>, autocorr <span class="op">=</span> <span class="fl">0</span>, noise_sd <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>                                seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
-<span>    <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">X</span>, <span class="va">s</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>, permutation <span class="op">=</span> <span class="va">permutation</span>,</span>
+<p>The cyclic and phase schemes differ in how they handle the scan
+across lags. Shifting <code>Y</code> by <em>s</em> positions and then
+applying lag <em>k</em> pairs the same rows as lag <em>k</em> +
+<em>s</em> without a shift. When several lags are scanned, some cyclic
+permutations therefore reproduce the observed alignment at another lag,
+and the null distribution of the minimum <em>m</em>² across lags
+contains the signal itself. The per-lag p-values are unaffected, but the
+global p-value loses power. Phase surrogates are new series rather than
+shifts of the observed one, so they avoid this problem; they also allow
+as many surrogates as desired, instead of the <code>2(n − 1)</code>
+cyclic permutations.</p>
+<p>The choice matters. Under independence, a small simulation with 24
+monthly samples spanning one cycle gives the following rejection rates
+at α = 0.05: for the raw p-value at the optimal lag, and for the global
+p-value under each scheme. A second set of series, in which
+<code>Y</code> follows <code>X</code> with a lag of two, gives the power
+of the global p-value:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rates</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">true_lag</span>, <span class="va">n_rep</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n_rep</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="fl">24</span>, period <span class="op">=</span> <span class="fl">24</span>, true_lag <span class="op">=</span> <span class="va">true_lag</span>,</span>
+<span>                                autocorr <span class="op">=</span> <span class="fl">0.5</span>, noise_sd <span class="op">=</span> <span class="fl">0.5</span>, seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
+<span>    <span class="va">cyc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">X</span>, <span class="va">s</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span>
+<span>    <span class="va">pha</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">X</span>, <span class="va">s</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, permutation <span class="op">=</span> <span class="st">"phase"</span>,</span>
 <span>                          nperm <span class="op">=</span> <span class="fl">99</span>, seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
-<span>    <span class="va">fit</span><span class="op">$</span><span class="va">profile</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&lt;</span> <span class="fl">0.05</span></span>
-<span>  <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/logical.html" class="external-link">logical</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">rates</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"lag"</span>, <span class="fl">0</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">fre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">X</span>, <span class="va">s</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, permutation <span class="op">=</span> <span class="st">"free"</span>,</span>
+<span>                          nperm <span class="op">=</span> <span class="fl">99</span>, seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>cyclic_optimal_raw <span class="op">=</span> <span class="va">cyc</span><span class="op">$</span><span class="va">p.value</span>, cyclic_global <span class="op">=</span> <span class="va">cyc</span><span class="op">$</span><span class="va">p.global</span>,</span>
+<span>      phase_global <span class="op">=</span> <span class="va">pha</span><span class="op">$</span><span class="va">p.global</span>, free_global <span class="op">=</span> <span class="va">fre</span><span class="op">$</span><span class="va">p.global</span><span class="op">)</span></span>
+<span>  <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">res</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>cyclic <span class="op">=</span> <span class="fu">reject</span><span class="op">(</span><span class="st">"cyclic"</span>, <span class="fl">100</span><span class="op">)</span>, free <span class="op">=</span> <span class="fu">reject</span><span class="op">(</span><span class="st">"free"</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;        lag 0 lag 1 lag 2 lag 3</span></span>
-<span><span class="co">#&gt; cyclic  0.06  0.06  0.02  0.04</span></span>
-<span><span class="co">#&gt; free    1.00  1.00  1.00  1.00</span></span></code></pre></div>
-<p>Rejection rates stay near the nominal 0.05 with cyclic shifts and
-approach 1 with free permutation.</p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>type_I <span class="op">=</span> <span class="fu">rates</span><span class="op">(</span><span class="cn">NULL</span>, <span class="fl">100</span><span class="op">)</span>, power <span class="op">=</span> <span class="fu">rates</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        cyclic_optimal_raw cyclic_global phase_global free_global</span></span>
+<span><span class="co">#&gt; type_I                0.1          0.03         0.03           1</span></span>
+<span><span class="co">#&gt; power                 1.0          0.54         1.00           1</span></span></code></pre></div>
+<p>The raw p-value at the optimal lag is too liberal and free
+permutation rejects almost always. Both global p-values keep Type I
+error near the nominal level, but only the phase scheme retains
+power.</p>
 </div>
 <div class="section level2">
 <h2 id="caveats">Caveats<a class="anchor" aria-label="anchor" href="#caveats"></a>
 </h2>
 <ul>
 <li>
-<strong>Complete cycles.</strong> Cyclic shifting treats the series
-as one closed cycle. This is appropriate when the series spans whole
-cycles, such as 12 monthly samples of an annual cycle. Cyclic-shift null
-models can be biased when this does not hold <span class="citation">(Kalyuzhny 2020)</span>; for series whose period
-differs from their length, a phase-randomization surrogate <span class="citation">(Ebisuzaki 1997)</span> is a better reference.</li>
+<strong>Complete cycles and shared periodicity.</strong> Both the
+cyclic and the phase schemes treat the series as periodic with period
+<code>n</code>. This is appropriate when the series spans whole cycles,
+such as 12 monthly samples of an annual cycle. Cyclic-shift null models
+can be biased when this does not hold <span class="citation">(Kalyuzhny
+2020)</span>. In simulations with this package, two independent seasonal
+series whose period differed from the series length were declared
+concordant far more often than α under either scheme: series with the
+same period trace the same trajectory shape, which Procrustes rotation
+can superimpose whatever the phase difference. Concordance should then
+be read as possibly arising from shared seasonality alone; removing the
+seasonal component before the analysis is one way to test for
+concordance beyond it.</li>
+<li>
+<strong>Strong autocorrelation.</strong> With very strong AR(1)
+autocorrelation (0.9) and short series, Type I error exceeded the
+nominal level under both schemes in the same simulations.</li>
 <li>
 <strong>Few permutations.</strong> With <code>n</code> time points
 there are only <code>2(n − 1)</code> cyclic permutations, so the
 smallest attainable p-value is <code>1 / (2(n − 1) + 1)</code>, 0.043
 for <code>n = 12</code>. Corrections across many lags may then be
-unattainable at α = 0.05; report raw and adjusted p-values together with
-the lag profile.</li>
+unattainable at α = 0.05. The phase scheme has no such floor.</li>
 <li>
 <strong>Different window sizes.</strong> <em>m</em>² at lag
 <em>k</em> is based on <code>n − k</code> rows, so long lags rest on

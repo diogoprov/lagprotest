@@ -10,7 +10,7 @@ lagged_protest(
   X,
   Y,
   lags = 0:6,
-  permutation = c("cyclic", "free"),
+  permutation = c("cyclic", "phase", "free"),
   nperm = 999,
   mirror = TRUE,
   bidirectional = FALSE,
@@ -34,11 +34,13 @@ lagged_protest(
 
 - permutation:
 
-  Permutation scheme, `"cyclic"` or `"free"`.
+  Permutation scheme, `"cyclic"`, `"phase"` or `"free"`.
 
 - nperm:
 
-  Number of random permutations per lag when `permutation = "free"`.
+  Number of surrogates (`permutation = "phase"`) or random permutations
+  (`permutation = "free"`). Ignored for the cyclic scheme, whose
+  permutations are enumerated.
 
 - mirror:
 
@@ -56,14 +58,15 @@ lagged_protest(
 
 - p.adjust.method:
 
-  Correction for multiple lags, passed to
+  Correction of the per-lag p-values for multiple lags: `"maxT"` for the
+  single-step max-statistic adjustment, or any method of
   [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html). Defaults
   to `"none"`.
 
 - seed:
 
-  Optional integer seed for `permutation = "free"`. The global random
-  number stream is left untouched.
+  Optional integer seed for the `"phase"` and `"free"` schemes. The
+  global random number stream is left untouched.
 
 ## Value
 
@@ -90,10 +93,15 @@ An object of class `"lagged_protest"`, a list with:
   P-value at the optimal lag adjusted with `p.adjust.method` (equal to
   `p.value` when `"none"`).
 
+- `p.global`:
+
+  Max-statistic p-value of the scan across lags, accounting for testing
+  several lags and selecting the optimal one.
+
 - `n_perm`:
 
-  Number of permutations at the optimal lag (the exact count for the
-  cyclic scheme).
+  Number of permutations or surrogates at the optimal lag (the exact
+  count for the cyclic scheme).
 
 - `profile`:
 
@@ -113,7 +121,8 @@ An object of class `"lagged_protest"`, a list with:
 
 - `null`:
 
-  List of permuted \\m^2\\ values, one element per lag.
+  List of permuted \\m^2\\ values, one element per lag; element `i` of
+  every vector comes from the same permutation.
 
 - `permutation`, `p.adjust.method`, `n`, `call`:
 
@@ -130,7 +139,7 @@ lag is the symmetric Procrustes sum of squares \\m^2\\ from
 [`vegan::procrustes()`](https://vegandevs.github.io/vegan/reference/procrustes.html);
 the lag of maximal concordance is the one with the smallest \\m^2\\.
 
-Two permutation schemes are available:
+Three permutation schemes are available:
 
 - `"cyclic"` (default): the full `Y` series is cyclically shifted by
   `1, ..., n - 1` positions before lagging, and optionally also
@@ -140,7 +149,19 @@ Two permutation schemes are available:
   attainable p-value is `1 / (2(n - 1) + 1)` (0.043 for `n = 12` with
   `mirror = TRUE`). The scheme assumes the series spans complete cycles,
   i.e., that its period matches the number of rows (e.g., 12 monthly
-  samples of an annual cycle).
+  samples of an annual cycle). Because a shift of `Y` combined with lag
+  `k` is equivalent to another lag, some shifts reproduce the observed
+  alignment at other lags; the global p-value (see below) is then valid
+  but has low power.
+
+- `"phase"`: `nperm` phase-randomized surrogates of `Y` are drawn. Each
+  surrogate keeps the amplitude spectrum of every column of `Y` (hence
+  its autocorrelation) and the cross-spectra among its columns, but
+  receives new Fourier phases, shared by all columns. Surrogates are
+  applied jointly to all lags and do not reproduce the observed
+  alignment, which makes this the recommended scheme for the global
+  p-value. It assumes a stationary `Y`; like the cyclic scheme, it
+  treats the series as periodic with period `n`.
 
 - `"free"`: rows of `Y` are permuted at random within the overlapping
   window, as in
@@ -150,15 +171,25 @@ Two permutation schemes are available:
 
 P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 permuted \\m^2\\ values smaller than or equal to the observed one and
-`N` the number of permutations. By default (`p.adjust.method = "none"`)
-they are not corrected for testing several lags, nor for selecting the
-lag with the smallest \\m^2\\; the p-value at the optimal lag should
-therefore be read together with the whole lag profile. Any method of
+`N` the number of permutations. Each permutation is applied jointly to
+all lags.
+
+The per-lag p-values (`p.value`) are not corrected for testing several
+lags, nor for selecting the lag with the smallest \\m^2\\. Reporting the
+raw p-value at the optimal lag therefore inflates Type I error roughly
+to the rate at which any lag is significant. The global p-value
+(`p.global`) accounts for both: it compares the observed minimum \\m^2\\
+across lags with the distribution of the minimum across lags under each
+permutation (a max-statistic test), so it is the p-value of the whole
+scan-and-select procedure and is the one to report for the optimal lag.
+With `p.adjust.method = "maxT"`, every lag receives the corresponding
+single-step max-statistic adjusted p-value, and the adjusted p-value at
+the optimal lag equals `p.global`. Any method of
 [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) can be
-requested instead, and both raw and adjusted values are returned. With
-few permutations, as in the cyclic scheme, corrections such as Holm may
-make significance unattainable. Note that \\m^2\\ values at different
-lags are based on different numbers of rows (`n - |k|`).
+requested instead; with few permutations, as in the cyclic scheme,
+corrections such as Holm may make significance unattainable. Note that
+\\m^2\\ values at different lags are based on different numbers of rows
+(`n - |k|`).
 
 ## See also
 
@@ -180,6 +211,7 @@ fit
 #> P-value adjustment across lags: none
 #> 
 #> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.0435)
+#> Global p across lags (max-statistic): 0.13
 #> 
 #> Lag profile:
 #>  lag  n     m2     r p.value nperm
@@ -190,7 +222,12 @@ fit
 #>    4  8 0.1516 0.921  0.9130    22
 #> 
 #> Smallest attainable raw p-value: 0.0435
-#> P-values are not corrected for testing several lags or for selecting the optimal lag.
+#> Per-lag p-values are not corrected for testing several lags or for selecting
+#> the optimal lag; report the global p for the optimal lag.
+fit_phase <- lagged_protest(sim$X, sim$Y, lags = 0:4,
+                            permutation = "phase", seed = 1)
+fit_phase$p.global
+#> [1] 0.004
 plot(fit)
 
 residuals(fit)

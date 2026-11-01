@@ -64,6 +64,7 @@ fit
 #> P-value adjustment across lags: none
 #> 
 #> Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.0435)
+#> Global p across lags (max-statistic): 0.13
 #> 
 #> Lag profile:
 #>  lag  n     m2     r p.value nperm
@@ -74,21 +75,42 @@ fit
 #>    4  8 0.3046 0.834  0.9130    22
 #> 
 #> Smallest attainable raw p-value: 0.0435
-#> P-values are not corrected for testing several lags or for selecting the optimal lag.
+#> Per-lag p-values are not corrected for testing several lags or for selecting
+#> the optimal lag; report the global p for the optimal lag.
 ```
 
 The profile lists, for every lag, the number of rows used (`n`), *m*²,
 the Procrustes correlation *r* = √(1 − *m*²), the permutation p-value
 and the number of permutations. The optimal lag here is the true one, 2.
 
-By default the p-values are not corrected for testing several lags, nor
-for choosing the lag with the smallest *m*² after looking at the
-profile. The p-value at the optimal lag is therefore optimistic and
-should be read together with the whole profile: a clear minimum at one
-lag, flanked by weaker concordance at neighboring lags, is stronger
-evidence than a single small p-value. A correction across lags can be
-requested with `p.adjust.method`; raw and adjusted values are then both
-reported:
+The per-lag p-values are not corrected for testing several lags, nor for
+choosing the lag with the smallest *m*² after looking at the profile.
+Reporting the raw p-value at the optimal lag therefore inflates Type I
+error to roughly the rate at which *any* lag is significant. The p-value
+to report for the optimal lag is the global p-value, printed below the
+optimal lag and stored in `fit$p.global`. It compares the observed
+minimum *m*² across lags with the minimum across lags obtained under
+each permutation (a max-statistic test), so it is the p-value of the
+whole scan-and-select procedure.
+
+With the default cyclic scheme the global p-value is valid but has low
+power (see [Choosing the permutation
+scheme](#choosing-the-permutation-scheme)). Phase-randomized surrogates
+are better suited to it:
+
+``` r
+
+fit_phase <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "phase",
+                            nperm = 999, seed = 1)
+fit_phase$p.global
+#> [1] 0.003
+```
+
+Per-lag p-values can also be corrected. `p.adjust.method = "maxT"` gives
+the single-step max-statistic adjusted p-value of every lag, whose value
+at the optimal lag equals the global p-value; any method of
+[`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) can be used
+instead, and raw and adjusted values are then both reported:
 
 ``` r
 
@@ -172,51 +194,87 @@ temporal structure, a problem shared with other permutation tests on
 autocorrelated data (Legendre et al. 2002).
 
 [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
-therefore defaults to `permutation = "cyclic"`. The full `Y` series is
-cyclically shifted by 1, …, n − 1 positions, and also time-reversed when
-`mirror = TRUE`, *before* the lag is applied. Each permuted series keeps
-its autocorrelation. All shifts are enumerated, so the test is exact and
-needs no random seed. `permutation = "free"` reproduces the behavior of
+offers two schemes that keep the temporal structure of `Y`:
+
+- `permutation = "cyclic"` (default) shifts the full `Y` series
+  cyclically by 1, …, n − 1 positions, and also time-reverses it when
+  `mirror = TRUE`, *before* the lag is applied. Each permuted series
+  keeps its autocorrelation. All shifts are enumerated, so the test
+  needs no random seed.
+- `permutation = "phase"` draws `nperm` phase-randomized surrogates of
+  `Y` (Ebisuzaki 1997). Each surrogate keeps the amplitude spectrum of
+  every column of `Y`, and hence its autocorrelation, as well as the
+  cross-spectra among the columns, but receives new Fourier phases.
+
+`permutation = "free"` reproduces the behavior of
 [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html)
 (Oksanen et al. 2026).
 
-The difference matters. Under independence, a small simulation with 12
-monthly samples gives:
+The cyclic and phase schemes differ in how they handle the scan across
+lags. Shifting `Y` by *s* positions and then applying lag *k* pairs the
+same rows as lag *k* + *s* without a shift. When several lags are
+scanned, some cyclic permutations therefore reproduce the observed
+alignment at another lag, and the null distribution of the minimum *m*²
+across lags contains the signal itself. The per-lag p-values are
+unaffected, but the global p-value loses power. Phase surrogates are new
+series rather than shifts of the observed one, so they avoid this
+problem; they also allow as many surrogates as desired, instead of the
+`2(n − 1)` cyclic permutations.
+
+The choice matters. Under independence, a small simulation with 24
+monthly samples spanning one cycle gives the following rejection rates
+at α = 0.05: for the raw p-value at the optimal lag, and for the global
+p-value under each scheme. A second set of series, in which `Y` follows
+`X` with a lag of two, gives the power of the global p-value:
 
 ``` r
 
-reject <- function(permutation, n_rep) {
-  rates <- rowMeans(vapply(seq_len(n_rep), function(i) {
-    s <- simulate_lagged_series(n_times = 12, autocorr = 0, noise_sd = 0.3,
-                                seed = i)
-    fit <- lagged_protest(s$X, s$Y, lags = 0:3, permutation = permutation,
+rates <- function(true_lag, n_rep) {
+  res <- vapply(seq_len(n_rep), function(i) {
+    s <- simulate_lagged_series(n_times = 24, period = 24, true_lag = true_lag,
+                                autocorr = 0.5, noise_sd = 0.5, seed = i)
+    cyc <- lagged_protest(s$X, s$Y, lags = 0:4)
+    pha <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "phase",
                           nperm = 99, seed = i)
-    fit$profile$p.value < 0.05
-  }, logical(4)))
-  setNames(rates, paste("lag", 0:3))
+    fre <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "free",
+                          nperm = 99, seed = i)
+    c(cyclic_optimal_raw = cyc$p.value, cyclic_global = cyc$p.global,
+      phase_global = pha$p.global, free_global = fre$p.global)
+  }, numeric(4))
+  rowMeans(res < 0.05)
 }
-rbind(cyclic = reject("cyclic", 100), free = reject("free", 50))
-#>        lag 0 lag 1 lag 2 lag 3
-#> cyclic  0.06  0.06  0.02  0.04
-#> free    1.00  1.00  1.00  1.00
+rbind(type_I = rates(NULL, 100), power = rates(2, 100))
+#>        cyclic_optimal_raw cyclic_global phase_global free_global
+#> type_I                0.1          0.03         0.03           1
+#> power                 1.0          0.54         1.00           1
 ```
 
-Rejection rates stay near the nominal 0.05 with cyclic shifts and
-approach 1 with free permutation.
+The raw p-value at the optimal lag is too liberal and free permutation
+rejects almost always. Both global p-values keep Type I error near the
+nominal level, but only the phase scheme retains power.
 
 ## Caveats
 
-- **Complete cycles.** Cyclic shifting treats the series as one closed
-  cycle. This is appropriate when the series spans whole cycles, such as
-  12 monthly samples of an annual cycle. Cyclic-shift null models can be
-  biased when this does not hold (Kalyuzhny 2020); for series whose
-  period differs from their length, a phase-randomization surrogate
-  (Ebisuzaki 1997) is a better reference.
+- **Complete cycles and shared periodicity.** Both the cyclic and the
+  phase schemes treat the series as periodic with period `n`. This is
+  appropriate when the series spans whole cycles, such as 12 monthly
+  samples of an annual cycle. Cyclic-shift null models can be biased
+  when this does not hold (Kalyuzhny 2020). In simulations with this
+  package, two independent seasonal series whose period differed from
+  the series length were declared concordant far more often than α under
+  either scheme: series with the same period trace the same trajectory
+  shape, which Procrustes rotation can superimpose whatever the phase
+  difference. Concordance should then be read as possibly arising from
+  shared seasonality alone; removing the seasonal component before the
+  analysis is one way to test for concordance beyond it.
+- **Strong autocorrelation.** With very strong AR(1) autocorrelation
+  (0.9) and short series, Type I error exceeded the nominal level under
+  both schemes in the same simulations.
 - **Few permutations.** With `n` time points there are only `2(n − 1)`
   cyclic permutations, so the smallest attainable p-value is
   `1 / (2(n − 1) + 1)`, 0.043 for `n = 12`. Corrections across many lags
-  may then be unattainable at α = 0.05; report raw and adjusted p-values
-  together with the lag profile.
+  may then be unattainable at α = 0.05. The phase scheme has no such
+  floor.
 - **Different window sizes.** *m*² at lag *k* is based on `n − k` rows,
   so long lags rest on fewer observations. Keep the candidate lags
   within a range justified by the biology of the system.

@@ -46,7 +46,7 @@ candidate temporal lags and tests it by permutation at each lag.</p>
 <span>  <span class="va">X</span>,</span>
 <span>  <span class="va">Y</span>,</span>
 <span>  lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">6</span>,</span>
-<span>  permutation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyclic"</span>, <span class="st">"free"</span><span class="op">)</span>,</span>
+<span>  permutation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyclic"</span>, <span class="st">"phase"</span>, <span class="st">"free"</span><span class="op">)</span>,</span>
 <span>  nperm <span class="op">=</span> <span class="fl">999</span>,</span>
 <span>  mirror <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  bidirectional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -71,12 +71,13 @@ to principal coordinates. Both must have the same number of rows.</p></dd>
 
 
 <dt id="arg-permutation">permutation<a class="anchor" aria-label="anchor" href="#arg-permutation"></a></dt>
-<dd><p>Permutation scheme, <code>"cyclic"</code> or <code>"free"</code>.</p></dd>
+<dd><p>Permutation scheme, <code>"cyclic"</code>, <code>"phase"</code> or <code>"free"</code>.</p></dd>
 
 
 <dt id="arg-nperm">nperm<a class="anchor" aria-label="anchor" href="#arg-nperm"></a></dt>
-<dd><p>Number of random permutations per lag when
-<code>permutation = "free"</code>.</p></dd>
+<dd><p>Number of surrogates (<code>permutation = "phase"</code>) or random
+permutations (<code>permutation = "free"</code>). Ignored for the cyclic scheme,
+whose permutations are enumerated.</p></dd>
 
 
 <dt id="arg-mirror">mirror<a class="anchor" aria-label="anchor" href="#arg-mirror"></a></dt>
@@ -95,13 +96,14 @@ full series) before analysis. Ignored for <code>dist</code> inputs.</p></dd>
 
 
 <dt id="arg-p-adjust-method">p.adjust.method<a class="anchor" aria-label="anchor" href="#arg-p-adjust-method"></a></dt>
-<dd><p>Correction for multiple lags, passed to
-<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>. Defaults to <code>"none"</code>.</p></dd>
+<dd><p>Correction of the per-lag p-values for multiple
+lags: <code>"maxT"</code> for the single-step max-statistic adjustment, or any
+method of <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>. Defaults to <code>"none"</code>.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>Optional integer seed for <code>permutation = "free"</code>. The global
-random number stream is left untouched.</p></dd>
+<dd><p>Optional integer seed for the <code>"phase"</code> and <code>"free"</code> schemes.
+The global random number stream is left untouched.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -123,9 +125,13 @@ optimal lag.</p></dd>
 <dd><p>P-value at the optimal lag adjusted with
 <code>p.adjust.method</code> (equal to <code>p.value</code> when <code>"none"</code>).</p></dd>
 
+<dt><code>p.global</code></dt>
+<dd><p>Max-statistic p-value of the scan across lags,
+accounting for testing several lags and selecting the optimal one.</p></dd>
+
 <dt><code>n_perm</code></dt>
-<dd><p>Number of permutations at the optimal lag (the exact
-count for the cyclic scheme).</p></dd>
+<dd><p>Number of permutations or surrogates at the optimal
+lag (the exact count for the cyclic scheme).</p></dd>
 
 <dt><code>profile</code></dt>
 <dd><p>Data frame with <code>lag</code>, <code>n</code> (rows used), <code>m2</code>, <code>r</code>,
@@ -139,7 +145,8 @@ at the optimal lag, with the paired row labels of <code>X</code> and <code>Y</co
 <dd><p>The <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::procrustes()</a></code> fit at the optimal lag.</p></dd>
 
 <dt><code>null</code></dt>
-<dd><p>List of permuted \(m^2\) values, one element per lag.</p></dd>
+<dd><p>List of permuted \(m^2\) values, one element per lag;
+element <code>i</code> of every vector comes from the same permutation.</p></dd>
 
 <dt><code>permutation</code>, <code>p.adjust.method</code>, <code>n</code>, <code>call</code></dt>
 <dd><p>Settings used.</p></dd>
@@ -155,25 +162,44 @@ overlapping window of <code>n - k</code> rows. Negative lags (Y leads X) are tes
 when <code>bidirectional = TRUE</code>. The statistic at each lag is the symmetric
 Procrustes sum of squares \(m^2\) from <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::procrustes()</a></code>; the lag of
 maximal concordance is the one with the smallest \(m^2\).</p>
-<p>Two permutation schemes are available:</p><ul><li><p><code>"cyclic"</code> (default): the full <code>Y</code> series is cyclically shifted by
+<p>Three permutation schemes are available:</p><ul><li><p><code>"cyclic"</code> (default): the full <code>Y</code> series is cyclically shifted by
 <code>1, ..., n - 1</code> positions before lagging, and optionally also
 time-reversed (<code>mirror = TRUE</code>). This keeps the temporal autocorrelation
 of <code>Y</code> under the null. All <code>n - 1</code> (or <code>2(n - 1)</code>) shifts are enumerated,
 so <code>nperm</code> is ignored, and the smallest attainable p-value is
 <code>1 / (2(n - 1) + 1)</code> (0.043 for <code>n = 12</code> with <code>mirror = TRUE</code>). The scheme
 assumes the series spans complete cycles, i.e., that its period matches
-the number of rows (e.g., 12 monthly samples of an annual cycle).</p></li>
+the number of rows (e.g., 12 monthly samples of an annual cycle).
+Because a shift of <code>Y</code> combined with lag <code>k</code> is equivalent to another
+lag, some shifts reproduce the observed alignment at other lags; the
+global p-value (see below) is then valid but has low power.</p></li>
+<li><p><code>"phase"</code>: <code>nperm</code> phase-randomized surrogates of <code>Y</code> are drawn. Each
+surrogate keeps the amplitude spectrum of every column of <code>Y</code> (hence its
+autocorrelation) and the cross-spectra among its columns, but receives
+new Fourier phases, shared by all columns. Surrogates are applied jointly
+to all lags and do not reproduce the observed alignment, which makes
+this the recommended scheme for the global p-value. It assumes a
+stationary <code>Y</code>; like the cyclic scheme, it treats the series as
+periodic with period <code>n</code>.</p></li>
 <li><p><code>"free"</code>: rows of <code>Y</code> are permuted at random within the overlapping
 window, as in <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code>. This assumes exchangeable rows and can
 strongly inflate Type I error when both series are autocorrelated.</p></li>
 </ul><p>P-values are computed as <code>(b + 1) / (N + 1)</code>, where <code>b</code> is the number of
 permuted \(m^2\) values smaller than or equal to the observed one and
-<code>N</code> the number of permutations. By default (<code>p.adjust.method = "none"</code>)
-they are not corrected for testing several lags, nor for selecting the lag
-with the smallest \(m^2\); the p-value at the optimal lag should therefore
-be read together with the whole lag profile. Any method of
-<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code> can be requested instead, and both raw and adjusted
-values are returned. With few permutations, as in the cyclic scheme,
+<code>N</code> the number of permutations. Each permutation is applied jointly to all
+lags.</p>
+<p>The per-lag p-values (<code>p.value</code>) are not corrected for testing several
+lags, nor for selecting the lag with the smallest \(m^2\). Reporting the
+raw p-value at the optimal lag therefore inflates Type I error roughly to
+the rate at which any lag is significant. The global p-value (<code>p.global</code>)
+accounts for both: it compares the observed minimum \(m^2\) across lags
+with the distribution of the minimum across lags under each permutation
+(a max-statistic test), so it is the p-value of the whole
+scan-and-select procedure and is the one to report for the optimal lag.
+With <code>p.adjust.method = "maxT"</code>, every lag receives the corresponding
+single-step max-statistic adjusted p-value, and the adjusted p-value at
+the optimal lag equals <code>p.global</code>. Any method of <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code> can be
+requested instead; with few permutations, as in the cyclic scheme,
 corrections such as Holm may make significance unattainable. Note that
 \(m^2\) values at different lags are based on different numbers of rows
 (<code>n - |k|</code>).</p>
@@ -197,6 +223,7 @@ corrections such as Holm may make significance unattainable. Note that
 <span class="r-out co"><span class="r-pr">#&gt;</span> P-value adjustment across lags: none</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.0435)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Global p across lags (max-statistic): 0.13</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Lag profile:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  lag  n     m2     r p.value nperm</span>
@@ -207,7 +234,12 @@ corrections such as Holm may make significance unattainable. Note that
 <span class="r-out co"><span class="r-pr">#&gt;</span>    4  8 0.1516 0.921  0.9130    22</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Smallest attainable raw p-value: 0.0435</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P-values are not corrected for testing several lags or for selecting the optimal lag.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Per-lag p-values are not corrected for testing several lags or for selecting</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> the optimal lag; report the global p for the optimal lag.</span>
+<span class="r-in"><span><span class="va">fit_phase</span> <span class="op">&lt;-</span> <span class="fu">lagged_protest</span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span></span>
+<span class="r-in"><span>                            permutation <span class="op">=</span> <span class="st">"phase"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit_phase</span><span class="op">$</span><span class="va">p.global</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.004</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="lagged_protest-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>

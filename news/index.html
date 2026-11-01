@@ -40,6 +40,16 @@
 <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> now defaults to <code>p.adjust.method = "none"</code>, because corrections such as Holm are often unattainable with the few permutations of the cyclic scheme. <code>$p.value</code> is now the raw p-value at the optimal lag; the adjusted value is in the new <code>$p.adjusted</code> element, and the number of permutations in <code>$n_perm</code>. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> warns when p-values are unadjusted.</li>
 </ul></div>
 <div class="section level3">
+<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> returns a global p-value, <code>$p.global</code>, for the scan across lags. It is a max-statistic test that compares the observed minimum <em>m</em>² across lags with the minimum across lags under each permutation, and so accounts for testing several lags and selecting the optimal one. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> reports it below the optimal lag. Simulations showed that the raw p-value at the optimal lag rejects 10–28% of the time (21–25% on average) when the series are independent.</li>
+<li>New scheme <code>permutation = "phase"</code>: phase-randomized surrogates of <code>Y</code> that keep the amplitude spectrum of each column and the cross-spectra among columns. Unlike cyclic shifts, surrogates do not reproduce the observed alignment at other lags, so the global p-value keeps its power.</li>
+<li>
+<code>p.adjust.method = "maxT"</code> gives single-step max-statistic adjusted p-values per lag.</li>
+<li>
+<code>permutation = "free"</code> now applies each permutation jointly to all lags, as the max-statistic requires.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="infrastructure-development-version">Infrastructure<a class="anchor" aria-label="anchor" href="#infrastructure-development-version"></a></h3>
 <ul><li>Continuous integration: R CMD check on macOS, Windows and Ubuntu, and test coverage reporting, via GitHub Actions.</li>
 <li>Spell check of the documentation, contributing guide, code of conduct and issue templates.</li>
