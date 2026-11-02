@@ -1,3 +1,10 @@
+# lagprotest (development version)
+
+* New data set `dminutus_liver`: monthly means of four hepatic modules and
+  of climate for the treefrog *Dendropsophus minutus* over one annual cycle
+  (Franco-Belussi et al. 2026, CC BY 4.0), with a new article analyzing it
+  with `lagged_protest_pairs()`.
+
 # lagprotest 0.4.0
 
 * New `lagged_protest_pairs()` runs `lagged_protest()` on pairs of data sets
