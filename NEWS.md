@@ -1,4 +1,4 @@
-# lagprotest (development version)
+# lagprotest 0.4.0
 
 * New `lagged_protest_pairs()` runs `lagged_protest()` on pairs of data sets
   from a named list (by default all unordered pairs, both directions through
