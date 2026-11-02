@@ -59,6 +59,7 @@ candidate temporal lags and tests it by permutation at each lag.</p>
 <span>  bidirectional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  scale <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>  period <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -108,6 +109,13 @@ lags: <code>"maxT"</code> for the single-step max-statistic adjustment, or any
 method of <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>. Defaults to <code>"none"</code>.</p></dd>
 
 
+<dt id="arg-period">period<a class="anchor" aria-label="anchor" href="#arg-period"></a></dt>
+<dd><p>Optional length of the seasonal cycle, in rows. If given,
+<code>X</code> and <code>Y</code> are truncated to their first <code>floor(n / period) * period</code>
+rows (whole cycles) before analysis; a message reports the rows dropped.
+<code>NULL</code> (default) uses all rows.</p></dd>
+
+
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>Optional integer seed for the <code>"phase"</code> and <code>"free"</code> schemes.
 The global random number stream is left untouched.</p></dd>
@@ -155,8 +163,10 @@ at the optimal lag, with the paired row labels of <code>X</code> and <code>Y</co
 <dd><p>List of permuted \(m^2\) values, one element per lag;
 element <code>i</code> of every vector comes from the same permutation.</p></dd>
 
-<dt><code>permutation</code>, <code>p.adjust.method</code>, <code>n</code>, <code>call</code></dt>
-<dd><p>Settings used.</p></dd>
+<dt><code>permutation</code>, <code>p.adjust.method</code>, <code>n</code>, <code>period</code>, <code>call</code></dt>
+<dd><p>Settings
+used; <code>n</code> is the number of rows after any truncation to whole
+cycles.</p></dd>
 
 
 </dl></div>
@@ -192,7 +202,16 @@ global p-value (see below) is then valid but has low power.</p></li>
 <li><p><code>"free"</code>: rows of <code>Y</code> are permuted at random within the overlapping
 window, as in <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code>. This assumes exchangeable rows and can
 strongly inflate Type I error when both series are autocorrelated.</p></li>
-</ul><p>P-values are computed as <code>(b + 1) / (N + 1)</code>, where <code>b</code> is the number of
+</ul><p>Both the phase and the cyclic schemes treat the series as periodic with
+period <code>n</code>. When the series contains a seasonal cycle whose length does
+not divide <code>n</code> (e.g., 18 monthly samples of an annual cycle), no scheme is
+calibrated, because two series sharing a period are Procrustes-concordant
+whatever their phase. Supplying <code>period</code> truncates both series to their
+first <code>floor(n / period) * period</code> rows, so that the analysis spans whole
+cycles. In simulations, this restored the Type I error of series that
+already spanned complete cycles, whereas removing the seasonal component
+by harmonic regression did not.</p>
+<p>P-values are computed as <code>(b + 1) / (N + 1)</code>, where <code>b</code> is the number of
 permuted \(m^2\) values smaller than or equal to the observed one and
 <code>N</code> the number of permutations. Each permutation is applied jointly to all
 lags.</p>

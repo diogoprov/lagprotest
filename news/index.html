@@ -40,6 +40,10 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
+<ul><li>New <code>period</code> argument in <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code>: when the seasonal cycle does not divide the series length, both series are truncated to their first <code>floor(n / period) * period</code> rows, so that the phase and cyclic schemes, which treat the series as periodic with period <code>n</code>, remain calibrated. In simulations (24–48 time points, cycle of 0.75 <code>n</code>), this brought the Type I error of the global p-value from 0.46–0.94 back to 0.04–0.05 for AR(1) noise of 0.3. Removing the seasonal component by harmonic regression was also tested and left the test liberal, so it was not added.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="lagprotest-020">lagprotest 0.2.0<a class="anchor" aria-label="anchor" href="#lagprotest-020"></a></h2>
 <div class="section level3">
 <h3 id="breaking-changes-0-2-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-2-0"></a></h3>

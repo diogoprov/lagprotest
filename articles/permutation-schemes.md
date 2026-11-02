@@ -16,7 +16,8 @@ into practical advice. The main points are:
 - for the global p-value, phase surrogates combine good calibration with
   high power, whereas cyclic shifts are calibrated but have low power;
 - no scheme is calibrated when the seasonal period differs from the
-  series length, and strong autocorrelation in short series makes all
+  series length unless the series is truncated to whole cycles (argument
+  `period`), and strong autocorrelation in short series makes all
   schemes somewhat liberal.
 
 ## The simulation study
@@ -255,16 +256,27 @@ and Procrustes rotation can superimpose them whatever the phase
 difference between them. Concordance between two series sharing a period
 therefore reflects their common periodicity unless the null model
 preserves it, which the cyclic shift does only when the period equals
-*n* (Kalyuzhny 2020). For such data, restrict the analysis to whole
-cycles, or remove the seasonal component first and test for concordance
-beyond it.
+*n* (Kalyuzhny 2020).
+
+The `period` argument handles this case by truncating both series to
+whole cycles before the analysis, for example to the first 18 of 24
+monthly samples of an 18-month cycle. In a smaller follow-up simulation
+(300 replicates per scenario, phase scheme, period = 0.75 *n*),
+truncation brought the Type I error of the global p-value back to
+0.04–0.05 with AR(1) noise of 0.3 and to 0.08–0.09 with 0.7, close to
+the values of series that already span complete cycles. Removing the
+seasonal component by harmonic regression with the known period reduced
+the excess (to 0.08–0.13 and 0.21–0.35, respectively) but did not remove
+it, and it also removes the seasonal signal that is often the object of
+the analysis.
 
 ## Recommendations
 
 - Use the default `permutation = "phase"` with a large `nperm` (999 or
   more) and a `seed`, and report `fit$p.global` for the optimal lag
   together with the lag profile.
-- Make sure the series spans whole cycles of any seasonal signal.
+- Make sure the series spans whole cycles of any seasonal signal; if it
+  does not, give the length of the cycle in `period`.
 - With short series (*n* ≤ 48) that are strongly autocorrelated, report
   the cyclic result as a conservative check; with `mirror = FALSE` it
   was the least liberal scheme in that range, at the cost of power.

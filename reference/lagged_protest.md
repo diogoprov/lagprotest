@@ -16,6 +16,7 @@ lagged_protest(
   bidirectional = FALSE,
   scale = TRUE,
   p.adjust.method = "none",
+  period = NULL,
   seed = NULL
 )
 ```
@@ -62,6 +63,13 @@ lagged_protest(
   single-step max-statistic adjustment, or any method of
   [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html). Defaults
   to `"none"`.
+
+- period:
+
+  Optional length of the seasonal cycle, in rows. If given, `X` and `Y`
+  are truncated to their first `floor(n / period) * period` rows (whole
+  cycles) before analysis; a message reports the rows dropped. `NULL`
+  (default) uses all rows.
 
 - seed:
 
@@ -124,9 +132,10 @@ An object of class `"lagged_protest"`, a list with:
   List of permuted \\m^2\\ values, one element per lag; element `i` of
   every vector comes from the same permutation.
 
-- `permutation`, `p.adjust.method`, `n`, `call`:
+- `permutation`, `p.adjust.method`, `n`, `period`, `call`:
 
-  Settings used.
+  Settings used; `n` is the number of rows after any truncation to whole
+  cycles.
 
 ## Details
 
@@ -170,6 +179,16 @@ Three permutation schemes are available:
   [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html).
   This assumes exchangeable rows and can strongly inflate Type I error
   when both series are autocorrelated.
+
+Both the phase and the cyclic schemes treat the series as periodic with
+period `n`. When the series contains a seasonal cycle whose length does
+not divide `n` (e.g., 18 monthly samples of an annual cycle), no scheme
+is calibrated, because two series sharing a period are
+Procrustes-concordant whatever their phase. Supplying `period` truncates
+both series to their first `floor(n / period) * period` rows, so that
+the analysis spans whole cycles. In simulations, this restored the Type
+I error of series that already spanned complete cycles, whereas removing
+the seasonal component by harmonic regression did not.
 
 P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 permuted \\m^2\\ values smaller than or equal to the observed one and
