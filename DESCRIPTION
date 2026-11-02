@@ -24,6 +24,7 @@ Imports:
     utils,
     vegan
 Suggests:
+    ggplot2,
     knitr,
     rmarkdown,
     spelling,

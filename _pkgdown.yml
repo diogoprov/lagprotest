@@ -7,6 +7,8 @@ reference:
     contents:
       - lagged_protest
       - plot.lagged_protest
+      - autoplot.lagged_protest
+      - as.data.frame.lagged_protest
       - summary.lagged_protest
       - residuals.lagged_protest
       - lagged_protest_pairs
