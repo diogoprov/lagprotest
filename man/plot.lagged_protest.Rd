@@ -4,12 +4,14 @@
 \alias{plot.lagged_protest}
 \title{Plot the lag profile of a lagged PROTEST}
 \usage{
-\method{plot}{lagged_protest}(x, alpha = 0.05, ...)
+\method{plot}{lagged_protest}(x, alpha = 0.05, global = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{"lagged_protest"} object.}
 
 \item{alpha}{Significance level.}
+
+\item{global}{Logical; mark the optimal lag with its global p-value.}
 
 \item{...}{Further arguments passed to \code{\link[graphics:plot]{graphics::plot()}}.}
 }
@@ -21,5 +23,8 @@ Plots \eqn{m^2} against lag. The dashed line is the \code{alpha} quantile of
 the permutation null distribution at each lag (unadjusted); observed
 values below it are significant at that level before correction. Filled
 points mark lags whose p-value (adjusted, if \code{p.adjust.method} was not
-\code{"none"}) is below \code{alpha}.
+\code{"none"}) is below \code{alpha}. With \code{global = TRUE}, the optimal lag is
+circled, filled when the global p-value is below \code{alpha}, and the global
+p-value is printed above the plot; this is the p-value to report for the
+optimal lag.
 }

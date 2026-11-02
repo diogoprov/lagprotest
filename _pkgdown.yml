@@ -9,6 +9,7 @@ reference:
       - plot.lagged_protest
       - summary.lagged_protest
       - residuals.lagged_protest
+      - lagged_protest_pairs
   - title: Simulation
     contents:
       - simulate_lagged_series

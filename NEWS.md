@@ -1,3 +1,19 @@
+# lagprotest (development version)
+
+* New `lagged_protest_pairs()` runs `lagged_protest()` on pairs of data sets
+  from a named list (by default all unordered pairs, both directions through
+  the sign of the lag) and returns one table, with the global p-values
+  adjusted across pairs (`"BH"` by default) and the fits kept in an
+  attribute.
+* `plot()` now circles the optimal lag, filled when the global p-value is
+  below `alpha`, and prints the global p-value above the plot
+  (`global = FALSE` restores the previous plot).
+* Simulations of the `period` argument with the full design (1000
+  replicates per scenario, 12–96 time points) are summarized in the
+  article "Choosing a permutation scheme": after truncation the global
+  p-value was calibrated up to AR(1) of 0.5 and liberal with strong
+  autocorrelation, as for series spanning complete cycles.
+
 # lagprotest 0.3.0
 
 * New `period` argument in `lagged_protest()`: when the seasonal cycle does

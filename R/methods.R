@@ -68,14 +68,18 @@ residuals.lagged_protest <- function(object, ...) {
 #' the permutation null distribution at each lag (unadjusted); observed
 #' values below it are significant at that level before correction. Filled
 #' points mark lags whose p-value (adjusted, if `p.adjust.method` was not
-#' `"none"`) is below `alpha`.
+#' `"none"`) is below `alpha`. With `global = TRUE`, the optimal lag is
+#' circled, filled when the global p-value is below `alpha`, and the global
+#' p-value is printed above the plot; this is the p-value to report for the
+#' optimal lag.
 #'
 #' @param x A `"lagged_protest"` object.
 #' @param alpha Significance level.
+#' @param global Logical; mark the optimal lag with its global p-value.
 #' @param ... Further arguments passed to [graphics::plot()].
 #' @return `x`, invisibly.
 #' @export
-plot.lagged_protest <- function(x, alpha = 0.05, ...) {
+plot.lagged_protest <- function(x, alpha = 0.05, global = TRUE, ...) {
   prof <- x$profile
   null_q <- vapply(x$null, stats::quantile, numeric(1), probs = alpha,
                    names = FALSE)
@@ -92,5 +96,13 @@ plot.lagged_protest <- function(x, alpha = 0.05, ...) {
   graphics::points(prof$lag, prof$m2,
                    pch = ifelse(prof$p.adjusted < alpha, 19, 1))
   graphics::abline(v = x$optimal_lag, lty = 3, col = "grey50")
+  if (global) {
+    best <- prof$lag == x$optimal_lag
+    graphics::points(x$optimal_lag, prof$m2[best], pch = 21, cex = 2,
+                     bg = if (x$p.global < alpha) "grey50" else NA)
+    graphics::mtext(paste0("Optimal lag ", x$optimal_lag, ", global p = ",
+                           format(x$p.global, digits = 2)),
+                    side = 3, line = 0.25, adj = 1, cex = 0.8)
+  }
   invisible(x)
 }
