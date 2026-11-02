@@ -54,6 +54,7 @@ test_that("output is well formed", {
   pdf(NULL)
   on.exit(dev.off())
   expect_invisible(plot(fit))
+  expect_invisible(plot(fit, global = FALSE))
 })
 
 test_that("phase is the default scheme", {
