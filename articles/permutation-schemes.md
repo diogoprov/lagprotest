@@ -260,15 +260,58 @@ preserves it, which the cyclic shift does only when the period equals
 
 The `period` argument handles this case by truncating both series to
 whole cycles before the analysis, for example to the first 18 of 24
-monthly samples of an 18-month cycle. In a smaller follow-up simulation
-(300 replicates per scenario, phase scheme, period = 0.75 *n*),
-truncation brought the Type I error of the global p-value back to
-0.04–0.05 with AR(1) noise of 0.3 and to 0.08–0.09 with 0.7, close to
-the values of series that already span complete cycles. Removing the
-seasonal component by harmonic regression with the known period reduced
-the excess (to 0.08–0.13 and 0.21–0.35, respectively) but did not remove
-it, and it also removes the seasonal signal that is often the object of
-the analysis.
+monthly samples of an 18-month cycle. We reran the scenarios above with
+truncation (same series, 1000 replicates each), plus a power block:
+
+``` r
+
+tr <- subset(cal, block == "type1_period")
+knitr::kable(rate_table(tr, "autocorr", "global"), digits = 3,
+             caption = "Type I error of the global p-value, period = 0.75 n, after truncation to whole cycles.")
+```
+
+| autocorr | cyclic | cyclic_mirror | phase |
+|---------:|-------:|--------------:|------:|
+|      0.0 |  0.018 |         0.030 | 0.044 |
+|      0.3 |  0.018 |         0.032 | 0.049 |
+|      0.5 |  0.020 |         0.039 | 0.050 |
+|      0.7 |  0.025 |         0.044 | 0.067 |
+|      0.9 |  0.043 |         0.071 | 0.136 |
+
+Type I error of the global p-value, period = 0.75 n, after truncation to
+whole cycles. {.table}
+
+``` r
+
+pt <- subset(cal, block == "power_period")
+knitr::kable(rate_table(pt, "n", "global"), digits = 3,
+             caption = "Power of the global p-value after truncation, by original series length.")
+```
+
+|   n | cyclic_mirror | phase |
+|----:|--------------:|------:|
+|  12 |         0.000 | 0.385 |
+|  24 |         0.163 | 0.898 |
+|  48 |         0.468 | 0.991 |
+|  96 |         0.999 | 1.000 |
+
+Power of the global p-value after truncation, by original series length.
+{.table}
+
+Truncation brought the Type I error back to the level of series that
+already span complete cycles: calibrated up to AR(1) of 0.5, slightly
+liberal at 0.7 and liberal at 0.9 with the phase scheme. It costs data,
+and so power: a series of 12 time points with a period of 9 keeps only 9
+rows, and power fell to about 0.39, against 0.79 for 12 rows spanning a
+complete cycle; the cyclic scheme cannot reject at all with 9 rows. It
+also requires the true period to be known.
+
+Removing the seasonal component by harmonic regression with the known
+period was tested in a smaller simulation (300 replicates per scenario,
+phase scheme, *n* = 12–48) and is not offered: it reduced the Type I
+error to 0.08–0.13 with AR(1) of 0.3 and to 0.21–0.35 with 0.7, but did
+not calibrate the test, and it removes the seasonal signal that is often
+the object of the analysis.
 
 ## Recommendations
 

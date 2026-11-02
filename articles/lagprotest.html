@@ -67,7 +67,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Getting started with lagprotest</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.3.0/vignettes/lagprotest.Rmd" class="external-link"><code>vignettes/lagprotest.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/vignettes/lagprotest.Rmd" class="external-link"><code>vignettes/lagprotest.Rmd</code></a></small>
       <div class="d-none name"><code>lagprotest.Rmd</code></div>
     </div>
 
@@ -317,10 +317,11 @@ same period trace the same trajectory shape, which Procrustes rotation
 can superimpose whatever the phase difference. Supplying the length of
 the cycle with <code>period</code> truncates both series to whole cycles
 (e.g., the first 18 of 24 monthly samples for an 18-month cycle), which
-restored the nominal Type I error in the same simulations. Removing the
-seasonal component by harmonic regression did not: it reduced the excess
-but left the test liberal, and it removes the seasonal signal that is
-often the object of the analysis.</li>
+brought the Type I error back to the level of series that span complete
+cycles, at the cost of the rows dropped. Removing the seasonal component
+by harmonic regression did not: it reduced the excess but left the test
+liberal, and it removes the seasonal signal that is often the object of
+the analysis.</li>
 <li>
 <strong>Strong autocorrelation.</strong> In simulations with 1000
 replicates per scenario, the global p-value of the phase scheme kept

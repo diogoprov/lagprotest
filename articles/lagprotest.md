@@ -264,11 +264,11 @@ nominal level, but only the phase scheme retains power.
   shape, which Procrustes rotation can superimpose whatever the phase
   difference. Supplying the length of the cycle with `period` truncates
   both series to whole cycles (e.g., the first 18 of 24 monthly samples
-  for an 18-month cycle), which restored the nominal Type I error in the
-  same simulations. Removing the seasonal component by harmonic
-  regression did not: it reduced the excess but left the test liberal,
-  and it removes the seasonal signal that is often the object of the
-  analysis.
+  for an 18-month cycle), which brought the Type I error back to the
+  level of series that span complete cycles, at the cost of the rows
+  dropped. Removing the seasonal component by harmonic regression did
+  not: it reduced the excess but left the test liberal, and it removes
+  the seasonal signal that is often the object of the analysis.
 - **Strong autocorrelation.** In simulations with 1000 replicates per
   scenario, the global p-value of the phase scheme kept Type I error at
   0.047–0.053 for AR(1) autocorrelation up to 0.5, but reached 0.063 at
