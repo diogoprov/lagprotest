@@ -22,7 +22,7 @@
 #' @exportS3Method ggplot2::autoplot
 autoplot.lagged_protest <- function(object, alpha = 0.05, ...) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop("`autoplot()` requires the ggplot2 package.", call. = FALSE)
+    stop("`autoplot()` requires the ggplot2 package.", call. = FALSE) # nocov
   }
   prof <- as.data.frame(object, alpha = alpha)
   prof$significant <- prof$p.adjusted < alpha
