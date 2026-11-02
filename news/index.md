@@ -1,6 +1,6 @@
 # Changelog
 
-## lagprotest (development version)
+## lagprotest 0.3.0
 
 - New `period` argument in
   [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md):
