@@ -1,0 +1,130 @@
+---
+title: "Example: seasonal liver plasticity in a treefrog"
+bibliography: ../references.bib
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r library}
+library(lagprotest)
+```
+
+This article analyzes a real data set with `lagged_protest()` and
+`lagged_protest_pairs()`. The question is whether seasonal changes in the
+liver of the treefrog *Dendropsophus minutus* track climate within the same
+month or with a delay, and whether hepatic modules lead one another.
+
+## The data
+
+`dminutus_liver` holds monthly means of four hepatic modules and of
+climate, from April 2016 to March 2017
+[@francobelussi2026data; see `?dminutus_liver` for the variables]. Each
+element is a matrix with 12 rows (months) and one column per variable.
+Climate combines temperature, rainfall and humidity from BR-DWGD
+[@xavier2022brdwgd], a drought index from TerraClimate
+[@abatzoglou2018terraclimate], UV-B irradiance from glUV
+[@beckmann2014gluv] and photoperiod.
+
+```{r data}
+sapply(dminutus_liver, dim)
+```
+
+The series span exactly one annual cycle, so the phase and cyclic schemes,
+which treat the series as periodic with period *n*, apply without
+truncation (`period` is not needed). With 12 time points, the power to
+detect a lag is limited, and strong autocorrelation would make the phase
+scheme somewhat liberal (see
+[Choosing a permutation scheme](permutation-schemes.html)); the cyclic
+scheme is used below as a conservative check.
+
+## Contemporaneous concordance
+
+Concordance within the same month is the lag-0 PROTEST for every pair of
+data sets. With a single lag, the global p-value equals the raw one, and
+`lagged_protest_pairs()` adjusts it across the ten pairs (Benjamini–Hochberg
+by default):
+
+```{r lag0}
+lag0 <- lagged_protest_pairs(dminutus_liver, lags = 0, bidirectional = FALSE,
+                             nperm = 9999, seed = 1)
+knitr::kable(lag0[, c("x", "y", "m2", "r", "p.value", "p.global.adjusted")],
+             digits = 3)
+```
+
+Somatic indices and climate were the only pair concordant after the
+adjustment. Density and climate had the lowest *m*², yet this concordance
+was not distinguishable from that expected between independent seasonal
+series, which illustrates why a low *m*² alone is not evidence of
+association.
+
+## Lagged concordance
+
+The hypothesized hierarchy has seven directed edges: climate to each of the
+four modules, and three links between modules. Each edge is scanned from
+−3 to +3 months, so a positive lag means that the first data set leads the
+second. The global p-value accounts for the scan within each edge; the
+edges are then adjusted within two families of hypotheses, because the four
+climate edges ask whether each module responds to the same driver, whereas
+the biological edges ask a different question:
+
+```{r lagged}
+climate_edges <- list(c("Climate", "Histochemistry"),
+                      c("Climate", "Morphometry"),
+                      c("Climate", "Density"),
+                      c("Climate", "Somatic"))
+module_edges <- list(c("Histochemistry", "Morphometry"),
+                     c("Morphometry", "Density"),
+                     c("Density", "Somatic"))
+climate <- lagged_protest_pairs(dminutus_liver, pairs = climate_edges,
+                                lags = 0:3, nperm = 9999, seed = 1)
+modules <- lagged_protest_pairs(dminutus_liver, pairs = module_edges,
+                                lags = 0:3, nperm = 9999, seed = 1)
+cols <- c("x", "y", "optimal_lag", "n", "m2", "r", "p.value", "p.global",
+          "p.global.adjusted")
+knitr::kable(climate[, cols], digits = 3)
+knitr::kable(modules[, cols], digits = 3)
+```
+
+Climate led histochemistry by three months, and this was the only edge
+whose global p-value remained below 0.05 after adjustment within its
+family. Notice the difference between the raw p-value at the optimal lag
+and the global p-value: for climate and somatic indices, the raw p-value at
+lag 0 was below 0.01, but the global p-value, which accounts for having
+chosen the best of seven lags, was not significant. The contemporaneous
+test above, which examines a single lag, is the appropriate one for that
+pair.
+
+The lag profile of the climate–histochemistry edge shows the minimum at
+lag +3:
+
+```{r profile, fig.alt = "Procrustes m2 against lag from -3 to 3 for climate and histochemistry; the minimum, circled and filled, is at lag 3, with global p = 0.011."}
+fit <- attr(climate, "fits")[["Climate -> Histochemistry"]]
+plot(fit)
+knitr::kable(fit$profile, digits = 3)
+```
+
+The cyclic scheme gives a conservative check. With 12 rows and
+`mirror = TRUE`, its smallest attainable p-value is 1/23 = 0.043, so a
+global p-value at that bound is as strong as the scheme can show:
+
+```{r cyclic}
+cyc <- lagged_protest(dminutus_liver$Climate, dminutus_liver$Histochemistry,
+                      lags = 0:3, bidirectional = TRUE,
+                      permutation = "cyclic")
+cyc$p.global
+```
+
+## Reading the results
+
+The analysis supports a delayed response of liver histochemistry to
+seasonal climate, of about three months, and a contemporaneous association
+between climate and somatic condition. The other edges were not
+distinguishable from chance with 12 monthly samples, which does not show
+that they are absent: one annual cycle gives little power for weak or
+delayed associations, and the optimal lag of a non-significant edge should
+not be interpreted. Because the lag is estimated from a single year, it
+also describes this cycle rather than a general property of the species.
+
+## References
