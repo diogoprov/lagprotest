@@ -17,3 +17,10 @@
 
 - [`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
   : Simulate a pair of multivariate series with a known lag
+
+## Data
+
+- [`dminutus_liver`](https://provetelab.org/lagprotest/reference/dminutus_liver.md)
+  :
+
+  Seasonal hepatic and climatic series of *Dendropsophus minutus*

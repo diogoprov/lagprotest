@@ -11,3 +11,5 @@
   scheme](https://provetelab.org/lagprotest/articles/permutation-schemes.md):
 - [Simulating lagged
   series](https://provetelab.org/lagprotest/articles/simulating-series.md):
+- [Example: seasonal liver plasticity in a
+  treefrog](https://provetelab.org/lagprotest/articles/liver-example.md):

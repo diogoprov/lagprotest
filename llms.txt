@@ -100,6 +100,13 @@ contributing to this project, you agree to abide by its terms.
 - [`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
   : Simulate a pair of multivariate series with a known lag
 
+## Data
+
+- [`dminutus_liver`](https://provetelab.org/lagprotest/reference/dminutus_liver.md)
+  :
+
+  Seasonal hepatic and climatic series of *Dendropsophus minutus*
+
 # Articles
 
 ### Get started
@@ -113,3 +120,5 @@ contributing to this project, you agree to abide by its terms.
   scheme](https://provetelab.org/lagprotest/articles/permutation-schemes.md):
 - [Simulating lagged
   series](https://provetelab.org/lagprotest/articles/simulating-series.md):
+- [Example: seasonal liver plasticity in a
+  treefrog](https://provetelab.org/lagprotest/articles/liver-example.md):
