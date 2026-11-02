@@ -37,6 +37,16 @@
 #'   window, as in [vegan::protest()]. This assumes exchangeable rows and can
 #'   strongly inflate Type I error when both series are autocorrelated.
 #'
+#' Both the phase and the cyclic schemes treat the series as periodic with
+#' period `n`. When the series contains a seasonal cycle whose length does
+#' not divide `n` (e.g., 18 monthly samples of an annual cycle), no scheme is
+#' calibrated, because two series sharing a period are Procrustes-concordant
+#' whatever their phase. Supplying `period` truncates both series to their
+#' first `floor(n / period) * period` rows, so that the analysis spans whole
+#' cycles. In simulations, this restored the Type I error of series that
+#' already spanned complete cycles, whereas removing the seasonal component
+#' by harmonic regression did not.
+#'
 #' P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 #' permuted \eqn{m^2} values smaller than or equal to the observed one and
 #' `N` the number of permutations. Each permutation is applied jointly to all
@@ -61,6 +71,10 @@
 #' @param X,Y Numeric matrices or data frames with rows as ordered time
 #'   points and columns as variables, or `dist` objects, which are converted
 #'   to principal coordinates. Both must have the same number of rows.
+#' @param period Optional length of the seasonal cycle, in rows. If given,
+#'   `X` and `Y` are truncated to their first `floor(n / period) * period`
+#'   rows (whole cycles) before analysis; a message reports the rows dropped.
+#'   `NULL` (default) uses all rows.
 #' @param lags Integer vector of non-negative candidate lags.
 #' @param permutation Permutation scheme, `"phase"`, `"cyclic"` or `"free"`.
 #' @param nperm Number of surrogates (`permutation = "phase"`) or random
@@ -98,7 +112,9 @@
 #'     \item{`procrustes`}{The [vegan::procrustes()] fit at the optimal lag.}
 #'     \item{`null`}{List of permuted \eqn{m^2} values, one element per lag;
 #'       element `i` of every vector comes from the same permutation.}
-#'     \item{`permutation`, `p.adjust.method`, `n`, `call`}{Settings used.}
+#'     \item{`permutation`, `p.adjust.method`, `n`, `period`, `call`}{Settings
+#'       used; `n` is the number of rows after any truncation to whole
+#'       cycles.}
 #'   }
 #'
 #' @seealso [vegan::protest()], [vegan::procrustes()]
@@ -119,18 +135,29 @@ lagged_protest <- function(X, Y, lags = 0:6,
                            permutation = c("phase", "cyclic", "free"),
                            nperm = 999, mirror = TRUE, bidirectional = FALSE,
                            scale = TRUE, p.adjust.method = "none",
-                           seed = NULL) {
+                           period = NULL, seed = NULL) {
   call <- match.call()
   permutation <- match.arg(permutation)
   p.adjust.method <- match.arg(p.adjust.method,
                                c(stats::p.adjust.methods, "maxT"))
 
+  if (n_rows(X) != n_rows(Y)) {
+    stop("`X` and `Y` must have the same number of rows.", call. = FALSE)
+  }
+  if (!is.null(period)) {
+    n_all <- n_rows(X)
+    m <- whole_cycle_rows(n_all, period)
+    if (m < n_all) {
+      message("Using the first ", m, " of ", n_all, " rows (",
+              floor(n_all / period), " whole cycle",
+              if (floor(n_all / period) > 1) "s", " of period ", period, ").")
+      X <- first_rows(X, m)
+      Y <- first_rows(Y, m)
+    }
+  }
   Xc <- as_configuration(X, scale, "X")
   Yc <- as_configuration(Y, scale, "Y")
   n <- nrow(Xc)
-  if (nrow(Yc) != n) {
-    stop("`X` and `Y` must have the same number of rows.", call. = FALSE)
-  }
   if (is.null(rownames(Xc))) rownames(Xc) <- seq_len(n)
   if (is.null(rownames(Yc))) rownames(Yc) <- seq_len(n)
 
@@ -217,6 +244,7 @@ lagged_protest <- function(X, Y, lags = 0:6,
       mirror = if (permutation == "cyclic") mirror else NA,
       p.adjust.method = p.adjust.method,
       n = n,
+      period = period,
       call = call
     ),
     class = "lagged_protest"

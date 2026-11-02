@@ -7,7 +7,10 @@ print.lagged_protest <- function(x, digits = 3, ...) {
     phase = "phase-randomized surrogates",
     free = "free row permutation"
   )
-  cat("Permutation: ", scheme, "; n = ", x$n, " time points\n", sep = "")
+  cat("Permutation: ", scheme, "; n = ", x$n, " time points",
+      if (!is.null(x$period)) paste0(" (whole cycles of period ", x$period,
+                                     ")"),
+      "\n", sep = "")
   cat("P-value adjustment across lags: ", x$p.adjust.method, "\n\n", sep = "")
   adjusted <- x$p.adjust.method != "none"
   cat("Optimal lag: ", x$optimal_lag,

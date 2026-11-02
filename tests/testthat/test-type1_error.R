@@ -41,3 +41,22 @@ test_that("the global p-value keeps Type I error near alpha", {
   expect_lte(global_reject(300, "cyclic", autocorr = 0.5, noise_sd = 0.5),
              0.09)
 })
+
+test_that("truncating to whole cycles calibrates a mismatched period", {
+  skip_on_cran()
+  # 24 time points of a cycle of 18: without `period` the phase scheme is
+  # strongly liberal; truncating to 18 rows restores the nominal level.
+  reject <- function(period) {
+    mean(vapply(seq_len(200), function(i) {
+      s <- simulate_lagged_series(n_times = 24, period = 18, autocorr = 0.3,
+                                  noise_sd = 0.5, seed = i)
+      fit <- suppressMessages(
+        lagged_protest(s$X, s$Y, lags = 0:4, nperm = 99, period = period,
+                       seed = i)
+      )
+      fit$p.global < 0.05
+    }, logical(1)))
+  }
+  expect_gt(reject(NULL), 0.3)
+  expect_lte(reject(18), 0.09)
+})

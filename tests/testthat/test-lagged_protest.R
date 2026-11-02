@@ -148,3 +148,37 @@ test_that("invalid inputs are rejected", {
   X[1, 1] <- NA
   expect_error(lagged_protest(X, sim$Y), "missing")
 })
+
+test_that("period truncates the series to whole cycles", {
+  s <- simulate_lagged_series(n_times = 22, true_lag = 2, period = 9,
+                              noise_sd = 0.3, seed = 1)
+  expect_message(
+    fit <- lagged_protest(s$X, s$Y, lags = 0:3, period = 9, seed = 1),
+    "first 18 of 22 rows"
+  )
+  ref <- lagged_protest(s$X[1:18, ], s$Y[1:18, ], lags = 0:3, seed = 1)
+  expect_equal(fit$n, 18)
+  expect_equal(fit$period, 9)
+  expect_equal(fit$profile, ref$profile)
+  expect_output(print(fit), "whole cycles of period 9")
+  expect_message(
+    fit_d <- lagged_protest(dist(s$X), dist(s$Y), lags = 0:3, period = 9,
+                            seed = 1),
+    "first 18"
+  )
+  expect_equal(fit_d$n, 18)
+})
+
+test_that("a period dividing n leaves the series unchanged", {
+  expect_no_message(
+    fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, period = 12, seed = 1)
+  )
+  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, seed = 1)
+  expect_equal(fit$profile, ref$profile)
+})
+
+test_that("invalid periods are rejected", {
+  expect_error(lagged_protest(sim$X, sim$Y, period = 1), "at least 2")
+  expect_error(lagged_protest(sim$X, sim$Y, period = c(6, 12)), "single")
+  expect_error(lagged_protest(sim$X, sim$Y, period = 13), "fewer than 3")
+})
