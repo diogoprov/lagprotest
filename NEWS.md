@@ -1,4 +1,4 @@
-# lagprotest (development version)
+# lagprotest 0.3.0
 
 * New `period` argument in `lagged_protest()`: when the seasonal cycle does
   not divide the series length, both series are truncated to their first
