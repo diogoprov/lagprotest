@@ -1,3 +1,10 @@
+# lagprotest (development version)
+
+* New `as.data.frame()` method returns the lag profile in long form, with
+  the permutation null quantile at each lag and a flag for the optimal lag.
+* New `autoplot()` method draws the lag profile with ggplot2 (suggested
+  package), marking the optimal lag and its global p-value as `plot()` does.
+
 # lagprotest 0.5.0
 
 * New data set `dminutus_liver`: monthly means of four hepatic modules and

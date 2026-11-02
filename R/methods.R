@@ -51,6 +51,36 @@ summary.lagged_protest <- function(object, ...) {
   out
 }
 
+#' Lag profile of a lagged PROTEST as a data frame
+#'
+#' Returns the lag profile in long (tidy) form, one row per lag, ready for
+#' tables or plotting with other tools.
+#'
+#' @param x A `"lagged_protest"` object.
+#' @param row.names,optional Unused; for compatibility with the generic.
+#' @param alpha Level of the permutation null quantile in `null.quantile`.
+#' @param ... Unused.
+#' @return A data frame with the columns of `x$profile` (`lag`, `n`, `m2`,
+#'   `r`, `p.value`, `p.adjusted`, `nperm`), plus `null.quantile`, the
+#'   `alpha` quantile of the permuted \eqn{m^2} at each lag (unadjusted),
+#'   and `optimal`, which flags the optimal lag.
+#' @seealso [plot.lagged_protest()], [autoplot.lagged_protest()]
+#' @examples
+#' sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
+#'                               seed = 1)
+#' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
+#' as.data.frame(fit)
+#' @export
+as.data.frame.lagged_protest <- function(x, row.names = NULL,
+                                         optional = FALSE, alpha = 0.05,
+                                         ...) {
+  out <- x$profile
+  out$null.quantile <- vapply(x$null, stats::quantile, numeric(1),
+                              probs = alpha, names = FALSE)
+  out$optimal <- out$lag == x$optimal_lag
+  out
+}
+
 #' Per-observation Procrustes residuals at the optimal lag
 #'
 #' @param object A `"lagged_protest"` object.
@@ -80,9 +110,8 @@ residuals.lagged_protest <- function(object, ...) {
 #' @return `x`, invisibly.
 #' @export
 plot.lagged_protest <- function(x, alpha = 0.05, global = TRUE, ...) {
-  prof <- x$profile
-  null_q <- vapply(x$null, stats::quantile, numeric(1), probs = alpha,
-                   names = FALSE)
+  prof <- as.data.frame(x, alpha = alpha)
+  null_q <- prof$null.quantile
   args <- utils::modifyList(
     list(x = prof$lag, y = prof$m2, type = "n",
          ylim = range(c(prof$m2, null_q)),
