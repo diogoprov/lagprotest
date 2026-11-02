@@ -88,6 +88,10 @@ contributing to this project, you agree to abide by its terms.
   : Lagged Procrustean randomization test
 - [`plot(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/plot.lagged_protest.md)
   : Plot the lag profile of a lagged PROTEST
+- [`autoplot(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/autoplot.lagged_protest.md)
+  : Plot the lag profile of a lagged PROTEST with ggplot2
+- [`as.data.frame(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/as.data.frame.lagged_protest.md)
+  : Lag profile of a lagged PROTEST as a data frame
 - [`summary(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/summary.lagged_protest.md)
   : Summarize a lagged PROTEST
 - [`residuals(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/residuals.lagged_protest.md)

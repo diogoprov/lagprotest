@@ -1,5 +1,16 @@
 # Changelog
 
+## lagprotest (development version)
+
+- New [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)
+  method returns the lag profile in long form, with the permutation null
+  quantile at each lag and a flag for the optimal lag.
+- New
+  [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
+  method draws the lag profile with ggplot2 (suggested package), marking
+  the optimal lag and its global p-value as
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) does.
+
 ## lagprotest 0.5.0
 
 - New data set `dminutus_liver`: monthly means of four hepatic modules

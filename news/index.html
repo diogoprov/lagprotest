@@ -37,9 +37,14 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.5.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
+<ul><li>New <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> method returns the lag profile in long form, with the permutation null quantile at each lag and a flag for the optimal lag.</li>
+<li>New <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> method draws the lag profile with ggplot2 (suggested package), marking the optimal lag and its global p-value as <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> does.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.0" id="lagprotest-050">lagprotest 0.5.0<a class="anchor" aria-label="anchor" href="#lagprotest-050"></a></h2>
 <ul><li>New data set <code>dminutus_liver</code>: monthly means of four hepatic modules and of climate for the treefrog <em>Dendropsophus minutus</em> over one annual cycle (Franco-Belussi et al. 2026, CC BY 4.0), with a new article analyzing it with <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs()</a></code>.</li>
