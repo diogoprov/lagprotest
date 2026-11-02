@@ -207,9 +207,12 @@ nominal level, but only the phase scheme retains power.
   were declared concordant far more often than α under either scheme:
   series with the same period trace the same trajectory shape, which
   Procrustes rotation can superimpose whatever the phase difference.
-  Concordance should then be read as possibly arising from shared
-  seasonality alone; removing the seasonal component before the analysis is
-  one way to test for concordance beyond it.
+  Supplying the length of the cycle with `period` truncates both series to
+  whole cycles (e.g., the first 18 of 24 monthly samples for an 18-month
+  cycle), which restored the nominal Type I error in the same simulations.
+  Removing the seasonal component by harmonic regression did not: it
+  reduced the excess but left the test liberal, and it removes the seasonal
+  signal that is often the object of the analysis.
 * **Strong autocorrelation.** In simulations with 1000 replicates per
   scenario, the global p-value of the phase scheme kept Type I error at
   0.047–0.053 for AR(1) autocorrelation up to 0.5, but reached 0.063 at 0.7

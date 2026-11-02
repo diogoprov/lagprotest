@@ -27,6 +27,33 @@ as_configuration <- function(M, scale, arg) {
   M
 }
 
+n_rows <- function(M) {
+  if (inherits(M, "dist")) attr(M, "Size") else NROW(M)
+}
+
+# Number of rows spanning whole cycles of length period.
+whole_cycle_rows <- function(n, period) {
+  if (!is.numeric(period) || length(period) != 1 || is.na(period) ||
+      period < 2) {
+    stop("`period` must be a single number of at least 2.", call. = FALSE)
+  }
+  m <- floor(floor(n / period) * period)
+  if (m < 3) {
+    stop("`period` (", period, ") leaves fewer than 3 rows of whole cycles ",
+         "(n = ", n, ").", call. = FALSE)
+  }
+  m
+}
+
+# Keep the first m rows; dist objects are subset as distance matrices.
+first_rows <- function(M, m) {
+  if (inherits(M, "dist")) {
+    stats::as.dist(as.matrix(M)[seq_len(m), seq_len(m)])
+  } else {
+    M[seq_len(m), , drop = FALSE]
+  }
+}
+
 # Row indices pairing X and Y at lag k.
 # k > 0: X leads Y (X at t paired with Y at t + k).
 # k < 0: Y leads X (Y at t paired with X at t + |k|).

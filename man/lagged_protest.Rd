@@ -14,6 +14,7 @@ lagged_protest(
   bidirectional = FALSE,
   scale = TRUE,
   p.adjust.method = "none",
+  period = NULL,
   seed = NULL
 )
 }
@@ -43,6 +44,11 @@ full series) before analysis. Ignored for \code{dist} inputs.}
 lags: \code{"maxT"} for the single-step max-statistic adjustment, or any
 method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"none"}.}
 
+\item{period}{Optional length of the seasonal cycle, in rows. If given,
+\code{X} and \code{Y} are truncated to their first \code{floor(n / period) * period}
+rows (whole cycles) before analysis; a message reports the rows dropped.
+\code{NULL} (default) uses all rows.}
+
 \item{seed}{Optional integer seed for the \code{"phase"} and \code{"free"} schemes.
 The global random number stream is left untouched.}
 }
@@ -67,7 +73,9 @@ at the optimal lag, with the paired row labels of \code{X} and \code{Y}.}
 \item{\code{procrustes}}{The \code{\link[vegan:procrustes]{vegan::procrustes()}} fit at the optimal lag.}
 \item{\code{null}}{List of permuted \eqn{m^2} values, one element per lag;
 element \code{i} of every vector comes from the same permutation.}
-\item{\code{permutation}, \code{p.adjust.method}, \code{n}, \code{call}}{Settings used.}
+\item{\code{permutation}, \code{p.adjust.method}, \code{n}, \code{period}, \code{call}}{Settings
+used; \code{n} is the number of rows after any truncation to whole
+cycles.}
 }
 }
 \description{
@@ -109,6 +117,16 @@ global p-value (see below) is then valid but has low power.
 window, as in \code{\link[vegan:protest]{vegan::protest()}}. This assumes exchangeable rows and can
 strongly inflate Type I error when both series are autocorrelated.
 }
+
+Both the phase and the cyclic schemes treat the series as periodic with
+period \code{n}. When the series contains a seasonal cycle whose length does
+not divide \code{n} (e.g., 18 monthly samples of an annual cycle), no scheme is
+calibrated, because two series sharing a period are Procrustes-concordant
+whatever their phase. Supplying \code{period} truncates both series to their
+first \code{floor(n / period) * period} rows, so that the analysis spans whole
+cycles. In simulations, this restored the Type I error of series that
+already spanned complete cycles, whereas removing the seasonal component
+by harmonic regression did not.
 
 P-values are computed as \code{(b + 1) / (N + 1)}, where \code{b} is the number of
 permuted \eqn{m^2} values smaller than or equal to the observed one and

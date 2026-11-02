@@ -1,3 +1,15 @@
+# lagprotest (development version)
+
+* New `period` argument in `lagged_protest()`: when the seasonal cycle does
+  not divide the series length, both series are truncated to their first
+  `floor(n / period) * period` rows, so that the phase and cyclic schemes,
+  which treat the series as periodic with period `n`, remain calibrated.
+  In simulations (24–48 time points, cycle of 0.75 `n`), this brought the
+  Type I error of the global p-value from 0.46–0.94 back to 0.04–0.05 for
+  AR(1) noise of 0.3. Removing the seasonal component by harmonic
+  regression was also tested and left the test liberal, so it was not
+  added.
+
 # lagprotest 0.2.0
 
 ## Breaking changes
