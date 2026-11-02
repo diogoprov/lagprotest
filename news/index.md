@@ -1,6 +1,6 @@
 # Changelog
 
-## lagprotest (development version)
+## lagprotest 0.6.0
 
 - New [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)
   method returns the lag profile in long form, with the permutation null
