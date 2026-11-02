@@ -10,6 +10,8 @@
   : Summarize a lagged PROTEST
 - [`residuals(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/residuals.lagged_protest.md)
   : Per-observation Procrustes residuals at the optimal lag
+- [`lagged_protest_pairs()`](https://provetelab.org/lagprotest/reference/lagged_protest_pairs.md)
+  : Lagged PROTEST for several pairs of data sets
 
 ## Simulation
 

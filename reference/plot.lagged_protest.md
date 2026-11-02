@@ -4,13 +4,16 @@ Plots \\m^2\\ against lag. The dashed line is the `alpha` quantile of
 the permutation null distribution at each lag (unadjusted); observed
 values below it are significant at that level before correction. Filled
 points mark lags whose p-value (adjusted, if `p.adjust.method` was not
-`"none"`) is below `alpha`.
+`"none"`) is below `alpha`. With `global = TRUE`, the optimal lag is
+circled, filled when the global p-value is below `alpha`, and the global
+p-value is printed above the plot; this is the p-value to report for the
+optimal lag.
 
 ## Usage
 
 ``` r
 # S3 method for class 'lagged_protest'
-plot(x, alpha = 0.05, ...)
+plot(x, alpha = 0.05, global = TRUE, ...)
 ```
 
 ## Arguments
@@ -22,6 +25,10 @@ plot(x, alpha = 0.05, ...)
 - alpha:
 
   Significance level.
+
+- global:
+
+  Logical; mark the optimal lag with its global p-value.
 
 - ...:
 

@@ -3,11 +3,17 @@
 the permutation null distribution at each lag (unadjusted); observed
 values below it are significant at that level before correction. Filled
 points mark lags whose p-value (adjusted, if p.adjust.method was not
-"none") is below alpha.'><meta property="og:description" content='Plots \(m^2\) against lag. The dashed line is the alpha quantile of
+"none") is below alpha. With global = TRUE, the optimal lag is
+circled, filled when the global p-value is below alpha, and the global
+p-value is printed above the plot; this is the p-value to report for the
+optimal lag.'><meta property="og:description" content='Plots \(m^2\) against lag. The dashed line is the alpha quantile of
 the permutation null distribution at each lag (unadjusted); observed
 values below it are significant at that level before correction. Filled
 points mark lags whose p-value (adjusted, if p.adjust.method was not
-"none") is below alpha.'><meta property="og:image" content="https://provetelab.org/lagprotest/logo.svg"></head><body>
+"none") is below alpha. With global = TRUE, the optimal lag is
+circled, filled when the global p-value is below alpha, and the global
+p-value is printed above the plot; this is the p-value to report for the
+optimal lag.'><meta property="og:image" content="https://provetelab.org/lagprotest/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -53,13 +59,16 @@ points mark lags whose p-value (adjusted, if p.adjust.method was not
 the permutation null distribution at each lag (unadjusted); observed
 values below it are significant at that level before correction. Filled
 points mark lags whose p-value (adjusted, if <code>p.adjust.method</code> was not
-<code>"none"</code>) is below <code>alpha</code>.</p>
+<code>"none"</code>) is below <code>alpha</code>. With <code>global = TRUE</code>, the optimal lag is
+circled, filled when the global p-value is below <code>alpha</code>, and the global
+p-value is printed above the plot; this is the p-value to report for the
+optimal lag.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'lagged_protest'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, global <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -72,6 +81,10 @@ points mark lags whose p-value (adjusted, if <code>p.adjust.method</code> was no
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>Significance level.</p></dd>
+
+
+<dt id="arg-global">global<a class="anchor" aria-label="anchor" href="#arg-global"></a></dt>
+<dd><p>Logical; mark the optimal lag with its global p-value.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
