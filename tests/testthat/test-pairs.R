@@ -55,6 +55,8 @@ test_that("invalid inputs are rejected", {
                "Unknown data sets")
   expect_error(lagged_protest_pairs(blocks, pairs = list(c("A", "A"))),
                "two different")
+  expect_error(lagged_protest_pairs(blocks, pairs = matrix("A", 1, 3)),
+               "two columns")
   expect_error(lagged_protest_pairs(blocks, pairs = list("A")),
                "length 2")
 })
