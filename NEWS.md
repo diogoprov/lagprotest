@@ -1,4 +1,4 @@
-# lagprotest (development version)
+# lagprotest 0.6.0
 
 * New `as.data.frame()` method returns the lag profile in long form, with
   the permutation null quantile at each lag and a flag for the optimal lag.
