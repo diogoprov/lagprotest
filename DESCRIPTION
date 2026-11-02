@@ -1,6 +1,6 @@
 Package: lagprotest
 Title: Lagged Procrustean Randomization Test for Multivariate Time Series
-Version: 0.2.0
+Version: 0.3.0
 Authors@R:
     person("Diogo B.", "Provete", email = "dbprovete@gmail.com",
            role = c("aut", "cre"),
