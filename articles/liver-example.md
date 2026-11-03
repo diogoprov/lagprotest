@@ -171,17 +171,81 @@ cyc$p.global
 #> [1] 0.04347826
 ```
 
+## Sensitivity to the scan statistic
+
+The global p-value compares the observed smallest *m*² across lags with
+the smallest *m*² of each surrogate. This test is valid, but it does not
+weigh all lags equally: under the null hypothesis, *m*² is smaller and
+more variable when fewer rows overlap, so the raw minimum tends to fall
+at the longest lags. With 12 rows and lags from −3 to +3, the best lag
+falls at ±3 in about half of the series simulated by
+[`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
+without association, rather than in two of seven, and the test has more
+power for a true lag of three months than for a contemporaneous
+association. An edge whose best lag lies at the end of the scan should
+therefore be checked with a statistic that places all lags on the same
+null scale.
+
+Two such statistics can be computed from the surrogates stored in each
+fit, without new permutations: the smallest per-lag p-value across lags
+(minP), and the smallest standardized *m*², in which the *m*² at each
+lag is centered and scaled by the mean and standard deviation of its own
+null distribution (Westfall and Young 1993):
+
+``` r
+
+balanced_p <- function(fit) {
+  null <- do.call(cbind, fit$null)
+  B <- nrow(null)
+  mu <- colMeans(null)
+  s <- apply(null, 2, sd)
+  z_obs <- (fit$profile$m2 - mu) / s
+  z_null <- sweep(sweep(null, 2, mu), 2, s, "/")
+  p_null <- apply(null, 2, rank, ties.method = "max") / (B + 1)
+  c(z = (sum(apply(z_null, 1, min) <= min(z_obs)) + 1) / (B + 1),
+    minP = (sum(apply(p_null, 1, min) <= min(fit$profile$p.value)) + 1) /
+      (B + 1))
+}
+fits <- c(attr(climate, "fits"), attr(modules, "fits"))
+sens <- as.data.frame(t(sapply(fits, balanced_p)))
+family <- rep(c("climate", "modules"), c(nrow(climate), nrow(modules)))
+sens$z.adjusted <- ave(sens$z, family, FUN = p.adjust, method = "BH")
+sens$minP.adjusted <- ave(sens$minP, family, FUN = p.adjust, method = "BH")
+knitr::kable(sens, digits = 3)
+```
+
+|                                |     z |  minP | z.adjusted | minP.adjusted |
+|:-------------------------------|------:|------:|-----------:|--------------:|
+| Climate -\> Histochemistry     | 0.056 | 0.068 |      0.223 |         0.203 |
+| Climate -\> Morphometry        | 0.294 | 0.372 |      0.587 |         0.745 |
+| Climate -\> Density            | 0.509 | 0.553 |      0.587 |         0.745 |
+| Climate -\> Somatic            | 0.059 | 0.031 |      0.223 |         0.124 |
+| Histochemistry -\> Morphometry | 0.694 | 0.695 |      0.694 |         0.695 |
+| Morphometry -\> Density        | 0.216 | 0.230 |      0.431 |         0.459 |
+| Density -\> Somatic            | 0.030 | 0.040 |      0.092 |         0.119 |
+
+The optimal lag of every edge is the same under the three statistics,
+because they differ only in how the lags are compared under the null.
+The support for each edge, however, changes. The climate–histochemistry
+delay weakens to a global p-value just above 0.05 and does not remain
+significant after adjustment within its family, whereas the edges with
+their best fit at lag 0 or ±1 gain support. With either balanced
+statistic, no edge remains significant after adjustment.
+
 ## Reading the results
 
-The analysis supports a delayed response of liver histochemistry to
-seasonal climate, of about three months, and a contemporaneous
-association between climate and somatic condition. The other edges were
-not distinguishable from chance with 12 monthly samples, which does not
-show that they are absent: one annual cycle gives little power for weak
-or delayed associations, and the optimal lag of a non-significant edge
-should not be interpreted. Because the lag is estimated from a single
-year, it also describes this cycle rather than a general property of the
-species.
+The analysis points to a delayed response of liver histochemistry to
+seasonal climate, of about three months, and to a contemporaneous
+association between climate and somatic condition. The delay is the
+strongest lead–lag signal in these data, but its significance depends on
+the raw statistic, which favors long lags, so it is better read as a
+hypothesis for a longer series than as an established timescale. The
+other edges were not distinguishable from chance with 12 monthly
+samples, which does not show that they are absent: one annual cycle
+gives little power for weak or delayed associations, and the optimal lag
+of a non-significant edge should not be interpreted. Because the lag is
+estimated from a single year, it also describes this cycle rather than a
+general property of the species.
 
 ## References
 
@@ -199,6 +263,10 @@ Franco-Belussi, Lilian, Luciana Moraes, Classius de Oliveira, Carlos
 Eurico Fernandes, and Diogo Borges Provete. 2026. *Data and Code for:
 Seasonal Hepatic Plasticity Follows a Temporal Response Hierarchy in a
 Neotropical Frog*. Zenodo. <https://doi.org/10.5281/zenodo.21613832>.
+
+Westfall, Peter H., and S. Stanley Young. 1993. *Resampling-Based
+Multiple Testing: Examples and Methods for p-Value Adjustment*. Wiley
+Series in Probability and Mathematical Statistics. John Wiley & Sons.
 
 Xavier, Alexandre C., Bridget R. Scanlon, Carey W. King, and Aline I.
 Alves. 2022. “New Improved Brazilian Daily Weather Gridded Data

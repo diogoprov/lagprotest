@@ -68,7 +68,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Example: seasonal liver plasticity in a treefrog</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.6.0/vignettes/articles/liver-example.Rmd" class="external-link"><code>vignettes/articles/liver-example.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/vignettes/articles/liver-example.Rmd" class="external-link"><code>vignettes/articles/liver-example.Rmd</code></a></small>
       <div class="d-none name"><code>liver-example.Rmd</code></div>
     </div>
 
@@ -483,17 +483,135 @@ show:</p>
 <span><span class="co">#&gt; [1] 0.04347826</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="sensitivity-to-the-scan-statistic">Sensitivity to the scan statistic<a class="anchor" aria-label="anchor" href="#sensitivity-to-the-scan-statistic"></a>
+</h2>
+<p>The global p-value compares the observed smallest <em>m</em>² across
+lags with the smallest <em>m</em>² of each surrogate. This test is
+valid, but it does not weigh all lags equally: under the null
+hypothesis, <em>m</em>² is smaller and more variable when fewer rows
+overlap, so the raw minimum tends to fall at the longest lags. With 12
+rows and lags from −3 to +3, the best lag falls at ±3 in about half of
+the series simulated by <code><a href="../reference/simulate_lagged_series.html">simulate_lagged_series()</a></code> without
+association, rather than in two of seven, and the test has more power
+for a true lag of three months than for a contemporaneous association.
+An edge whose best lag lies at the end of the scan should therefore be
+checked with a statistic that places all lags on the same null
+scale.</p>
+<p>Two such statistics can be computed from the surrogates stored in
+each fit, without new permutations: the smallest per-lag p-value across
+lags (minP), and the smallest standardized <em>m</em>², in which the
+<em>m</em>² at each lag is centered and scaled by the mean and standard
+deviation of its own null distribution <span class="citation">(Westfall
+and Young 1993)</span>:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">balanced_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">null</span><span class="op">)</span></span>
+<span>  <span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">null</span><span class="op">)</span></span>
+<span>  <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">null</span><span class="op">)</span></span>
+<span>  <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">null</span>, <span class="fl">2</span>, <span class="va">sd</span><span class="op">)</span></span>
+<span>  <span class="va">z_obs</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">profile</span><span class="op">$</span><span class="va">m2</span> <span class="op">-</span> <span class="va">mu</span><span class="op">)</span> <span class="op">/</span> <span class="va">s</span></span>
+<span>  <span class="va">z_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">null</span>, <span class="fl">2</span>, <span class="va">mu</span><span class="op">)</span>, <span class="fl">2</span>, <span class="va">s</span>, <span class="st">"/"</span><span class="op">)</span></span>
+<span>  <span class="va">p_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">null</span>, <span class="fl">2</span>, <span class="va">rank</span>, ties.method <span class="op">=</span> <span class="st">"max"</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">B</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>z <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">z_null</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">z_obs</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">B</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    minP <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">p_null</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">profile</span><span class="op">$</span><span class="va">p.value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span></span>
+<span>      <span class="op">(</span><span class="va">B</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">climate</span>, <span class="st">"fits"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">modules</span>, <span class="st">"fits"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sens</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fits</span>, <span class="va">balanced_p</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">family</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"climate"</span>, <span class="st">"modules"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">climate</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">modules</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sens</span><span class="op">$</span><span class="va">z.adjusted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span><span class="op">(</span><span class="va">sens</span><span class="op">$</span><span class="va">z</span>, <span class="va">family</span>, FUN <span class="op">=</span> <span class="va">p.adjust</span>, method <span class="op">=</span> <span class="st">"BH"</span><span class="op">)</span></span>
+<span><span class="va">sens</span><span class="op">$</span><span class="va">minP.adjusted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span><span class="op">(</span><span class="va">sens</span><span class="op">$</span><span class="va">minP</span>, <span class="va">family</span>, FUN <span class="op">=</span> <span class="va">p.adjust</span>, method <span class="op">=</span> <span class="st">"BH"</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">sens</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="44%">
+<col width="8%">
+<col width="8%">
+<col width="16%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th align="left"></th>
+<th align="right">z</th>
+<th align="right">minP</th>
+<th align="right">z.adjusted</th>
+<th align="right">minP.adjusted</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Climate -&gt; Histochemistry</td>
+<td align="right">0.056</td>
+<td align="right">0.068</td>
+<td align="right">0.223</td>
+<td align="right">0.203</td>
+</tr>
+<tr class="even">
+<td align="left">Climate -&gt; Morphometry</td>
+<td align="right">0.294</td>
+<td align="right">0.372</td>
+<td align="right">0.587</td>
+<td align="right">0.745</td>
+</tr>
+<tr class="odd">
+<td align="left">Climate -&gt; Density</td>
+<td align="right">0.509</td>
+<td align="right">0.553</td>
+<td align="right">0.587</td>
+<td align="right">0.745</td>
+</tr>
+<tr class="even">
+<td align="left">Climate -&gt; Somatic</td>
+<td align="right">0.059</td>
+<td align="right">0.031</td>
+<td align="right">0.223</td>
+<td align="right">0.124</td>
+</tr>
+<tr class="odd">
+<td align="left">Histochemistry -&gt; Morphometry</td>
+<td align="right">0.694</td>
+<td align="right">0.695</td>
+<td align="right">0.694</td>
+<td align="right">0.695</td>
+</tr>
+<tr class="even">
+<td align="left">Morphometry -&gt; Density</td>
+<td align="right">0.216</td>
+<td align="right">0.230</td>
+<td align="right">0.431</td>
+<td align="right">0.459</td>
+</tr>
+<tr class="odd">
+<td align="left">Density -&gt; Somatic</td>
+<td align="right">0.030</td>
+<td align="right">0.040</td>
+<td align="right">0.092</td>
+<td align="right">0.119</td>
+</tr>
+</tbody>
+</table>
+<p>The optimal lag of every edge is the same under the three statistics,
+because they differ only in how the lags are compared under the null.
+The support for each edge, however, changes. The climate–histochemistry
+delay weakens to a global p-value just above 0.05 and does not remain
+significant after adjustment within its family, whereas the edges with
+their best fit at lag 0 or ±1 gain support. With either balanced
+statistic, no edge remains significant after adjustment.</p>
+</div>
+<div class="section level2">
 <h2 id="reading-the-results">Reading the results<a class="anchor" aria-label="anchor" href="#reading-the-results"></a>
 </h2>
-<p>The analysis supports a delayed response of liver histochemistry to
-seasonal climate, of about three months, and a contemporaneous
-association between climate and somatic condition. The other edges were
-not distinguishable from chance with 12 monthly samples, which does not
-show that they are absent: one annual cycle gives little power for weak
-or delayed associations, and the optimal lag of a non-significant edge
-should not be interpreted. Because the lag is estimated from a single
-year, it also describes this cycle rather than a general property of the
-species.</p>
+<p>The analysis points to a delayed response of liver histochemistry to
+seasonal climate, of about three months, and to a contemporaneous
+association between climate and somatic condition. The delay is the
+strongest lead–lag signal in these data, but its significance depends on
+the raw statistic, which favors long lags, so it is better read as a
+hypothesis for a longer series than as an established timescale. The
+other edges were not distinguishable from chance with 12 monthly
+samples, which does not show that they are absent: one annual cycle
+gives little power for weak or delayed associations, and the optimal lag
+of a non-significant edge should not be interpreted. Because the lag is
+estimated from a single year, it also describes this cycle rather than a
+general property of the species.</p>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -516,6 +634,12 @@ Franco-Belussi, Lilian, Luciana Moraes, Classius de Oliveira, Carlos
 Eurico Fernandes, and Diogo Borges Provete. 2026. <em>Data and Code for:
 Seasonal Hepatic Plasticity Follows a Temporal Response Hierarchy in a
 Neotropical Frog</em>. Zenodo. <a href="https://doi.org/10.5281/zenodo.21613832" class="external-link">https://doi.org/10.5281/zenodo.21613832</a>.
+</div>
+<div id="ref-westfall1993resampling" class="csl-entry">
+Westfall, Peter H., and S. Stanley Young. 1993. <em>Resampling-Based
+Multiple Testing: Examples and Methods for p-Value Adjustment</em>.
+Wiley Series in Probability and Mathematical Statistics. John Wiley
+&amp; Sons.
 </div>
 <div id="ref-xavier2022brdwgd" class="csl-entry">
 Xavier, Alexandre C., Bridget R. Scanlon, Carey W. King, and Aline I.

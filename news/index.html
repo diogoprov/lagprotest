@@ -37,9 +37,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.6.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
+<ul><li>The liver example article now checks the lag scan with two statistics that weigh all lags equally (minP and the standardized m²), computed from the surrogates stored in each fit. The raw minimum m² favors long lags, and the climate–histochemistry delay is weaker under the balanced statistics.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="lagprotest-060">lagprotest 0.6.0<a class="anchor" aria-label="anchor" href="#lagprotest-060"></a></h2>
 <ul><li>New <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> method returns the lag profile in long form, with the permutation null quantile at each lag and a flag for the optimal lag.</li>
