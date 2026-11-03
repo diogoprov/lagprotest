@@ -1,3 +1,10 @@
+# lagprotest (development version)
+
+* The liver example article now checks the lag scan with two statistics that
+  weigh all lags equally (minP and the standardized m²), computed from the
+  surrogates stored in each fit. The raw minimum m² favors long lags, and the
+  climate–histochemistry delay is weaker under the balanced statistics.
+
 # lagprotest 0.6.0
 
 * New `as.data.frame()` method returns the lag profile in long form, with
