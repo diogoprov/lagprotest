@@ -59,6 +59,7 @@ lagged_protest_pairs <- function(data, pairs = NULL, lags = 0:6,
   }
   p.adjust.method <- match.arg(p.adjust.method, stats::p.adjust.methods)
   pairs <- as_pairs(pairs, names(data))
+  data_expr <- substitute(data)
 
   fits <- lapply(seq_along(pairs), function(i) {
     p <- pairs[[i]]
@@ -67,7 +68,15 @@ lagged_protest_pairs <- function(data, pairs = NULL, lags = 0:6,
                      bidirectional = bidirectional, seed = seed, ...)
     }
     # A truncation message, if any, is the same for every pair
-    if (i == 1) run() else suppressMessages(run())
+    fit <- if (i == 1) run() else suppressMessages(run())
+    # Store a call that names the data sets and shows the values used,
+    # rather than the internal variables of this function
+    fit$call$X <- call("[[", data_expr, p[1])
+    fit$call$Y <- call("[[", data_expr, p[2])
+    fit$call$lags <- lags
+    fit$call$bidirectional <- bidirectional
+    fit$call$seed <- seed
+    fit
   })
   names(fits) <- vapply(pairs, paste, character(1), collapse = " -> ")
 

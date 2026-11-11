@@ -25,4 +25,12 @@ test_that("noise-free lagged series reproduce X shifted by true_lag", {
 test_that("invalid arguments are rejected", {
   expect_error(simulate_lagged_series(true_lag = -1), "non-negative")
   expect_error(simulate_lagged_series(autocorr = 1), "autocorr")
+  expect_error(simulate_lagged_series(true_lag = 1.5), "non-negative")
+  expect_error(simulate_lagged_series(n_times = 2), "`n_times`")
+  expect_error(simulate_lagged_series(n_vars_x = 0), "`n_vars_x`")
+  expect_error(simulate_lagged_series(n_vars_y = 1.5), "`n_vars_y`")
+  expect_error(simulate_lagged_series(period = 0), "`period`")
+  expect_error(simulate_lagged_series(amplitude = NA), "`amplitude`")
+  expect_error(simulate_lagged_series(noise_sd = -1), "`noise_sd`")
+  expect_error(simulate_lagged_series(seed = "a"), "`seed`")
 })

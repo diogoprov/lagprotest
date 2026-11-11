@@ -11,7 +11,7 @@
 #' AR(1) series; setting `autocorr = 0` gives white noise around the
 #' seasonal signal (the design of the original simulation, Appendix S1).
 #'
-#' @param n_times Number of time points.
+#' @param n_times Number of time points (at least 3).
 #' @param n_vars_x,n_vars_y Number of variables in `X` and `Y`.
 #' @param true_lag `NULL` for independent series, or a non-negative integer
 #'   lag by which `X` leads `Y`. `0` means a contemporaneous association,
@@ -35,12 +35,30 @@ simulate_lagged_series <- function(n_times = 24, n_vars_x = 5, n_vars_y = 5,
                                    true_lag = NULL, period = 12,
                                    amplitude = 1, autocorr = 0.5,
                                    noise_sd = 1, seed = NULL) {
-  if (!is.null(true_lag) &&
-      (length(true_lag) != 1 || true_lag < 0 || true_lag != round(true_lag))) {
+  if (!is.null(true_lag) && !is_whole(true_lag, 0)) {
     stop("`true_lag` must be NULL or a single non-negative integer.",
          call. = FALSE)
   }
-  if (abs(autocorr) >= 1) stop("`autocorr` must lie in (-1, 1).", call. = FALSE)
+  check_count(n_times, "n_times", min = 3)
+  check_count(n_vars_x, "n_vars_x")
+  check_count(n_vars_y, "n_vars_y")
+  check_seed(seed)
+  if (!is.numeric(period) || length(period) != 1 || !is.finite(period) ||
+      period <= 0) {
+    stop("`period` must be a single positive number.", call. = FALSE)
+  }
+  if (!is.numeric(amplitude) || length(amplitude) != 1 ||
+      !is.finite(amplitude)) {
+    stop("`amplitude` must be a single finite number.", call. = FALSE)
+  }
+  if (!is.numeric(noise_sd) || length(noise_sd) != 1 ||
+      !is.finite(noise_sd) || noise_sd < 0) {
+    stop("`noise_sd` must be a single non-negative number.", call. = FALSE)
+  }
+  if (!is.numeric(autocorr) || length(autocorr) != 1 || is.na(autocorr) ||
+      abs(autocorr) >= 1) {
+    stop("`autocorr` must lie in (-1, 1).", call. = FALSE)
+  }
 
   with_seed(seed, {
     if (is.null(true_lag)) {
