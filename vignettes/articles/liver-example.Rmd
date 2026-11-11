@@ -134,7 +134,12 @@ Two such statistics can be computed from the surrogates stored in each
 fit, without new permutations: the smallest per-lag p-value across lags
 (minP), and the smallest standardized *m*², in which the *m*² at each lag
 is centered and scaled by the mean and standard deviation of its own null
-distribution [@westfall1993resampling]:
+distribution [@westfall1993resampling]. Taking the smallest p-value across
+tests in each randomization follows the procedure described by
+@manly2020randomization [pp. 83--84] for correlated tests, for which the
+Bonferroni level is too strict; they recommend at least 100*m*
+randomizations for *m* tests, a condition met here by 9999 permutations for
+seven lags:
 
 ```{r balanced}
 balanced_p <- function(fit) {

@@ -1,5 +1,24 @@
 # lagprotest (development version)
 
+* `lagged_protest()` now returns continuous measures of evidence and
+  strength computed from the same permutations as the p-values: per-lag `z`
+  and `a` in the profile, and in `effect` the lag of the largest `z`, its
+  standardized position `Z` among the permuted maxima, and the
+  chance-corrected `A` and RV coefficient. The permuted RV values are kept in
+  `null.rv`. `print()` and `summary()` show them, and
+  `lagged_protest_pairs()` adds `Z` and `A` as columns.
+* `lagged_protest()` now reports the mean lag-1 autocorrelation of each
+  series (`ar1`), raw and after removing the seasonal harmonics, as a
+  description of how close the data are to the conditions under which the
+  phase scheme was liberal in simulations.
+* `lagged_protest()` now issues a message when the smallest attainable
+  p-value is 0.05 or more (e.g., the cyclic scheme without mirror at
+  `n = 12`).
+* The documentation of `lagged_protest()` and the permutation-schemes
+  article cite Manly and Navarro Alberto (2020) for the p-value formula and
+  the recommended number of permutations, and pp. 83–84 for the
+  max-statistic adjustment of correlated tests.
+
 * The liver example article now checks the lag scan with two statistics that
   weigh all lags equally (minP and the standardized m²), computed from the
   surrogates stored in each fit. The raw minimum m² favors long lags, and the

@@ -35,7 +35,8 @@
 #'   global p-value (see below) is then valid but has low power.
 #' * `"free"`: rows of `Y` are permuted at random within the overlapping
 #'   window, as in [vegan::protest()]. This assumes exchangeable rows and can
-#'   strongly inflate Type I error when both series are autocorrelated.
+#'   strongly inflate Type I error when both series are autocorrelated
+#'   (Manly and Navarro Alberto 2020, ch. 10).
 #'
 #' Both the phase and the cyclic schemes treat the series as periodic with
 #' period `n`. When the series contains a seasonal cycle whose length does
@@ -49,8 +50,37 @@
 #'
 #' P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 #' permuted \eqn{m^2} values smaller than or equal to the observed one and
-#' `N` the number of permutations. Each permutation is applied jointly to all
-#' lags.
+#' `N` the number of permutations (Manly and Navarro Alberto 2020, p. 57).
+#' Each permutation is applied jointly to all lags. The validity of the test
+#' does not depend on `N`, only the precision of the p-value does; Manly and
+#' Navarro Alberto (2020, pp. 57--59) recommend at least 1000 randomizations
+#' for a test at the 5% level and about 5000 at the 1% level. A message is
+#' issued when the smallest attainable p-value, `1 / (N + 1)`, is 0.05 or
+#' more.
+#'
+#' Because the p-value is bounded by `N` and conflates strength with sample
+#' size, three continuous measures are computed from the same permutations.
+#' At each lag, \eqn{z_k = (\bar m^{2*}_k - m^2_k) / s^*_k} standardizes the
+#' observed \eqn{m^2} against its permutation mean and standard deviation,
+#' and \eqn{a_k = 1 - m^2_k / \bar m^{2*}_k} expresses the concordance
+#' relative to its null mean. The effect lag is the lag of the largest
+#' \eqn{z} (which weighs lags of different overlap more evenly than the raw
+#' \eqn{m^2}), and each permutation selects its own lag in the same way.
+#' `Z` is the standardized position of the observed maximum \eqn{z} within
+#' the permuted maxima; `A` and the corrected RV coefficient are
+#' chance-corrected at the effect lag as
+#' \eqn{(obs - \bar{null}) / (1 - \bar{null})}, with the null mean taken
+#' over the permutations at their own selected lags. `A` and the corrected RV
+#' are near 0 under the null and 1 for perfect concordance; `Z` is near 0
+#' under the null.
+#'
+#' The mean lag-1 autocorrelation of the columns of each series is returned
+#' in `ar1`, both raw and after removing by regression the harmonics of
+#' period `n` (and of `period`, when given). It is descriptive only: the
+#' raw value is dominated by any seasonal cycle, and the residual value is
+#' biased downwards in short series. The phase scheme was liberal for short,
+#' strongly autocorrelated series in simulations, so both values help judge
+#' whether that caveat applies.
 #'
 #' The per-lag p-values (`p.value`) are not corrected for testing several
 #' lags, nor for selecting the lag with the smallest \eqn{m^2}. Reporting the
@@ -60,6 +90,13 @@
 #' with the distribution of the minimum across lags under each permutation
 #' (a max-statistic test), so it is the p-value of the whole
 #' scan-and-select procedure and is the one to report for the optimal lag.
+#' Because \eqn{m^2} at neighboring lags is strongly correlated, a Bonferroni
+#' level of \eqn{\alpha / m} for \eqn{m} lags would be conservative: the
+#' appropriate level lies between \eqn{\alpha / m} and \eqn{\alpha}, and
+#' taking the extreme statistic across tests in each randomization, as here,
+#' finds it from the data (Manly and Navarro Alberto 2020, pp. 83--84). The
+#' same source recommends at least \eqn{100m} randomizations for \eqn{m}
+#' tests.
 #' With `p.adjust.method = "maxT"`, every lag receives the corresponding
 #' single-step max-statistic adjusted p-value, and the adjusted p-value at
 #' the optimal lag equals `p.global`. Any method of [stats::p.adjust()] can be
@@ -79,7 +116,9 @@
 #' @param permutation Permutation scheme, `"phase"`, `"cyclic"` or `"free"`.
 #' @param nperm Number of surrogates (`permutation = "phase"`) or random
 #'   permutations (`permutation = "free"`). Ignored for the cyclic scheme,
-#'   whose permutations are enumerated.
+#'   whose permutations are enumerated. Use 999 or more for a test at the 5%
+#'   level and about 4999 when the 1% level matters (Manly and Navarro
+#'   Alberto 2020, pp. 57--59).
 #' @param mirror Logical; with `permutation = "cyclic"`, also use the
 #'   time-reversed shifts of `Y`, doubling the permutation set.
 #' @param bidirectional Logical; if `TRUE`, also test the negative lags
@@ -106,16 +145,29 @@
 #'     \item{`n_perm`}{Number of permutations or surrogates at the optimal
 #'       lag (the exact count for the cyclic scheme).}
 #'     \item{`profile`}{Data frame with `lag`, `n` (rows used), `m2`, `r`,
-#'       `p.value`, `p.adjusted` and `nperm` for every lag.}
+#'       `p.value`, `p.adjusted`, `nperm`, `z` and `a` for every lag.}
 #'     \item{`residuals`}{Data frame of per-observation Procrustes residuals
 #'       at the optimal lag, with the paired row labels of `X` and `Y`.}
 #'     \item{`procrustes`}{The [vegan::procrustes()] fit at the optimal lag.}
+#'     \item{`effect`}{List with the effect `lag` (largest \eqn{z}), `Z`,
+#'       `A` and the chance-corrected `RV` coefficient at that lag (see
+#'       Details).}
+#'     \item{`ar1`}{Data frame with the mean lag-1 autocorrelation of the
+#'       columns of `X` and `Y`, `raw` and `residual` after removing the
+#'       harmonics of period `n` and `period`.}
 #'     \item{`null`}{List of permuted \eqn{m^2} values, one element per lag;
 #'       element `i` of every vector comes from the same permutation.}
+#'     \item{`null.rv`}{List of permuted RV coefficients, paired with
+#'       `null`.}
 #'     \item{`permutation`, `p.adjust.method`, `n`, `period`, `call`}{Settings
 #'       used; `n` is the number of rows after any truncation to whole
 #'       cycles.}
 #'   }
+#'
+#' @references
+#' Manly, B. F. J. and Navarro Alberto, J. A. (2020). *Randomization,
+#' Bootstrap and Monte Carlo Methods in Biology*, 4th ed. Chapman and
+#' Hall/CRC, New York. \doi{10.1201/9780429329203}
 #'
 #' @seealso [vegan::protest()], [vegan::procrustes()]
 #'
@@ -175,19 +227,29 @@ lagged_protest <- function(X, Y, lags = 0:6,
     stop("`nperm` must be a positive integer.", call. = FALSE)
   }
 
-  observed <- vapply(lags, function(k) {
+  obs_stats <- vapply(lags, function(k) {
     idx <- lag_index(n, k)
-    procrustes_m2(Xc[idx$x, , drop = FALSE], Yc[idx$y, , drop = FALSE])
-  }, numeric(1))
+    pair_stats(Xc[idx$x, , drop = FALSE], Yc[idx$y, , drop = FALSE])
+  }, numeric(2))
+  observed <- obs_stats[1, ]
 
-  null <- switch(permutation,
+  null_both <- switch(permutation,
     cyclic = null_cyclic(Xc, Yc, lags, mirror),
     phase = with_seed(seed, null_phase(Xc, Yc, lags, nperm)),
     free = with_seed(seed, null_free(Xc, Yc, lags, nperm))
   )
-  names(null) <- lags
+  null <- lapply(null_both, function(m) m[1, ])
+  null_rv <- lapply(null_both, function(m) m[2, ])
+  names(null) <- names(null_rv) <- lags
 
   n_null <- unname(lengths(null))
+  check_min_p(n_null, permutation)
+  cyc <- c(n, period)
+  ar1 <- data.frame(
+    series = c("X", "Y"),
+    raw = c(mean_ar1(Xc), mean_ar1(Yc)),
+    residual = c(mean_ar1(Xc, cyc), mean_ar1(Yc, cyc))
+  )
   p_raw <- (vapply(seq_along(lags),
                    function(i) sum(null[[i]] <= observed[i]),
                    numeric(1)) + 1) / (n_null + 1)
@@ -204,6 +266,8 @@ lagged_protest <- function(X, Y, lags = 0:6,
     stats::p.adjust(p_raw, method = p.adjust.method)
   }
 
+  eff <- effect_measures(lags, observed, obs_stats[2, ], null, null_rv)
+
   profile <- data.frame(
     lag = lags,
     n = n - abs(lags),
@@ -211,7 +275,9 @@ lagged_protest <- function(X, Y, lags = 0:6,
     r = sqrt(pmax(0, 1 - observed)),
     p.value = p_raw,
     p.adjusted = p_adj,
-    nperm = n_null
+    nperm = n_null,
+    z = eff$per_lag$z,
+    a = eff$per_lag$a
   )
 
   best <- which.min(observed)
@@ -239,7 +305,10 @@ lagged_protest <- function(X, Y, lags = 0:6,
       profile = profile,
       residuals = res,
       procrustes = fit,
+      effect = eff$summary,
+      ar1 = ar1,
       null = null,
+      null.rv = null_rv,
       permutation = permutation,
       mirror = if (permutation == "cyclic") mirror else NA,
       p.adjust.method = p.adjust.method,
