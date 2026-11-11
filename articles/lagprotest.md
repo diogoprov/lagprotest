@@ -65,14 +65,16 @@ fit
 #> 
 #> Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.001)
 #> Global p across lags (max-statistic): 0.003
+#> Effect at lag 2 (largest z): Z = 3.22, A = 0.51, corrected RV = 0.318
+#> Mean lag-1 autocorrelation, raw (residual after removing the cycle): X 0.7 (-0.018), Y 0.54 (-0.049)
 #> 
 #> Lag profile:
-#>  lag  n     m2     r p.value nperm
-#>    0 12 0.3103 0.830   0.962   999
-#>    1 11 0.2078 0.890   0.138   999
-#>    2 10 0.0922 0.953   0.001   999
-#>    3  9 0.2748 0.852   0.818   999
-#>    4  8 0.3046 0.834   0.876   999
+#>  lag  n     m2     r p.value nperm      z      a
+#>    0 12 0.3103 0.830   0.962   999 -1.550 -0.201
+#>    1 11 0.2078 0.890   0.138   999  1.107  0.173
+#>    2 10 0.0922 0.953   0.001   999  3.533  0.617
+#>    3  9 0.2748 0.852   0.818   999 -0.878 -0.171
+#>    4  8 0.3046 0.834   0.876   999 -1.181 -0.262
 #> Per-lag p-values are not corrected for testing several lags or for selecting
 #> the optimal lag; report the global p for the optimal lag.
 ```
@@ -131,12 +133,18 @@ as a data frame, with the optimal lag flagged:
 ``` r
 
 summary(fit)
-#>   lag  n         m2         r p.value p.adjusted nperm optimal
-#> 1   0 12 0.31032769 0.8304651   0.962      0.962   999   FALSE
-#> 2   1 11 0.20776926 0.8900734   0.138      0.138   999   FALSE
-#> 3   2 10 0.09221418 0.9527779   0.001      0.001   999    TRUE
-#> 4   3  9 0.27479436 0.8515901   0.818      0.818   999   FALSE
-#> 5   4  8 0.30456477 0.8339276   0.876      0.876   999   FALSE
+#>   lag  n         m2         r p.value p.adjusted nperm          z          a
+#> 1   0 12 0.31032769 0.8304651   0.962      0.962   999 -1.5503712 -0.2012070
+#> 2   1 11 0.20776926 0.8900734   0.138      0.138   999  1.1073458  0.1732326
+#> 3   2 10 0.09221418 0.9527779   0.001      0.001   999  3.5330820  0.6170489
+#> 4   3  9 0.27479436 0.8515901   0.818      0.818   999 -0.8777031 -0.1706562
+#> 5   4  8 0.30456477 0.8339276   0.876      0.876   999 -1.1807311 -0.2616815
+#>   optimal
+#> 1   FALSE
+#> 2   FALSE
+#> 3    TRUE
+#> 4   FALSE
+#> 5   FALSE
 ```
 
 ## Plotting the lag profile

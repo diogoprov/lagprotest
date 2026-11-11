@@ -41,7 +41,9 @@ lagged_protest(
 
   Number of surrogates (`permutation = "phase"`) or random permutations
   (`permutation = "free"`). Ignored for the cyclic scheme, whose
-  permutations are enumerated.
+  permutations are enumerated. Use 999 or more for a test at the 5%
+  level and about 4999 when the 1% level matters (Manly and Navarro
+  Alberto 2020, pp. 57–59).
 
 - mirror:
 
@@ -114,7 +116,7 @@ An object of class `"lagged_protest"`, a list with:
 - `profile`:
 
   Data frame with `lag`, `n` (rows used), `m2`, `r`, `p.value`,
-  `p.adjusted` and `nperm` for every lag.
+  `p.adjusted`, `nperm`, `z` and `a` for every lag.
 
 - `residuals`:
 
@@ -127,10 +129,25 @@ An object of class `"lagged_protest"`, a list with:
   [`vegan::procrustes()`](https://vegandevs.github.io/vegan/reference/procrustes.html)
   fit at the optimal lag.
 
+- `effect`:
+
+  List with the effect `lag` (largest \\z\\), `Z`, `A` and the
+  chance-corrected `RV` coefficient at that lag (see Details).
+
+- `ar1`:
+
+  Data frame with the mean lag-1 autocorrelation of the columns of `X`
+  and `Y`, `raw` and `residual` after removing the harmonics of period
+  `n` and `period`.
+
 - `null`:
 
   List of permuted \\m^2\\ values, one element per lag; element `i` of
   every vector comes from the same permutation.
+
+- `null.rv`:
+
+  List of permuted RV coefficients, paired with `null`.
 
 - `permutation`, `p.adjust.method`, `n`, `period`, `call`:
 
@@ -178,7 +195,8 @@ Three permutation schemes are available:
   window, as in
   [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html).
   This assumes exchangeable rows and can strongly inflate Type I error
-  when both series are autocorrelated.
+  when both series are autocorrelated (Manly and Navarro Alberto 2020,
+  ch. 10).
 
 Both the phase and the cyclic schemes treat the series as periodic with
 period `n`. When the series contains a seasonal cycle whose length does
@@ -192,8 +210,36 @@ the seasonal component by harmonic regression did not.
 
 P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 permuted \\m^2\\ values smaller than or equal to the observed one and
-`N` the number of permutations. Each permutation is applied jointly to
-all lags.
+`N` the number of permutations (Manly and Navarro Alberto 2020, p. 57).
+Each permutation is applied jointly to all lags. The validity of the
+test does not depend on `N`, only the precision of the p-value does;
+Manly and Navarro Alberto (2020, pp. 57–59) recommend at least 1000
+randomizations for a test at the 5% level and about 5000 at the 1%
+level. A message is issued when the smallest attainable p-value,
+`1 / (N + 1)`, is 0.05 or more.
+
+Because the p-value is bounded by `N` and conflates strength with sample
+size, three continuous measures are computed from the same permutations.
+At each lag, \\z_k = (\bar m^{2\*}\_k - m^2_k) / s^\*\_k\\ standardizes
+the observed \\m^2\\ against its permutation mean and standard
+deviation, and \\a_k = 1 - m^2_k / \bar m^{2\*}\_k\\ expresses the
+concordance relative to its null mean. The effect lag is the lag of the
+largest \\z\\ (which weighs lags of different overlap more evenly than
+the raw \\m^2\\), and each permutation selects its own lag in the same
+way. `Z` is the standardized position of the observed maximum \\z\\
+within the permuted maxima; `A` and the corrected RV coefficient are
+chance-corrected at the effect lag as \\(obs - \bar{null}) / (1 -
+\bar{null})\\, with the null mean taken over the permutations at their
+own selected lags. `A` and the corrected RV are near 0 under the null
+and 1 for perfect concordance; `Z` is near 0 under the null.
+
+The mean lag-1 autocorrelation of the columns of each series is returned
+in `ar1`, both raw and after removing by regression the harmonics of
+period `n` (and of `period`, when given). It is descriptive only: the
+raw value is dominated by any seasonal cycle, and the residual value is
+biased downwards in short series. The phase scheme was liberal for
+short, strongly autocorrelated series in simulations, so both values
+help judge whether that caveat applies.
 
 The per-lag p-values (`p.value`) are not corrected for testing several
 lags, nor for selecting the lag with the smallest \\m^2\\. Reporting the
@@ -203,7 +249,13 @@ to the rate at which any lag is significant. The global p-value
 across lags with the distribution of the minimum across lags under each
 permutation (a max-statistic test), so it is the p-value of the whole
 scan-and-select procedure and is the one to report for the optimal lag.
-With `p.adjust.method = "maxT"`, every lag receives the corresponding
+Because \\m^2\\ at neighboring lags is strongly correlated, a Bonferroni
+level of \\\alpha / m\\ for \\m\\ lags would be conservative: the
+appropriate level lies between \\\alpha / m\\ and \\\alpha\\, and taking
+the extreme statistic across tests in each randomization, as here, finds
+it from the data (Manly and Navarro Alberto 2020, pp. 83–84). The same
+source recommends at least \\100m\\ randomizations for \\m\\ tests. With
+`p.adjust.method = "maxT"`, every lag receives the corresponding
 single-step max-statistic adjusted p-value, and the adjusted p-value at
 the optimal lag equals `p.global`. Any method of
 [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) can be
@@ -211,6 +263,13 @@ requested instead; with few permutations, as in the cyclic scheme,
 corrections such as Holm may make significance unattainable. Note that
 \\m^2\\ values at different lags are based on different numbers of rows
 (`n - |k|`).
+
+## References
+
+Manly, B. F. J. and Navarro Alberto, J. A. (2020). *Randomization,
+Bootstrap and Monte Carlo Methods in Biology*, 4th ed. Chapman and
+Hall/CRC, New York.
+[doi:10.1201/9780429329203](https://doi.org/10.1201/9780429329203)
 
 ## See also
 
@@ -233,14 +292,16 @@ fit
 #> 
 #> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.001)
 #> Global p across lags (max-statistic): 0.004
+#> Effect at lag 2 (largest z): Z = 3.04, A = 0.464, corrected RV = 0.206
+#> Mean lag-1 autocorrelation, raw (residual after removing the cycle): X 0.76 (-0.018), Y 0.66 (-0.049)
 #> 
 #> Lag profile:
-#>  lag  n     m2     r p.value nperm
-#>    0 12 0.1532 0.920   0.969   999
-#>    1 11 0.1000 0.949   0.145   999
-#>    2 10 0.0496 0.975   0.001   999
-#>    3  9 0.1303 0.933   0.725   999
-#>    4  8 0.1516 0.921   0.850   999
+#>  lag  n     m2     r p.value nperm      z      a
+#>    0 12 0.1532 0.920   0.969   999 -1.705 -0.227
+#>    1 11 0.1000 0.949   0.145   999  1.112  0.179
+#>    2 10 0.0496 0.975   0.001   999  3.300  0.578
+#>    3  9 0.1303 0.933   0.725   999 -0.592 -0.122
+#>    4  8 0.1516 0.921   0.850   999 -1.025 -0.246
 #> Per-lag p-values are not corrected for testing several lags or for selecting
 #> the optimal lag; report the global p for the optimal lag.
 fit$p.global
@@ -248,12 +309,12 @@ fit$p.global
 fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
                              permutation = "cyclic")
 fit_cyclic$profile
-#>   lag  n         m2         r    p.value p.adjusted nperm
-#> 1   0 12 0.15315445 0.9202421 1.00000000 1.00000000    22
-#> 2   1 11 0.10003719 0.9486637 0.08695652 0.08695652    22
-#> 3   2 10 0.04963006 0.9748692 0.04347826 0.04347826    22
-#> 4   3  9 0.13033905 0.9325561 0.73913043 0.73913043    22
-#> 5   4  8 0.15160634 0.9210829 0.91304348 0.91304348    22
+#>   lag  n         m2         r    p.value p.adjusted nperm          z          a
+#> 1   0 12 0.15315445 0.9202421 1.00000000 1.00000000    22 -1.6979953 -0.2233912
+#> 2   1 11 0.10003719 0.9486637 0.08695652 0.08695652    22  1.2470776  0.1865535
+#> 3   2 10 0.04963006 0.9748692 0.04347826 0.04347826    22  3.4786381  0.5977914
+#> 4   3  9 0.13033905 0.9325561 0.73913043 0.73913043    22 -0.4396758 -0.1086388
+#> 5   4  8 0.15160634 0.9210829 0.91304348 0.91304348    22 -0.9413089 -0.2284317
 plot(fit)
 
 residuals(fit)

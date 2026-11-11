@@ -21,4 +21,7 @@ summary(object, ...)
 
 ## Value
 
-The lag profile (a data frame), with the optimal lag flagged.
+The lag profile (a data frame), with the optimal lag flagged. The
+scan-level measures are attached as attributes: `p.global`, `effect`
+(lag of the largest z, `Z`, `A` and corrected `RV`) and `ar1` (raw and
+residual lag-1 autocorrelation of `X` and `Y`).

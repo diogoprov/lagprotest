@@ -148,15 +148,15 @@ the minimum, circled and filled, is at lag 3, with global p =
 knitr::kable(fit$profile, digits = 3)
 ```
 
-| lag |   n |    m2 |     r | p.value | p.adjusted | nperm |
-|----:|----:|------:|------:|--------:|-----------:|------:|
-|  -3 |   9 | 0.717 | 0.532 |   0.496 |      0.496 |  9999 |
-|  -2 |  10 | 0.801 | 0.446 |   0.841 |      0.841 |  9999 |
-|  -1 |  11 | 0.678 | 0.567 |   0.239 |      0.239 |  9999 |
-|   0 |  12 | 0.791 | 0.457 |   0.738 |      0.738 |  9999 |
-|   1 |  11 | 0.718 | 0.531 |   0.462 |      0.462 |  9999 |
-|   2 |  10 | 0.593 | 0.638 |   0.134 |      0.134 |  9999 |
-|   3 |   9 | 0.379 | 0.788 |   0.011 |      0.011 |  9999 |
+| lag |   n |    m2 |     r | p.value | p.adjusted | nperm |      z |      a |
+|----:|----:|------:|------:|--------:|-----------:|------:|-------:|-------:|
+|  -3 |   9 | 0.717 | 0.532 |   0.496 |      0.496 |  9999 | -0.052 | -0.007 |
+|  -2 |  10 | 0.801 | 0.446 |   0.841 |      0.841 |  9999 | -1.075 | -0.120 |
+|  -1 |  11 | 0.678 | 0.567 |   0.239 |      0.239 |  9999 |  0.721 |  0.068 |
+|   0 |  12 | 0.791 | 0.457 |   0.738 |      0.738 |  9999 | -0.737 | -0.062 |
+|   1 |  11 | 0.718 | 0.531 |   0.462 |      0.462 |  9999 |  0.058 |  0.005 |
+|   2 |  10 | 0.593 | 0.638 |   0.134 |      0.134 |  9999 |  1.132 |  0.139 |
+|   3 |   9 | 0.379 | 0.788 |   0.011 |      0.011 |  9999 |  2.502 |  0.418 |
 
 The cyclic scheme gives a conservative check. With 12 rows and
 `mirror = TRUE`, its smallest attainable p-value is 1/23 = 0.043, so a
@@ -190,7 +190,12 @@ Two such statistics can be computed from the surrogates stored in each
 fit, without new permutations: the smallest per-lag p-value across lags
 (minP), and the smallest standardized *m*², in which the *m*² at each
 lag is centered and scaled by the mean and standard deviation of its own
-null distribution (Westfall and Young 1993):
+null distribution (Westfall and Young 1993). Taking the smallest p-value
+across tests in each randomization follows the procedure described by
+Manly and Navarro Alberto (2020, 83–84) for correlated tests, for which
+the Bonferroni level is too strict; they recommend at least 100*m*
+randomizations for *m* tests, a condition met here by 9999 permutations
+for seven lags:
 
 ``` r
 
@@ -263,6 +268,10 @@ Franco-Belussi, Lilian, Luciana Moraes, Classius de Oliveira, Carlos
 Eurico Fernandes, and Diogo Borges Provete. 2026. *Data and Code for:
 Seasonal Hepatic Plasticity Follows a Temporal Response Hierarchy in a
 Neotropical Frog*. Zenodo. <https://doi.org/10.5281/zenodo.21613832>.
+
+Manly, Bryan F. J., and Jorge A. Navarro Alberto. 2020. *Randomization,
+Bootstrap and Monte Carlo Methods in Biology*. 4th ed. Chapman;
+Hall/CRC. <https://doi.org/10.1201/9780429329203>.
 
 Westfall, Peter H., and S. Stanley Young. 1993. *Resampling-Based
 Multiple Testing: Examples and Methods for p-Value Adjustment*. Wiley

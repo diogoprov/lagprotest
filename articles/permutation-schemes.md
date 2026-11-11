@@ -67,7 +67,8 @@ rate_table <- function(data, by, value) {
 Standard PROTEST permutes rows freely, which assumes that time points
 are exchangeable (Jackson 1995; Peres-Neto and Jackson 2001). Two
 independent seasonal series violate this assumption, because both carry
-temporal structure that row permutation destroys (Legendre et al. 2002):
+temporal structure that row permutation destroys (Legendre et al. 2002;
+Manly and Navarro Alberto 2020, ch. 10):
 
 ``` r
 
@@ -316,8 +317,11 @@ the object of the analysis.
 ## Recommendations
 
 - Use the default `permutation = "phase"` with a large `nperm` (999 or
-  more) and a `seed`, and report `fit$p.global` for the optimal lag
-  together with the lag profile.
+  more for a test at the 5% level, about 4999 when the 1% level matters;
+  Manly and Navarro Alberto (2020), pp. 57–59) and a `seed`, and report
+  `fit$p.global` for the optimal lag together with the lag profile and
+  the continuous measures in `fit$effect` (`Z`, `A` and the corrected
+  RV), which are not bounded by the number of permutations.
 - Make sure the series spans whole cycles of any seasonal signal; if it
   does not, give the length of the cycle in `period`.
 - With short series (*n* ≤ 48) that are strongly autocorrelated, report
@@ -345,6 +349,10 @@ Gurevitch, Michael Hohn, and Donald Myers. 2002. “The Consequences of
 Spatial Structure for the Design and Analysis of Ecological Field
 Surveys.” *Ecography* 25 (5): 601–15.
 <https://doi.org/10.1034/j.1600-0587.2002.250508.x>.
+
+Manly, Bryan F. J., and Jorge A. Navarro Alberto. 2020. *Randomization,
+Bootstrap and Monte Carlo Methods in Biology*. 4th ed. Chapman;
+Hall/CRC. <https://doi.org/10.1201/9780429329203>.
 
 Peres-Neto, Pedro R., and Donald A. Jackson. 2001. “How Well Do
 Multivariate Data Sets Match? The Advantages of a Procrustean
