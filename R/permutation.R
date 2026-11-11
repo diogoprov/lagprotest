@@ -1,5 +1,6 @@
-# Null distributions of m^2 for each lag.
-# Both functions return a list with one numeric vector per lag.
+# Null distributions of m^2 (and of the RV coefficient) for each lag.
+# Each function returns a list with one 2-row matrix per lag (m2, RV), one
+# column per permutation.
 
 # Cyclic shift: the full Y series is shifted (and, optionally, time-reversed)
 # before lagging, so every permuted series keeps its autocorrelation and
@@ -18,8 +19,8 @@ null_cyclic <- function(X, Y, lags, mirror) {
   lapply(lags, function(k) {
     idx <- lag_index(n, k)
     Xk <- X[idx$x, , drop = FALSE]
-    vapply(shifted, function(Ys) procrustes_m2(Xk, Ys[idx$y, , drop = FALSE]),
-           numeric(1))
+    vapply(shifted, function(Ys) pair_stats(Xk, Ys[idx$y, , drop = FALSE]),
+           numeric(2))
   })
 }
 
@@ -37,8 +38,8 @@ null_free <- function(X, Y, lags, nperm) {
     Xk <- X[idx$x, , drop = FALSE]
     vapply(perms, function(pm) {
       rows <- pm[pm %in% idx$y]
-      procrustes_m2(Xk, Y[rows, , drop = FALSE])
-    }, numeric(1))
+      pair_stats(Xk, Y[rows, , drop = FALSE])
+    }, numeric(2))
   })
 }
 
@@ -54,8 +55,8 @@ null_phase <- function(X, Y, lags, nperm) {
     idx <- lag_index(n, k)
     Xk <- X[idx$x, , drop = FALSE]
     vapply(surrogates,
-           function(Ys) procrustes_m2(Xk, Ys[idx$y, , drop = FALSE]),
-           numeric(1))
+           function(Ys) pair_stats(Xk, Ys[idx$y, , drop = FALSE]),
+           numeric(2))
   })
 }
 
@@ -73,3 +74,6 @@ phase_surrogate <- function(Y) {
   dimnames(out) <- dimnames(Y)
   out
 }
+
+# m2 (symmetric Procrustes) and RV coefficient of one pair of configurations.
+pair_stats <- function(X, Y) c(procrustes_m2(X, Y), rv_coef(X, Y))

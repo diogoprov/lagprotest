@@ -17,7 +17,7 @@
 }
 \value{
 A data frame with the columns of \code{x$profile} (\code{lag}, \code{n}, \code{m2},
-\code{r}, \code{p.value}, \code{p.adjusted}, \code{nperm}), plus \code{null.quantile}, the
+\code{r}, \code{p.value}, \code{p.adjusted}, \code{nperm}, \code{z}, \code{a}), plus \code{null.quantile}, the
 \code{alpha} quantile of the permuted \eqn{m^2} at each lag (unadjusted),
 and \code{optimal}, which flags the optimal lag.
 }

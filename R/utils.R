@@ -89,3 +89,92 @@ with_seed <- function(seed, code) {
   set.seed(seed)
   code
 }
+
+# RV coefficient between two configurations with the same rows.
+rv_coef <- function(X, Y) {
+  X <- sweep(X, 2, colMeans(X))
+  Y <- sweep(Y, 2, colMeans(Y))
+  sxy <- crossprod(X, Y)
+  sum(sxy^2) / sqrt(sum(crossprod(X)^2) * sum(crossprod(Y)^2))
+}
+
+# Mean lag-1 autocorrelation of the columns of a configuration. With
+# `periods`, each column is first regressed on the harmonics of those periods
+# (in rows), so that the value describes the residual noise rather than the
+# seasonal cycle. In short series this residual estimate is strongly biased
+# downwards, so it is reported for description only.
+mean_ar1 <- function(M, periods = NULL) {
+  if (length(periods) > 0) {
+    t <- seq_len(nrow(M))
+    D <- do.call(cbind, c(list(1), lapply(unique(periods), function(p)
+      cbind(cos(2 * pi * t / p), sin(2 * pi * t / p)))))
+    D <- D[, qr(D)$pivot[seq_len(qr(D)$rank)], drop = FALSE]
+    M <- M - D %*% qr.solve(D, M)
+  }
+  mean(apply(M, 2, function(x) {
+    x <- x - mean(x)
+    if (sum(x^2) < 1e-12) return(NA_real_)
+    sum(x[-1] * x[-length(x)]) / sum(x^2)
+  }), na.rm = TRUE)
+}
+
+# Continuous measures of evidence and strength of the scan, from the same
+# permutations as the p-values. `obs` and `rv` are the observed m2 and RV per
+# lag; `null` and `null_rv` lists (one vector per lag) of permuted values,
+# element i of every vector from the same permutation.
+#   z_k = (mean* - m2_k) / sd*        standardized concordance at lag k
+#   a_k = 1 - m2_k / mean*            concordance relative to its null mean
+# The lag is chosen by the largest z; each permutation chooses its own lag in
+# the same way. Z is the standardized position of the observed maximum z
+# within the permuted maxima; A and the corrected RV are chance-corrected at
+# that lag: (obs - mean*) / (1 - mean*), with mean* over the permutations,
+# each evaluated at its own chosen lag.
+effect_measures <- function(lags, obs, rv, null, null_rv) {
+  M <- do.call(cbind, unname(null))
+  R <- do.call(cbind, unname(null_rv))
+  mu <- colMeans(M)
+  s <- apply(M, 2, stats::sd)
+  s[s == 0] <- NA_real_
+  z <- (mu - obs) / s
+  a <- 1 - obs / mu
+  zn <- -sweep(sweep(M, 2, mu), 2, s, "/")
+  an <- 1 - sweep(M, 2, mu, "/")
+  rows <- seq_len(nrow(M))
+  kz <- which.max(z)
+  knz <- if (anyNA(zn)) rep(NA_integer_, nrow(M)) else
+    max.col(zn, ties.method = "first")
+  correct <- function(o, nl) {
+    m <- mean(nl)
+    if (!is.finite(m) || m >= 1) return(NA_real_)
+    (o - m) / (1 - m)
+  }
+  if (length(kz) == 0 || anyNA(knz)) {
+    return(list(per_lag = data.frame(z = z, a = a),
+                summary = list(lag = NA_integer_, Z = NA_real_, A = NA_real_,
+                               RV = NA_real_)))
+  }
+  zmax <- zn[cbind(rows, knz)]
+  sz <- stats::sd(zmax)
+  list(
+    per_lag = data.frame(z = z, a = a),
+    summary = list(
+      lag = lags[kz],
+      Z = if (is.finite(sz) && sz > 0) (z[kz] - mean(zmax)) / sz else NA_real_,
+      A = correct(a[kz], an[cbind(rows, knz)]),
+      RV = correct(rv[kz], R[cbind(rows, knz)])
+    )
+  )
+}
+
+# Message when no p-value below 0.05 can be reached with the permutations.
+check_min_p <- function(n_null, permutation) {
+  p_min <- 1 / (min(n_null) + 1)
+  if (p_min >= 0.05) {
+    message("The smallest attainable p-value is ", format(p_min, digits = 3),
+            " (", min(n_null), " permutations), so p < 0.05 cannot be ",
+            "reached",
+            if (permutation == "cyclic") "; consider `mirror = TRUE` or the phase scheme" else
+              "; increase `nperm`", ".")
+  }
+  invisible(p_min)
+}

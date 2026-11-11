@@ -13,6 +13,9 @@
 }
 \value{
 The lag profile (a data frame), with the optimal lag flagged.
+The scan-level measures are attached as attributes: \code{p.global},
+\code{effect} (lag of the largest z, \code{Z}, \code{A} and corrected \code{RV}) and \code{ar1}
+(raw and residual lag-1 autocorrelation of \code{X} and \code{Y}).
 }
 \description{
 Summarize a lagged PROTEST

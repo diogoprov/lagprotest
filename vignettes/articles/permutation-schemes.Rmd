@@ -69,7 +69,7 @@ rate_table <- function(data, by, value) {
 Standard PROTEST permutes rows freely, which assumes that time points are
 exchangeable [@jackson1995protest; @perezneto2001protest]. Two independent
 seasonal series violate this assumption, because both carry temporal
-structure that row permutation destroys [@legendre2002spatial]:
+structure that row permutation destroys [@legendre2002spatial; @manly2020randomization, ch. 10]:
 
 ```{r free}
 free <- subset(cal, block == "free")
@@ -203,9 +203,12 @@ object of the analysis.
 
 ## Recommendations
 
-* Use the default `permutation = "phase"` with a large `nperm` (999 or more)
-  and a `seed`, and report `fit$p.global` for the optimal lag together with
-  the lag profile.
+* Use the default `permutation = "phase"` with a large `nperm` (999 or more
+  for a test at the 5% level, about 4999 when the 1% level matters;
+  @manly2020randomization, pp. 57–59) and a `seed`, and report
+  `fit$p.global` for the optimal lag together with the lag profile and the
+  continuous measures in `fit$effect` (`Z`, `A` and the corrected RV), which
+  are not bounded by the number of permutations.
 * Make sure the series spans whole cycles of any seasonal signal; if it does
   not, give the length of the cycle in `period`.
 * With short series (*n* ≤ 48) that are strongly autocorrelated, report the

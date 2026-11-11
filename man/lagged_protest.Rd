@@ -29,7 +29,9 @@ to principal coordinates. Both must have the same number of rows.}
 
 \item{nperm}{Number of surrogates (\code{permutation = "phase"}) or random
 permutations (\code{permutation = "free"}). Ignored for the cyclic scheme,
-whose permutations are enumerated.}
+whose permutations are enumerated. Use 999 or more for a test at the 5\%
+level and about 4999 when the 1\% level matters (Manly and Navarro
+Alberto 2020, pp. 57--59).}
 
 \item{mirror}{Logical; with \code{permutation = "cyclic"}, also use the
 time-reversed shifts of \code{Y}, doubling the permutation set.}
@@ -67,12 +69,20 @@ accounting for testing several lags and selecting the optimal one.}
 \item{\code{n_perm}}{Number of permutations or surrogates at the optimal
 lag (the exact count for the cyclic scheme).}
 \item{\code{profile}}{Data frame with \code{lag}, \code{n} (rows used), \code{m2}, \code{r},
-\code{p.value}, \code{p.adjusted} and \code{nperm} for every lag.}
+\code{p.value}, \code{p.adjusted}, \code{nperm}, \code{z} and \code{a} for every lag.}
 \item{\code{residuals}}{Data frame of per-observation Procrustes residuals
 at the optimal lag, with the paired row labels of \code{X} and \code{Y}.}
 \item{\code{procrustes}}{The \code{\link[vegan:procrustes]{vegan::procrustes()}} fit at the optimal lag.}
+\item{\code{effect}}{List with the effect \code{lag} (largest \eqn{z}), \code{Z},
+\code{A} and the chance-corrected \code{RV} coefficient at that lag (see
+Details).}
+\item{\code{ar1}}{Data frame with the mean lag-1 autocorrelation of the
+columns of \code{X} and \code{Y}, \code{raw} and \code{residual} after removing the
+harmonics of period \code{n} and \code{period}.}
 \item{\code{null}}{List of permuted \eqn{m^2} values, one element per lag;
 element \code{i} of every vector comes from the same permutation.}
+\item{\code{null.rv}}{List of permuted RV coefficients, paired with
+\code{null}.}
 \item{\code{permutation}, \code{p.adjust.method}, \code{n}, \code{period}, \code{call}}{Settings
 used; \code{n} is the number of rows after any truncation to whole
 cycles.}
@@ -115,7 +125,8 @@ lag, some shifts reproduce the observed alignment at other lags; the
 global p-value (see below) is then valid but has low power.
 \item \code{"free"}: rows of \code{Y} are permuted at random within the overlapping
 window, as in \code{\link[vegan:protest]{vegan::protest()}}. This assumes exchangeable rows and can
-strongly inflate Type I error when both series are autocorrelated.
+strongly inflate Type I error when both series are autocorrelated
+(Manly and Navarro Alberto 2020, ch. 10).
 }
 
 Both the phase and the cyclic schemes treat the series as periodic with
@@ -130,8 +141,37 @@ by harmonic regression did not.
 
 P-values are computed as \code{(b + 1) / (N + 1)}, where \code{b} is the number of
 permuted \eqn{m^2} values smaller than or equal to the observed one and
-\code{N} the number of permutations. Each permutation is applied jointly to all
-lags.
+\code{N} the number of permutations (Manly and Navarro Alberto 2020, p. 57).
+Each permutation is applied jointly to all lags. The validity of the test
+does not depend on \code{N}, only the precision of the p-value does; Manly and
+Navarro Alberto (2020, pp. 57--59) recommend at least 1000 randomizations
+for a test at the 5\% level and about 5000 at the 1\% level. A message is
+issued when the smallest attainable p-value, \code{1 / (N + 1)}, is 0.05 or
+more.
+
+Because the p-value is bounded by \code{N} and conflates strength with sample
+size, three continuous measures are computed from the same permutations.
+At each lag, \eqn{z_k = (\bar m^{2*}_k - m^2_k) / s^*_k} standardizes the
+observed \eqn{m^2} against its permutation mean and standard deviation,
+and \eqn{a_k = 1 - m^2_k / \bar m^{2*}_k} expresses the concordance
+relative to its null mean. The effect lag is the lag of the largest
+\eqn{z} (which weighs lags of different overlap more evenly than the raw
+\eqn{m^2}), and each permutation selects its own lag in the same way.
+\code{Z} is the standardized position of the observed maximum \eqn{z} within
+the permuted maxima; \code{A} and the corrected RV coefficient are
+chance-corrected at the effect lag as
+\eqn{(obs - \bar{null}) / (1 - \bar{null})}, with the null mean taken
+over the permutations at their own selected lags. \code{A} and the corrected RV
+are near 0 under the null and 1 for perfect concordance; \code{Z} is near 0
+under the null.
+
+The mean lag-1 autocorrelation of the columns of each series is returned
+in \code{ar1}, both raw and after removing by regression the harmonics of
+period \code{n} (and of \code{period}, when given). It is descriptive only: the
+raw value is dominated by any seasonal cycle, and the residual value is
+biased downwards in short series. The phase scheme was liberal for short,
+strongly autocorrelated series in simulations, so both values help judge
+whether that caveat applies.
 
 The per-lag p-values (\code{p.value}) are not corrected for testing several
 lags, nor for selecting the lag with the smallest \eqn{m^2}. Reporting the
@@ -160,6 +200,11 @@ fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
 fit_cyclic$profile
 plot(fit)
 residuals(fit)
+}
+\references{
+Manly, B. F. J. and Navarro Alberto, J. A. (2020). \emph{Randomization,
+Bootstrap and Monte Carlo Methods in Biology}, 4th ed. Chapman and
+Hall/CRC, New York. \doi{10.1201/9780429329203}
 }
 \seealso{
 \code{\link[vegan:protest]{vegan::protest()}}, \code{\link[vegan:procrustes]{vegan::procrustes()}}

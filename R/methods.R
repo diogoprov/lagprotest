@@ -21,7 +21,21 @@ print.lagged_protest <- function(x, digits = 3, ...) {
                            format(x$p.adjusted, digits = digits)),
       ")\n", sep = "")
   cat("Global p across lags (max-statistic): ",
-      format(x$p.global, digits = digits), "\n\n", sep = "")
+      format(x$p.global, digits = digits), "\n", sep = "")
+  e <- x$effect
+  if (!is.null(e) && !is.na(e$lag)) {
+    cat("Effect at lag ", e$lag, " (largest z): Z = ",
+        format(e$Z, digits = digits), ", A = ", format(e$A, digits = digits),
+        ", corrected RV = ", format(e$RV, digits = digits), "\n", sep = "")
+  }
+  if (!is.null(x$ar1)) {
+    cat("Mean lag-1 autocorrelation, raw (residual after removing the cycle): X ",
+        format(x$ar1$raw[1], digits = 2), " (",
+        format(x$ar1$residual[1], digits = 2), "), Y ",
+        format(x$ar1$raw[2], digits = 2), " (",
+        format(x$ar1$residual[2], digits = 2), ")\n", sep = "")
+  }
+  cat("\n")
   cat("Lag profile:\n")
   profile <- x$profile
   if (!adjusted) profile$p.adjusted <- NULL
@@ -44,10 +58,16 @@ print.lagged_protest <- function(x, digits = 3, ...) {
 #' @param object A `"lagged_protest"` object.
 #' @param ... Unused.
 #' @return The lag profile (a data frame), with the optimal lag flagged.
+#'   The scan-level measures are attached as attributes: `p.global`,
+#'   `effect` (lag of the largest z, `Z`, `A` and corrected `RV`) and `ar1`
+#'   (raw and residual lag-1 autocorrelation of `X` and `Y`).
 #' @export
 summary.lagged_protest <- function(object, ...) {
   out <- object$profile
   out$optimal <- out$lag == object$optimal_lag
+  attr(out, "p.global") <- object$p.global
+  attr(out, "effect") <- object$effect
+  attr(out, "ar1") <- object$ar1
   out
 }
 
@@ -61,7 +81,7 @@ summary.lagged_protest <- function(object, ...) {
 #' @param alpha Level of the permutation null quantile in `null.quantile`.
 #' @param ... Unused.
 #' @return A data frame with the columns of `x$profile` (`lag`, `n`, `m2`,
-#'   `r`, `p.value`, `p.adjusted`, `nperm`), plus `null.quantile`, the
+#'   `r`, `p.value`, `p.adjusted`, `nperm`, `z`, `a`), plus `null.quantile`, the
 #'   `alpha` quantile of the permuted \eqn{m^2} at each lag (unadjusted),
 #'   and `optimal`, which flags the optimal lag.
 #' @seealso [plot.lagged_protest()], [autoplot.lagged_protest()]
