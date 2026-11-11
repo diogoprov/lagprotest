@@ -37,8 +37,10 @@ any method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code
 \value{
 A data frame with one row per pair and columns \code{x}, \code{y},
 \code{optimal_lag}, \code{n} (rows at the optimal lag), \code{m2}, \code{r}, \code{p.value} (raw
-p at the optimal lag), \code{p.global} and \code{p.global.adjusted} (adjusted
-across pairs). The \code{\link[=lagged_protest]{lagged_protest()}} fits are stored, named
+p at the optimal lag), \code{p.global}, the effect measures \code{Z} and \code{A} at
+the effect lag (see \code{effect} in \code{\link[=lagged_protest]{lagged_protest()}}), and
+\code{p.global.adjusted} (adjusted across pairs). Unlike \code{m2}, \code{Z} and \code{A}
+are on a common scale across pairs with different numbers of rows. The \code{\link[=lagged_protest]{lagged_protest()}} fits are stored, named
 \code{"x -> y"}, in the attribute \code{"fits"}.
 }
 \description{

@@ -10,6 +10,9 @@ test_that("all unordered pairs are analysed by default", {
   expect_equal(paste(res$x, res$y), c("A B", "A C", "B C"))
   expect_named(attr(res, "fits"), c("A -> B", "A -> C", "B -> C"))
   expect_equal(res$p.global.adjusted, p.adjust(res$p.global, "BH"))
+  fits <- attr(res, "fits")
+  expect_equal(res$Z, unname(vapply(fits, function(f) f$effect$Z, 1)))
+  expect_equal(res$A, unname(vapply(fits, function(f) f$effect$A, 1)))
 })
 
 test_that("each row matches a direct call to lagged_protest()", {
@@ -38,12 +41,12 @@ test_that("the truncation message is emitted once", {
     simulate_lagged_series(n_times = 14, seed = i)$X)
   names(long) <- c("A", "B", "C")
   expect_message(
-    res <- lagged_protest_pairs(long, lags = 0:1, nperm = 19, period = 6,
+    res <- lagged_protest_pairs(long, lags = 0:1, nperm = 39, period = 6,
                                 seed = 1),
     "first 12 of 14 rows"
   )
   msgs <- testthat::capture_messages(
-    lagged_protest_pairs(long, lags = 0:1, nperm = 19, period = 6, seed = 1)
+    lagged_protest_pairs(long, lags = 0:1, nperm = 39, period = 6, seed = 1)
   )
   expect_length(msgs, 1)
 })

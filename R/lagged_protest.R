@@ -90,6 +90,13 @@
 #' with the distribution of the minimum across lags under each permutation
 #' (a max-statistic test), so it is the p-value of the whole
 #' scan-and-select procedure and is the one to report for the optimal lag.
+#' Because \eqn{m^2} at neighboring lags is strongly correlated, a Bonferroni
+#' level of \eqn{\alpha / m} for \eqn{m} lags would be conservative: the
+#' appropriate level lies between \eqn{\alpha / m} and \eqn{\alpha}, and
+#' taking the extreme statistic across tests in each randomization, as here,
+#' finds it from the data (Manly and Navarro Alberto 2020, pp. 83--84). The
+#' same source recommends at least \eqn{100m} randomizations for \eqn{m}
+#' tests.
 #' With `p.adjust.method = "maxT"`, every lag receives the corresponding
 #' single-step max-statistic adjusted p-value, and the adjusted p-value at
 #' the optimal lag equals `p.global`. Any method of [stats::p.adjust()] can be
