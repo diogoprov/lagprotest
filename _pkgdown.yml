@@ -19,6 +19,7 @@ reference:
     contents:
       - dminutus_liver
       - lakewa_blocks
+      - elpa_blocks
 
 articles:
   - title: Get started
