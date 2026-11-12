@@ -180,6 +180,52 @@ effect_measures <- function(lags, obs, rv, null, null_rv) {
   )
 }
 
+# Per-lag scores of the scan statistic, observed and permuted (one row per
+# permutation), oriented so that smaller is more extreme.
+#   raw:  m2 itself;
+#   z:    m2 centered and scaled by the mean and SD of its own null;
+#   minP: per-lag p-value; the permuted p of a surrogate is its rank within
+#         that lag's null divided by B + 1 (Westfall and Young 1993; Ge et
+#         al. 2003), consistent with the observed (count + 1) / (B + 1).
+scan_scores <- function(stat, observed, p_raw, null) {
+  M <- do.call(cbind, unname(null))
+  B <- nrow(M)
+  switch(stat,
+    raw = list(observed = observed, null = M),
+    z = {
+      mu <- colMeans(M)
+      s <- apply(M, 2, stats::sd)
+      if (any(!is.finite(s) | s == 0)) {
+        stop("The null distribution of m2 has no variance at some lag, so ",
+             "`stat = \"z\"` is undefined; use `stat = \"minP\"` or ",
+             "`\"raw\"`.", call. = FALSE)
+      }
+      list(observed = (observed - mu) / s,
+           null = sweep(sweep(M, 2, mu), 2, s, "/"))
+    },
+    minP = list(observed = p_raw,
+                null = apply(M, 2, rank, ties.method = "max") / (B + 1))
+  )
+}
+
+# Message when the minP global p-value cannot fall below 0.05: the smallest
+# attainable value is reached when the observed p is 1 / (B + 1) at some
+# lag, and is then set by the permutations that are the most extreme at any
+# lag.
+check_min_p_scan <- function(null_min, n_lags, permutation) {
+  B <- length(null_min)
+  p_floor <- (sum(null_min <= 1 / (B + 1)) + 1) / (B + 1)
+  if (p_floor >= 0.05) {
+    message("With `stat = \"minP\"`, the smallest attainable global p-value ",
+            "is ", format(p_floor, digits = 3), " (", B, " permutations, ",
+            n_lags, " lags), so p < 0.05 cannot be reached; ",
+            if (permutation == "cyclic") "use `stat = \"z\"`" else
+              paste0("use at least ", 100 * n_lags, " permutations or ",
+                     "`stat = \"z\"`"), ".")
+  }
+  invisible(p_floor)
+}
+
 # Message when no p-value below 0.05 can be reached with the permutations.
 check_min_p <- function(n_null, permutation, mirror = TRUE) {
   p_min <- 1 / (min(n_null) + 1)

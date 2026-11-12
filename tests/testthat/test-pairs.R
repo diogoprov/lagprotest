@@ -56,11 +56,12 @@ test_that("the truncation message is emitted once", {
   names(long) <- c("A", "B", "C")
   expect_message(
     res <- lagged_protest_pairs(long, lags = 0:1, nperm = 39, period = 6,
-                                seed = 1),
+                                seed = 1, stat = "raw"),
     "first 12 of 14 rows"
   )
   msgs <- testthat::capture_messages(
-    lagged_protest_pairs(long, lags = 0:1, nperm = 39, period = 6, seed = 1)
+    lagged_protest_pairs(long, lags = 0:1, nperm = 39, period = 6, seed = 1,
+                         stat = "raw")
   )
   expect_length(msgs, 1)
 })

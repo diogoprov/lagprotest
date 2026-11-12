@@ -35,7 +35,7 @@ already accounts for the lags scanned within each pair.}
 \item{seed}{Passed to \code{\link[=lagged_protest]{lagged_protest()}} for every pair.}
 
 \item{...}{Further arguments passed to \code{\link[=lagged_protest]{lagged_protest()}}, such as
-\code{permutation}, \code{nperm} or \code{period}.}
+\code{permutation}, \code{nperm}, \code{period} or \code{stat}.}
 }
 \value{
 A data frame with one row per pair and columns \code{x}, \code{y},
