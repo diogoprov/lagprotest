@@ -26,6 +26,7 @@ Imports:
 Suggests:
     ggplot2,
     knitr,
+    MARSS,
     rmarkdown,
     spelling,
     testthat (>= 3.0.0)
