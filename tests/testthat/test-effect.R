@@ -51,10 +51,12 @@ test_that("mean_ar1 removes a pure harmonic", {
 test_that("a message flags an unattainable p < 0.05", {
   sim <- simulate_lagged_series(n_times = 12, true_lag = 2, seed = 1)
   expect_message(lagged_protest(sim$X, sim$Y, lags = 0:2,
-                                permutation = "cyclic", mirror = FALSE),
+                                permutation = "cyclic", mirror = FALSE,
+                                stat = "raw"),
                  "smallest attainable")
   expect_no_message(lagged_protest(sim$X, sim$Y, lags = 0:2,
-                                   permutation = "cyclic", mirror = TRUE))
+                                   permutation = "cyclic", mirror = TRUE,
+                                   stat = "raw"))
 })
 
 test_that("the minimum-P message gives advice that applies", {
@@ -71,7 +73,7 @@ test_that("the minimum-P message gives advice that applies", {
   expect_match(msg, "consider `mirror = TRUE` or the phase scheme")
   sim <- simulate_lagged_series(n_times = 12, seed = 1)
   expect_message(lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 19,
-                                seed = 1),
+                                seed = 1, stat = "raw"),
                  "increase `nperm`")
 })
 

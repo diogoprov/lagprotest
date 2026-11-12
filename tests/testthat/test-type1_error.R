@@ -52,7 +52,7 @@ test_that("truncating to whole cycles calibrates a mismatched period", {
                                   noise_sd = 0.5, seed = i)
       fit <- suppressMessages(
         lagged_protest(s$X, s$Y, lags = 0:4, nperm = 99, period = period,
-                       seed = i)
+                       seed = i, stat = "raw")
       )
       fit$p.global < 0.05
     }, logical(1)))

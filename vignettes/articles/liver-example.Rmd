@@ -67,7 +67,10 @@ four modules, and three links between modules. Each edge is scanned from
 second. The global p-value accounts for the scan within each edge; the
 edges are then adjusted within two families of hypotheses, because the four
 climate edges ask whether each module responds to the same driver, whereas
-the biological edges ask a different question:
+the biological edges ask a different question. This section uses the
+smallest *m*² as the scan statistic (`stat = "raw"`), as in the analysis
+of these data submitted for publication; the next section compares it with
+the current default, `stat = "minP"`:
 
 ```{r lagged}
 climate_edges <- list(c("Climate", "Histochemistry"),
@@ -78,9 +81,11 @@ module_edges <- list(c("Histochemistry", "Morphometry"),
                      c("Morphometry", "Density"),
                      c("Density", "Somatic"))
 climate <- lagged_protest_pairs(dminutus_liver, pairs = climate_edges,
-                                lags = 0:3, nperm = 9999, seed = 1)
+                                lags = 0:3, nperm = 9999, seed = 1,
+                                stat = "raw")
 modules <- lagged_protest_pairs(dminutus_liver, pairs = module_edges,
-                                lags = 0:3, nperm = 9999, seed = 1)
+                                lags = 0:3, nperm = 9999, seed = 1,
+                                stat = "raw")
 cols <- c("x", "y", "optimal_lag", "n", "m2", "r", "p.value", "p.global",
           "p.global.adjusted", "effect_lag", "Z", "A")
 knitr::kable(climate[, cols], digits = 3)
@@ -112,7 +117,7 @@ global p-value at that bound is as strong as the scheme can show:
 ```{r cyclic}
 cyc <- lagged_protest(dminutus_liver$Climate, dminutus_liver$Histochemistry,
                       lags = 0:3, bidirectional = TRUE,
-                      permutation = "cyclic")
+                      permutation = "cyclic", stat = "raw")
 cyc$p.global
 ```
 
@@ -130,8 +135,9 @@ months than for a contemporaneous association. An edge whose best lag lies
 at the end of the scan should therefore be checked with a statistic that
 places all lags on the same null scale.
 
-Two such statistics can be computed from the surrogates stored in each
-fit, without new permutations: the smallest per-lag p-value across lags
+Two such statistics are available through the argument `stat` and can
+also be computed from the surrogates stored in each fit, without new
+permutations, as done below: the smallest per-lag p-value across lags
 (minP), and the smallest standardized *m*², in which the *m*² at each lag
 is centered and scaled by the mean and standard deviation of its own null
 distribution [@westfall1993resampling]. Taking the smallest p-value across

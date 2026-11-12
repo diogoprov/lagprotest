@@ -21,7 +21,8 @@ print.lagged_protest <- function(x, digits = 3, ...) {
       if (adjusted) paste0(", adjusted p = ",
                            format(x$p.adjusted, digits = digits)),
       ")\n", sep = "")
-  cat("Global p across lags (max-statistic): ",
+  stat <- if (is.null(x$stat)) "raw" else x$stat
+  cat("Global p across lags (", stat, " scan): ",
       format(x$p.global, digits = digits), "\n", sep = "")
   e <- x$effect
   if (!is.null(e) && !is.na(e$lag)) {
@@ -29,9 +30,14 @@ print.lagged_protest <- function(x, digits = 3, ...) {
         format(e$Z, digits = digits), ", A = ", format(e$A, digits = digits),
         ", corrected RV = ", format(e$RV, digits = digits), "\n", sep = "")
     if (e$lag != x$optimal_lag) {
-      cat("  The optimal lag (smallest m2) and the effect lag (largest z)",
-          "differ; m2\n  favors long lags, which use fewer rows (see",
-          "?lagged_protest).\n")
+      if (stat == "raw") {
+        cat("  The optimal lag (smallest m2) and the effect lag (largest z)",
+            "differ; m2\n  favors long lags, which use fewer rows (see",
+            "?lagged_protest).\n")
+      } else {
+        cat("  The optimal lag (smallest p) and the effect lag (largest z)",
+            "differ.\n")
+      }
     }
   }
   if (!is.null(x$ar1)) {

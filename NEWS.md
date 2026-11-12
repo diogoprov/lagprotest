@@ -1,9 +1,21 @@
 # lagprotest (development version)
 
+* **Breaking:** `lagged_protest()` gains `stat = c("minP", "z", "raw")`,
+  the scan statistic used for the global p-value and the optimal lag, with
+  `"minP"` as the new default. `"minP"` compares lags by their per-lag
+  p-values (Westfall and Young's minP), `"z"` by *m*² standardized by its
+  own null distribution, and `"raw"` by *m*² itself, the behavior of
+  earlier versions. All three use the same permutations and are valid
+  global tests; `"raw"` favors the longest lags, which rest on fewer rows,
+  and has less power for short lags. Use `stat = "raw"` to reproduce
+  results from version 0.6 and earlier. The liver example article keeps
+  `"raw"` to match the analysis submitted for publication.
+
 * New `lakewa_blocks()` builds monthly environment, phytoplankton and
   zooplankton blocks for Lake Washington (1962–1994) from
   `lakeWAplanktonRaw` in the MARSS package (now in Suggests). The data are
   read from MARSS rather than shipped with lagprotest.
+
 * `lagged_protest()` now returns continuous measures of evidence and
   strength computed from the same permutations as the p-values: per-lag `z`
   and `a` in the profile, and in `effect` the lag of the largest `z`, its
