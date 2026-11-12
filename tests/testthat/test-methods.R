@@ -45,3 +45,11 @@ test_that("print() notes when the optimal and effect lags differ", {
   expect_output(print(f), "smallest m2.*differ")
   expect_false(any(grepl("differ", capture.output(print(fit)))))
 })
+
+test_that("print() uses the p-based wording for minP and z scans", {
+  g <- fit
+  g$stat <- "minP"
+  g$effect$lag <- setdiff(g$profile$lag, g$optimal_lag)[1]
+  expect_output(print(g), "smallest p\\).*differ\\.")
+  expect_false(any(grepl("favors long lags", capture.output(print(g)))))
+})
