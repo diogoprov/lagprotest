@@ -15,6 +15,7 @@ lagged_protest(
   mirror = TRUE,
   bidirectional = FALSE,
   scale = TRUE,
+  stat = c("minP", "z", "raw"),
   p.adjust.method = "none",
   period = NULL,
   seed = NULL
@@ -62,6 +63,11 @@ lagged_protest(
   Logical; z-score the columns of `X` and `Y` (computed on the full
   series) before analysis. Ignored for `dist` inputs.
 
+- stat:
+
+  Scan statistic used for the global p-value and the optimal lag:
+  `"minP"` (default), `"z"` or `"raw"` (see Details).
+
 - p.adjust.method:
 
   Correction of the per-lag p-values for multiple lags: `"maxT"` for the
@@ -87,7 +93,7 @@ An object of class `"lagged_protest"`, a list with:
 
 - `optimal_lag`:
 
-  Lag with the smallest \\m^2\\.
+  Lag selected by `stat` (see Details).
 
 - `m2`:
 
@@ -108,7 +114,7 @@ An object of class `"lagged_protest"`, a list with:
 
 - `p.global`:
 
-  Max-statistic p-value of the scan across lags, accounting for testing
+  P-value of the scan across lags for `stat`, accounting for testing
   several lags and selecting the optimal one.
 
 - `n_perm`:
@@ -152,7 +158,8 @@ An object of class `"lagged_protest"`, a list with:
 
   List of permuted RV coefficients, paired with `null`.
 
-- `permutation`, `mirror`, `p.adjust.method`, `n`, `period`, `call`:
+- `permutation`, `stat`, `mirror`, `p.adjust.method`, `n`, `period`,
+  `call`:
 
   Settings used; `mirror` is `NA` unless the scheme is cyclic, and `n`
   is the number of rows after any truncation to whole cycles.
@@ -165,8 +172,9 @@ paired with `Y` at time `t + k` (X leads Y), and the series are
 truncated to the overlapping window of `n - k` rows. Negative lags (Y
 leads X) are tested when `bidirectional = TRUE`. The statistic at each
 lag is the symmetric Procrustes sum of squares \\m^2\\ from
-[`vegan::procrustes()`](https://vegandevs.github.io/vegan/reference/procrustes.html);
-the lag of maximal concordance is the one with the smallest \\m^2\\.
+[`vegan::procrustes()`](https://vegandevs.github.io/vegan/reference/procrustes.html).
+The optimal lag is chosen by the scan statistic set by `stat` (by
+default the lag with the smallest per-lag p-value; see below).
 
 Three permutation schemes are available:
 
@@ -248,45 +256,85 @@ The per-lag p-values (`p.value`) are not corrected for testing several
 lags, nor for selecting the lag with the smallest \\m^2\\. Reporting the
 raw p-value at the optimal lag therefore inflates Type I error roughly
 to the rate at which any lag is significant. The global p-value
-(`p.global`) accounts for both: it compares the observed minimum \\m^2\\
-across lags with the distribution of the minimum across lags under each
-permutation (a max-statistic test), so it is the p-value of the whole
-scan-and-select procedure and is the one to report for the optimal lag.
-Because \\m^2\\ at neighboring lags is strongly correlated, a Bonferroni
-level of \\\alpha / m\\ for \\m\\ lags would be conservative: the
-appropriate level lies between \\\alpha / m\\ and \\\alpha\\, and taking
-the extreme statistic across tests in each randomization, as here, finds
-it from the data (Manly and Navarro Alberto 2020, pp. 83–84). The same
-source recommends at least \\100m\\ randomizations for \\m\\ tests. With
-`p.adjust.method = "maxT"`, every lag receives the corresponding
-single-step max-statistic adjusted p-value, and the adjusted p-value at
-the optimal lag equals `p.global`. Any method of
+(`p.global`) accounts for both: it compares the most extreme observed
+score across lags with the distribution of the most extreme score across
+lags under each permutation (a max-statistic test), so it is the p-value
+of the whole scan-and-select procedure and is the one to report for the
+optimal lag. Because \\m^2\\ at neighboring lags is strongly correlated,
+a Bonferroni level of \\\alpha / m\\ for \\m\\ lags would be
+conservative: the appropriate level lies between \\\alpha / m\\ and
+\\\alpha\\, and taking the extreme statistic across tests in each
+randomization, as here, finds it from the data (Manly and Navarro
+Alberto 2020, pp. 83–84). The same source recommends at least \\100m\\
+randomizations for \\m\\ tests. With `p.adjust.method = "maxT"`, every
+lag receives the corresponding single-step adjusted p-value for the
+chosen `stat`, and the adjusted p-value at the optimal lag equals
+`p.global`. Any method of
 [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) can be
 requested instead; with few permutations, as in the cyclic scheme,
 corrections such as Holm may make significance unattainable.
 
-\\m^2\\ values at different lags are based on different numbers of rows
+The score compared across lags is set by `stat`:
+
+- `"minP"` (default): the per-lag p-value. The global statistic is the
+  smallest p-value across lags, and its null distribution is obtained by
+  converting every permuted \\m^2\\ to a p-value within its own lag (the
+  minP procedure of Westfall and Young 1993; Ge et al. 2003). The
+  optimal lag is the one with the smallest p-value; ties, common with
+  few permutations, are broken by \\z\\ and then by \\m^2\\.
+
+- `"z"`: \\m^2\\ centered and scaled by the mean and standard deviation
+  of its own null distribution. The optimal lag is the one with the
+  largest \\z\\ and equals the effect lag.
+
+- `"raw"`: \\m^2\\ itself, the statistic of versions up to 0.6. The
+  optimal lag is the one with the smallest \\m^2\\.
+
+All three are computed from the same permutations and give valid global
+tests. They differ in how power is spread across lags, because \\m^2\\
+values at different lags are based on different numbers of rows
 (`n - |k|`), and \\m^2\\ is smaller and more variable when fewer rows
-overlap. The lag of the smallest \\m^2\\ therefore tends to fall at the
+overlap. Under `"raw"`, the optimal lag therefore tends to fall at the
 longest lags scanned, even when the series are independent: in 200 pairs
 of independent series simulated with
 [`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
 (`n_times = 12`, lags -3 to 3), it fell at \\\pm 3\\ in about half of
-the replicates rather than in two of seven. The global p-value remains
-valid, but has more power for long lags than for short ones. The effect
-lag (largest \\z\\) places every lag on the scale of its own null
-distribution and fell at \\\pm 3\\ in about a quarter of the same
-replicates. When the two lags differ,
-[`print()`](https://rdrr.io/r/base/print.html) says so; an optimal lag
-at the end of the scan should be read with caution, and candidate lags
-kept within a range justified by the biology of the system.
+the replicates rather than in two of seven, and the test had less power
+for a true lag of zero. `"minP"` and `"z"` place every lag on the scale
+of its own null distribution, so the optimal lag is close to uniform
+across lags under independence. In simulations, `"minP"` kept the
+nominal size best, and `"z"` had slightly more power and a slightly
+liberal size, because it estimates the mean and standard deviation from
+the same permutations. The same reasoning motivates selecting among
+candidates by p-value in conditional inference trees (Hothorn et al.
+2006). Because per-lag p-values are discrete, the smallest global
+p-value that `"minP"` can reach grows with the number of lags: roughly
+\\(m + 1) / (N + 1)\\ for \\m\\ lags and \\N\\ permutations, so \\N\\
+should be at least \\100m\\ (Manly and Navarro Alberto 2020, p. 84), and
+a message is issued when p \< 0.05 cannot be reached. With the cyclic
+scheme, permutations are few, and `"z"` is then preferable. When the
+optimal lag and the effect lag differ,
+[`print()`](https://rdrr.io/r/base/print.html) says so; candidate lags
+should be kept within a range justified by the biology of the system.
 
 ## References
+
+Ge, Y., Dudoit, S. and Speed, T. P. (2003). Resampling-based multiple
+testing for microarray data analysis. *Test* 12, 1–77.
+[doi:10.1007/BF02595811](https://doi.org/10.1007/BF02595811)
+
+Hothorn, T., Hornik, K. and Zeileis, A. (2006). Unbiased recursive
+partitioning: a conditional inference framework. *Journal of
+Computational and Graphical Statistics* 15, 651–674.
+[doi:10.1198/106186006X133933](https://doi.org/10.1198/106186006X133933)
 
 Manly, B. F. J. and Navarro Alberto, J. A. (2020). *Randomization,
 Bootstrap and Monte Carlo Methods in Biology*, 4th ed. Chapman and
 Hall/CRC, New York.
 [doi:10.1201/9780429329203](https://doi.org/10.1201/9780429329203)
+
+Westfall, P. H. and Young, S. S. (1993). *Resampling-Based Multiple
+Testing: Examples and Methods for p-Value Adjustment*. Wiley, New York.
 
 ## See also
 
@@ -308,7 +356,7 @@ fit
 #> P-value adjustment across lags: none
 #> 
 #> Optimal lag: 2  (m2 = 0.0496, r = 0.975, p = 0.001)
-#> Global p across lags (max-statistic): 0.004
+#> Global p across lags (minP scan): 0.006
 #> Effect at lag 2 (largest z): Z = 3.04, A = 0.464, corrected RV = 0.206
 #> Mean lag-1 autocorrelation, raw (residual after removing the cycle): X 0.76 (-0.018), Y 0.66 (-0.049)
 #> 
@@ -322,9 +370,9 @@ fit
 #> Per-lag p-values are not corrected for testing several lags or for selecting
 #> the optimal lag; report the global p for the optimal lag.
 fit$p.global
-#> [1] 0.004
+#> [1] 0.006
 fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
-                             permutation = "cyclic")
+                             permutation = "cyclic", stat = "z")
 fit_cyclic$profile
 #>   lag  n         m2         r    p.value p.adjusted nperm          z          a
 #> 1   0 12 0.15315445 0.9202421 1.00000000 1.00000000    22 -1.6979953 -0.2233912

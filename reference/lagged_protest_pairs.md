@@ -60,7 +60,7 @@ lagged_protest_pairs(
 
   Further arguments passed to
   [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md),
-  such as `permutation`, `nperm` or `period`.
+  such as `permutation`, `nperm`, `period` or `stat`.
 
 ## Value
 
@@ -105,12 +105,12 @@ blocks <- list(A = sim$X, B = sim$Y,
 res <- lagged_protest_pairs(blocks, lags = 0:3, nperm = 199, seed = 1)
 res
 #>   x y optimal_lag  n         m2         r p.value p.global effect_lag
-#> 1 A B           2 10 0.04963006 0.9748692   0.005    0.010          2
-#> 2 A C           3  9 0.21583858 0.8855289   0.095    0.275          3
-#> 3 B C           1 11 0.20289455 0.8928076   0.010    0.145          1
+#> 1 A B           2 10 0.04963006 0.9748692   0.005    0.040          2
+#> 2 A C           3  9 0.21583858 0.8855289   0.095    0.415          3
+#> 3 B C           1 11 0.20289455 0.8928076   0.010    0.075          1
 #>            Z          A        RV p.global.adjusted
-#> 1 3.01849284 0.43827408 0.1265330            0.0300
-#> 2 0.01070847 0.09791283 0.1760955            0.2750
-#> 3 2.14847796 0.19365927 0.2053255            0.2175
+#> 1 3.01849284 0.43827408 0.1265330            0.1125
+#> 2 0.01070847 0.09791283 0.1760955            0.4150
+#> 3 2.14847796 0.19365927 0.2053255            0.1125
 plot(attr(res, "fits")[["A -> B"]])
 ```

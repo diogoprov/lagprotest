@@ -21,7 +21,8 @@ row *t* of `X` is paired with row *t + k* of `Y`, the series are
 truncated to their `n - k` overlapping rows, and the symmetric
 Procrustes statistic *m*² is computed. Lower *m*² means stronger
 concordance. Each lag is tested by permutation, and the lag with the
-smallest *m*² is reported together with the full lag profile.
+strongest evidence of concordance (by default, the smallest per-lag
+p-value) is reported together with the full lag profile.
 
 ## Input data
 
@@ -64,7 +65,7 @@ fit
 #> P-value adjustment across lags: none
 #> 
 #> Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.001)
-#> Global p across lags (max-statistic): 0.003
+#> Global p across lags (minP scan): 0.006
 #> Effect at lag 2 (largest z): Z = 3.22, A = 0.51, corrected RV = 0.318
 #> Mean lag-1 autocorrelation, raw (residual after removing the cycle): X 0.7 (-0.018), Y 0.54 (-0.049)
 #> 
@@ -88,31 +89,48 @@ permutation p-value and the number of surrogates. The optimal lag here
 is the true one, 2.
 
 The per-lag p-values are not corrected for testing several lags, nor for
-choosing the lag with the smallest *m*² after looking at the profile.
-Reporting the raw p-value at the optimal lag therefore inflates Type I
-error to roughly the rate at which *any* lag is significant. The p-value
-to report for the optimal lag is the global p-value, printed below the
-optimal lag and stored in `fit$p.global`. It compares the observed
-minimum *m*² across lags with the minimum across lags obtained under
-each permutation (a max-statistic test), so it is the p-value of the
-whole scan-and-select procedure:
+choosing the optimal lag after looking at the profile. Reporting the raw
+p-value at the optimal lag therefore inflates Type I error to roughly
+the rate at which *any* lag is significant. The p-value to report for
+the optimal lag is the global p-value, printed below the optimal lag and
+stored in `fit$p.global`. It compares the smallest per-lag p-value with
+the smallest per-lag p-value obtained under each permutation (the minP
+test of Westfall and Young), so it is the p-value of the whole
+scan-and-select procedure:
 
 ``` r
 
 fit$p.global
-#> [1] 0.003
+#> [1] 0.006
+```
+
+Comparing lags by their p-values, rather than by *m*² itself, matters
+because *m*² at lag *k* rests on `n − k` rows and is smaller and more
+variable when fewer rows overlap. The smallest *m*² therefore tends to
+fall at the longest lags even for independent series, and a test built
+on it has less power for short lags. The argument `stat` chooses the
+statistic: `"minP"` (default), `"z"` (*m*² standardized by its own null
+distribution) or `"raw"` (the smallest *m*², used up to version 0.6).
+All three are valid global tests computed from the same permutations:
+
+``` r
+
+sapply(c("minP", "z", "raw"), function(s)
+  lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1, stat = s)$p.global)
+#>  minP     z   raw 
+#> 0.006 0.002 0.003
 ```
 
 Per-lag p-values can also be corrected. `p.adjust.method = "maxT"` gives
-the single-step max-statistic adjusted p-value of every lag, whose value
-at the optimal lag equals the global p-value; any method of
+the single-step adjusted p-value of every lag for the chosen `stat`,
+whose value at the optimal lag equals the global p-value; any method of
 [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) can be used
 instead, and raw and adjusted values are then both reported:
 
 ``` r
 
 fit_holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "cyclic",
-                           p.adjust.method = "holm")
+                           stat = "z", p.adjust.method = "holm")
 fit_holm$profile[, c("lag", "p.value", "p.adjusted")]
 #>   lag    p.value p.adjusted
 #> 1   0 0.95652174  1.0000000
@@ -141,7 +159,7 @@ summary(fit)
 #>    3  9 0.2748 0.852   0.818      0.818   999 -0.878 -0.171   FALSE
 #>    4  8 0.3046 0.834   0.876      0.876   999 -1.181 -0.262   FALSE
 #> 
-#> Optimal lag 2, global p = 0.003
+#> Optimal lag 2, global p = 0.006
 #> Effect at lag 2 (largest z): Z = 3.22, A = 0.51, corrected RV = 0.318
 #> Mean lag-1 autocorrelation, raw (residual): X 0.7 (-0.018), Y 0.54 (-0.049)
 ```
@@ -179,11 +197,10 @@ largest `z`. `Z` is the position of that largest `z` among the largest
 RV coefficient are scaled so that 0 is the value expected by chance and
 1 is perfect concordance. All three are near 0 for independent series.
 
-The effect lag and the optimal lag usually agree when the association is
-strong, as here. They can differ because *m*² is smaller and more
-variable when fewer rows overlap, so the smallest *m*² tends to fall at
-the longest lags even for independent series, whereas `z` places every
-lag on the scale of its own null distribution.
+The effect lag and the optimal lag usually agree, because both place
+every lag on the scale of its own null distribution; with `stat = "z"`
+they are the same by definition. With `stat = "raw"` they differ more
+often, because the smallest *m*² tends to fall at the longest lags.
 [`print()`](https://rdrr.io/r/base/print.html) notes when the two differ
 (see Caveats).
 
@@ -287,7 +304,10 @@ The choice matters. Under independence, a small simulation with 24
 monthly samples spanning one cycle gives the following rejection rates
 at α = 0.05: for the raw p-value at the optimal lag, and for the global
 p-value under each scheme. A second set of series, in which `Y` follows
-`X` with a lag of two, gives the power of the global p-value:
+`X` with a lag of two, gives the power of the global p-value. The
+simulation uses `stat = "raw"` because with only 99 surrogates and five
+lags `"minP"` cannot reach p \< 0.05 (it needs at least 100 permutations
+per lag):
 
 ``` r
 
@@ -295,11 +315,12 @@ rates <- function(true_lag, n_rep) {
   res <- vapply(seq_len(n_rep), function(i) {
     s <- simulate_lagged_series(n_times = 24, period = 24, true_lag = true_lag,
                                 autocorr = 0.5, noise_sd = 0.5, seed = i)
-    cyc <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "cyclic")
+    cyc <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "cyclic",
+                          stat = "raw")
     pha <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "phase",
-                          nperm = 99, seed = i)
+                          nperm = 99, seed = i, stat = "raw")
     fre <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "free",
-                          nperm = 99, seed = i)
+                          nperm = 99, seed = i, stat = "raw")
     c(cyclic_optimal_raw = cyc$p.value, cyclic_global = cyc$p.global,
       phase_global = pha$p.global, free_global = fre$p.global)
   }, numeric(4))
@@ -350,10 +371,12 @@ nominal level, but only the phase scheme retains power.
   floor.
 - **Different window sizes.** *m*² at lag *k* is based on `n − k` rows,
   so long lags rest on fewer observations, and the smallest *m*² tends
-  to fall at the longest lags scanned even for independent series. An
-  optimal lag at the end of the scan should be compared with the effect
-  lag in `fit$effect`, and candidate lags kept within a range justified
-  by the biology of the system.
+  to fall at the longest lags scanned even for independent series. The
+  default `stat = "minP"` removes this bias from the global test and the
+  optimal lag; with `stat = "raw"`, an optimal lag at the end of the
+  scan should be compared with the effect lag in `fit$effect`. In all
+  cases, keep candidate lags within a range justified by the biology of
+  the system.
 - **Scaling.** With `scale = TRUE` (default) variables are standardized
   on the full series before truncation.
 

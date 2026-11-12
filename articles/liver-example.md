@@ -58,16 +58,16 @@ knitr::kable(lag0[, c("x", "y", "m2", "r", "p.value", "p.global.adjusted")],
 
 | x              | y              |    m2 |     r | p.value | p.global.adjusted |
 |:---------------|:---------------|------:|------:|--------:|------------------:|
-| Somatic        | Histochemistry | 0.711 | 0.538 |   0.092 |             0.254 |
+| Somatic        | Histochemistry | 0.711 | 0.538 |   0.092 |             0.255 |
 | Somatic        | Morphometry    | 0.815 | 0.430 |   0.374 |             0.623 |
-| Somatic        | Density        | 0.609 | 0.625 |   0.102 |             0.254 |
-| Somatic        | Climate        | 0.477 | 0.724 |   0.004 |             0.045 |
+| Somatic        | Density        | 0.609 | 0.625 |   0.102 |             0.255 |
+| Somatic        | Climate        | 0.477 | 0.724 |   0.004 |             0.046 |
 | Histochemistry | Morphometry    | 0.806 | 0.440 |   0.609 |             0.751 |
 | Histochemistry | Density        | 0.704 | 0.544 |   0.190 |             0.381 |
 | Histochemistry | Climate        | 0.791 | 0.457 |   0.743 |             0.751 |
 | Morphometry    | Density        | 0.755 | 0.495 |   0.558 |             0.751 |
 | Morphometry    | Climate        | 0.772 | 0.478 |   0.751 |             0.751 |
-| Density        | Climate        | 0.378 | 0.789 |   0.099 |             0.254 |
+| Density        | Climate        | 0.378 | 0.789 |   0.099 |             0.255 |
 
 Somatic indices and climate were the only pair concordant after the
 adjustment. Density and climate had the lowest *m*², yet this
@@ -83,7 +83,10 @@ from −3 to +3 months, so a positive lag means that the first data set
 leads the second. The global p-value accounts for the scan within each
 edge; the edges are then adjusted within two families of hypotheses,
 because the four climate edges ask whether each module responds to the
-same driver, whereas the biological edges ask a different question:
+same driver, whereas the biological edges ask a different question. This
+section uses the smallest *m*² as the scan statistic (`stat = "raw"`),
+as in the analysis of these data submitted for publication; the next
+section compares it with the current default, `stat = "minP"`:
 
 ``` r
 
@@ -95,9 +98,11 @@ module_edges <- list(c("Histochemistry", "Morphometry"),
                      c("Morphometry", "Density"),
                      c("Density", "Somatic"))
 climate <- lagged_protest_pairs(dminutus_liver, pairs = climate_edges,
-                                lags = 0:3, nperm = 9999, seed = 1)
+                                lags = 0:3, nperm = 9999, seed = 1,
+                                stat = "raw")
 modules <- lagged_protest_pairs(dminutus_liver, pairs = module_edges,
-                                lags = 0:3, nperm = 9999, seed = 1)
+                                lags = 0:3, nperm = 9999, seed = 1,
+                                stat = "raw")
 cols <- c("x", "y", "optimal_lag", "n", "m2", "r", "p.value", "p.global",
           "p.global.adjusted", "effect_lag", "Z", "A")
 knitr::kable(climate[, cols], digits = 3)
@@ -166,7 +171,7 @@ global p-value at that bound is as strong as the scheme can show:
 
 cyc <- lagged_protest(dminutus_liver$Climate, dminutus_liver$Histochemistry,
                       lags = 0:3, bidirectional = TRUE,
-                      permutation = "cyclic")
+                      permutation = "cyclic", stat = "raw")
 cyc$p.global
 #> [1] 0.04347826
 ```
@@ -186,8 +191,9 @@ association. An edge whose best lag lies at the end of the scan should
 therefore be checked with a statistic that places all lags on the same
 null scale.
 
-Two such statistics can be computed from the surrogates stored in each
-fit, without new permutations: the smallest per-lag p-value across lags
+Two such statistics are available through the argument `stat` and can
+also be computed from the surrogates stored in each fit, without new
+permutations, as done below: the smallest per-lag p-value across lags
 (minP), and the smallest standardized *m*², in which the *m*² at each
 lag is centered and scaled by the mean and standard deviation of its own
 null distribution (Westfall and Young 1993). Taking the smallest p-value

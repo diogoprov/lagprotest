@@ -139,7 +139,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.711</td>
 <td align="right">0.538</td>
 <td align="right">0.092</td>
-<td align="right">0.254</td>
+<td align="right">0.255</td>
 </tr>
 <tr class="even">
 <td align="left">Somatic</td>
@@ -155,7 +155,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.609</td>
 <td align="right">0.625</td>
 <td align="right">0.102</td>
-<td align="right">0.254</td>
+<td align="right">0.255</td>
 </tr>
 <tr class="even">
 <td align="left">Somatic</td>
@@ -163,7 +163,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.477</td>
 <td align="right">0.724</td>
 <td align="right">0.004</td>
-<td align="right">0.045</td>
+<td align="right">0.046</td>
 </tr>
 <tr class="odd">
 <td align="left">Histochemistry</td>
@@ -211,7 +211,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.378</td>
 <td align="right">0.789</td>
 <td align="right">0.099</td>
-<td align="right">0.254</td>
+<td align="right">0.255</td>
 </tr>
 </tbody>
 </table>
@@ -231,7 +231,10 @@ data set leads the second. The global p-value accounts for the scan
 within each edge; the edges are then adjusted within two families of
 hypotheses, because the four climate edges ask whether each module
 responds to the same driver, whereas the biological edges ask a
-different question:</p>
+different question. This section uses the smallest <em>m</em>² as the
+scan statistic (<code>stat = "raw"</code>), as in the analysis of these
+data submitted for publication; the next section compares it with the
+current default, <code>stat = "minP"</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">climate_edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Climate"</span>, <span class="st">"Histochemistry"</span><span class="op">)</span>,</span>
 <span>                      <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Climate"</span>, <span class="st">"Morphometry"</span><span class="op">)</span>,</span>
@@ -241,9 +244,11 @@ different question:</p>
 <span>                     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Morphometry"</span>, <span class="st">"Density"</span><span class="op">)</span>,</span>
 <span>                     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Density"</span>, <span class="st">"Somatic"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">climate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs</a></span><span class="op">(</span><span class="va">dminutus_liver</span>, pairs <span class="op">=</span> <span class="va">climate_edges</span>,</span>
-<span>                                lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>, nperm <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>                                lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>, nperm <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                                stat <span class="op">=</span> <span class="st">"raw"</span><span class="op">)</span></span>
 <span><span class="va">modules</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs</a></span><span class="op">(</span><span class="va">dminutus_liver</span>, pairs <span class="op">=</span> <span class="va">module_edges</span>,</span>
-<span>                                lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>, nperm <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>                                lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>, nperm <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                                stat <span class="op">=</span> <span class="st">"raw"</span><span class="op">)</span></span>
 <span><span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"optimal_lag"</span>, <span class="st">"n"</span>, <span class="st">"m2"</span>, <span class="st">"r"</span>, <span class="st">"p.value"</span>, <span class="st">"p.global"</span>,</span>
 <span>          <span class="st">"p.global.adjusted"</span>, <span class="st">"effect_lag"</span>, <span class="st">"Z"</span>, <span class="st">"A"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">climate</span><span class="op">[</span>, <span class="va">cols</span><span class="op">]</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
@@ -526,7 +531,7 @@ show:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cyc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">dminutus_liver</span><span class="op">$</span><span class="va">Climate</span>, <span class="va">dminutus_liver</span><span class="op">$</span><span class="va">Histochemistry</span>,</span>
 <span>                      lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>, bidirectional <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                      permutation <span class="op">=</span> <span class="st">"cyclic"</span><span class="op">)</span></span>
+<span>                      permutation <span class="op">=</span> <span class="st">"cyclic"</span>, stat <span class="op">=</span> <span class="st">"raw"</span><span class="op">)</span></span>
 <span><span class="va">cyc</span><span class="op">$</span><span class="va">p.global</span></span>
 <span><span class="co">#&gt; [1] 0.04347826</span></span></code></pre></div>
 </div>
@@ -545,20 +550,22 @@ for a true lag of three months than for a contemporaneous association.
 An edge whose best lag lies at the end of the scan should therefore be
 checked with a statistic that places all lags on the same null
 scale.</p>
-<p>Two such statistics can be computed from the surrogates stored in
-each fit, without new permutations: the smallest per-lag p-value across
-lags (minP), and the smallest standardized <em>m</em>², in which the
-<em>m</em>² at each lag is centered and scaled by the mean and standard
-deviation of its own null distribution <span class="citation">(Westfall
-and Young 1993)</span>. Taking the smallest p-value across tests in each
-randomization follows the procedure described by <span class="citation">Manly and Navarro Alberto (2020, 83–84)</span> for
-correlated tests, for which the Bonferroni level is too strict; they
-recommend at least 100<em>m</em> randomizations for <em>m</em> tests, a
-condition met here by 9999 permutations for seven lags. The standardized
-<em>m</em>² at each lag is also returned, with the opposite sign, as
-<code>z</code> in <code>fit$profile</code>, and its largest value gives
-the effect lag (<code>effect_lag</code> in the tables above); the
-function below adds the corresponding global p-values:</p>
+<p>Two such statistics are available through the argument
+<code>stat</code> and can also be computed from the surrogates stored in
+each fit, without new permutations, as done below: the smallest per-lag
+p-value across lags (minP), and the smallest standardized <em>m</em>²,
+in which the <em>m</em>² at each lag is centered and scaled by the mean
+and standard deviation of its own null distribution <span class="citation">(Westfall and Young 1993)</span>. Taking the smallest
+p-value across tests in each randomization follows the procedure
+described by <span class="citation">Manly and Navarro Alberto (2020,
+83–84)</span> for correlated tests, for which the Bonferroni level is
+too strict; they recommend at least 100<em>m</em> randomizations for
+<em>m</em> tests, a condition met here by 9999 permutations for seven
+lags. The standardized <em>m</em>² at each lag is also returned, with
+the opposite sign, as <code>z</code> in <code>fit$profile</code>, and
+its largest value gives the effect lag (<code>effect_lag</code> in the
+tables above); the function below adds the corresponding global
+p-values:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">balanced_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">null</span><span class="op">)</span></span>

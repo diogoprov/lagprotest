@@ -109,10 +109,18 @@ knitr::kable(rate_table(complete, "n", "opt_sig"), digits = 3,
 
 Type I error of the raw p-value at the optimal lag. {.table}
 
-The global p-value avoids this. It compares the observed minimum *m*²
-across lags with the minimum across lags under each permutation (a
-max-statistic test), so it is the p-value of the whole scan-and-select
-procedure.
+The global p-value avoids this. It compares the most extreme observed
+score across lags with the most extreme score across lags under each
+permutation (a max-statistic test), so it is the p-value of the whole
+scan-and-select procedure. The simulations in this article used the
+smallest *m*² as the score (`stat = "raw"`, the only option up to
+version 0.6). The current default, `stat = "minP"`, compares lags by
+their per-lag p-values instead, which keeps the optimal lag from
+drifting to the longest lags (see
+[`?lagged_protest`](https://provetelab.org/lagprotest/reference/lagged_protest.md));
+the calibration of the three statistics was similar in a separate
+simulation with *n* = 12 and 24, except under strong autocorrelation,
+where all were liberal.
 
 ## Calibration of the global p-value
 
@@ -214,9 +222,9 @@ knitr::kable(pw, digits = 3)
 |  96 |         1.000 | 1.000 |
 
 Both schemes recovered the true lag equally well, because the optimal
-lag (the smallest *m*²) does not depend on the null distribution. The
-effect lag in `fit$effect`, which standardizes *m*² by its null mean and
-standard deviation at each lag, does depend on it:
+lag under `stat = "raw"` (the smallest *m*²) does not depend on the null
+distribution. The effect lag in `fit$effect`, which standardizes *m*² by
+its null mean and standard deviation at each lag, does depend on it:
 
 ``` r
 

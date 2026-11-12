@@ -202,10 +202,17 @@ shifts, which cannot produce a p-value below 0.083):</p>
 </tr>
 </tbody>
 </table>
-<p>The global p-value avoids this. It compares the observed minimum
-<em>m</em>² across lags with the minimum across lags under each
+<p>The global p-value avoids this. It compares the most extreme observed
+score across lags with the most extreme score across lags under each
 permutation (a max-statistic test), so it is the p-value of the whole
-scan-and-select procedure.</p>
+scan-and-select procedure. The simulations in this article used the
+smallest <em>m</em>² as the score (<code>stat = "raw"</code>, the only
+option up to version 0.6). The current default,
+<code>stat = "minP"</code>, compares lags by their per-lag p-values
+instead, which keeps the optimal lag from drifting to the longest lags
+(see <code><a href="../reference/lagged_protest.html">?lagged_protest</a></code>); the calibration of the three
+statistics was similar in a separate simulation with <em>n</em> = 12 and
+24, except under strong autocorrelation, where all were liberal.</p>
 </div>
 <div class="section level2">
 <h2 id="calibration-of-the-global-p-value">Calibration of the global p-value<a class="anchor" aria-label="anchor" href="#calibration-of-the-global-p-value"></a>
@@ -391,10 +398,10 @@ rather than shifts of the observed one and do not have this problem
 </tbody>
 </table>
 <p>Both schemes recovered the true lag equally well, because the optimal
-lag (the smallest <em>m</em>²) does not depend on the null distribution.
-The effect lag in <code>fit$effect</code>, which standardizes
-<em>m</em>² by its null mean and standard deviation at each lag, does
-depend on it:</p>
+lag under <code>stat = "raw"</code> (the smallest <em>m</em>²) does not
+depend on the null distribution. The effect lag in
+<code>fit$effect</code>, which standardizes <em>m</em>² by its null mean
+and standard deviation at each lag, does depend on it:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">opt_true</span> <span class="op">~</span> <span class="va">n</span> <span class="op">+</span> <span class="va">scheme</span>, data <span class="op">=</span> <span class="va">power</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    n        scheme  opt_true</span></span>
