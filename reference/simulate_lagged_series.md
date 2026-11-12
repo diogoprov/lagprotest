@@ -28,7 +28,7 @@ simulate_lagged_series(
 
 - n_times:
 
-  Number of time points.
+  Number of time points (at least 3).
 
 - n_vars_x, n_vars_y:
 

@@ -36,6 +36,34 @@
   lags, and the climate–histochemistry delay is weaker under the
   balanced statistics.
 
+- The permutation loop is about five times faster: *m*² and the RV
+  coefficient of each permuted pair are now computed directly from the
+  singular values of the cross-product matrix instead of calling
+  [`vegan::procrustes()`](https://vegandevs.github.io/vegan/reference/procrustes.html)
+  for every permutation. Results with a fixed `seed` are unchanged
+  (p-values and lags identical, *m*² equal to floating-point rounding);
+  a new regression test guards them.
+
+- [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+  and
+  [`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
+  now check their arguments and name the offending one in the error:
+  `nperm` and `seed` must be single whole numbers, `lags` must not be
+  empty, `mirror`, `bidirectional` and `scale` must be `TRUE` or
+  `FALSE`, and the counts, `period`, `amplitude` and `noise_sd` of the
+  simulator must be valid. Previously, `nperm = 2.5` was silently
+  truncated and an invalid `seed` produced an unrelated warning.
+
+- The minimum-P message no longer suggests `mirror = TRUE` when the
+  cyclic scheme already uses it.
+
+- The fits stored by
+  [`lagged_protest_pairs()`](https://provetelab.org/lagprotest/reference/lagged_protest_pairs.md)
+  now carry a call that names the data sets and shows the values of
+  `lags`, `bidirectional` and `seed`, so
+  [`print()`](https://rdrr.io/r/base/print.html) is informative and
+  `eval(fit$call)` reproduces the fit.
+
 ## lagprotest 0.6.0
 
 - New [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)

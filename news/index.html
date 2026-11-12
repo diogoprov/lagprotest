@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,10 @@
 <li><p><code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> now issues a message when the smallest attainable p-value is 0.05 or more (e.g., the cyclic scheme without mirror at <code>n = 12</code>).</p></li>
 <li><p>The documentation of <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> and the permutation-schemes article cite Manly and Navarro Alberto (2020) for the p-value formula and the recommended number of permutations, and pp. 83–84 for the max-statistic adjustment of correlated tests.</p></li>
 <li><p>The liver example article now checks the lag scan with two statistics that weigh all lags equally (minP and the standardized m²), computed from the surrogates stored in each fit. The raw minimum m² favors long lags, and the climate–histochemistry delay is weaker under the balanced statistics.</p></li>
+<li><p>The permutation loop is about five times faster: <em>m</em>² and the RV coefficient of each permuted pair are now computed directly from the singular values of the cross-product matrix instead of calling <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::procrustes()</a></code> for every permutation. Results with a fixed <code>seed</code> are unchanged (p-values and lags identical, <em>m</em>² equal to floating-point rounding); a new regression test guards them.</p></li>
+<li><p><code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> and <code><a href="../reference/simulate_lagged_series.html">simulate_lagged_series()</a></code> now check their arguments and name the offending one in the error: <code>nperm</code> and <code>seed</code> must be single whole numbers, <code>lags</code> must not be empty, <code>mirror</code>, <code>bidirectional</code> and <code>scale</code> must be <code>TRUE</code> or <code>FALSE</code>, and the counts, <code>period</code>, <code>amplitude</code> and <code>noise_sd</code> of the simulator must be valid. Previously, <code>nperm = 2.5</code> was silently truncated and an invalid <code>seed</code> produced an unrelated warning.</p></li>
+<li><p>The minimum-P message no longer suggests <code>mirror = TRUE</code> when the cyclic scheme already uses it.</p></li>
+<li><p>The fits stored by <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs()</a></code> now carry a call that names the data sets and shows the values of <code>lags</code>, <code>bidirectional</code> and <code>seed</code>, so <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> is informative and <code>eval(fit$call)</code> reproduces the fit.</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="lagprotest-060">lagprotest 0.6.0<a class="anchor" aria-label="anchor" href="#lagprotest-060"></a></h2>
