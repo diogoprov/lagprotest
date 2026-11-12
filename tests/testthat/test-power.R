@@ -19,7 +19,7 @@ test_that("the phase global p-value detects a known lag", {
     s <- simulate_lagged_series(n_times = 24, period = 24, true_lag = 2,
                                 autocorr = 0.5, noise_sd = 0.5, seed = i)
     fit <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "phase",
-                          nperm = 99, seed = i)
+                          nperm = 99, seed = i, stat = "raw")
     fit$p.global < 0.05
   }, logical(1))
   expect_gte(mean(sig), 0.8)

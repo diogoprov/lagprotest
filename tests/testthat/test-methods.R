@@ -40,8 +40,8 @@ test_that("summary() prints the profile and the scan-level measures", {
 test_that("print() notes when the optimal and effect lags differ", {
   s <- simulate_lagged_series(n_times = 12, seed = 3)
   f <- lagged_protest(s$X, s$Y, lags = 0:3, bidirectional = TRUE,
-                      nperm = 199, seed = 1)
+                      nperm = 199, seed = 1, stat = "raw")
   expect_false(f$optimal_lag == f$effect$lag)
-  expect_output(print(f), "differ")
+  expect_output(print(f), "smallest m2.*differ")
   expect_false(any(grepl("differ", capture.output(print(fit)))))
 })

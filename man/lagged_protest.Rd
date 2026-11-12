@@ -13,6 +13,7 @@ lagged_protest(
   mirror = TRUE,
   bidirectional = FALSE,
   scale = TRUE,
+  stat = c("minP", "z", "raw"),
   p.adjust.method = "none",
   period = NULL,
   seed = NULL
@@ -45,6 +46,9 @@ time-reversed shifts of \code{Y}, doubling the permutation set.}
 \item{scale}{Logical; z-score the columns of \code{X} and \code{Y} (computed on the
 full series) before analysis. Ignored for \code{dist} inputs.}
 
+\item{stat}{Scan statistic used for the global p-value and the optimal
+lag: \code{"minP"} (default), \code{"z"} or \code{"raw"} (see Details).}
+
 \item{p.adjust.method}{Correction of the per-lag p-values for multiple
 lags: \code{"maxT"} for the single-step max-statistic adjustment, or any
 method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"none"}.}
@@ -60,14 +64,14 @@ The global random number stream is left untouched.}
 \value{
 An object of class \code{"lagged_protest"}, a list with:
 \describe{
-\item{\code{optimal_lag}}{Lag with the smallest \eqn{m^2}.}
+\item{\code{optimal_lag}}{Lag selected by \code{stat} (see Details).}
 \item{\code{m2}}{\eqn{m^2} at the optimal lag.}
 \item{\code{r}}{Procrustes correlation, \eqn{\sqrt{1 - m^2}}, at the
 optimal lag.}
 \item{\code{p.value}}{Raw permutation p-value at the optimal lag.}
 \item{\code{p.adjusted}}{P-value at the optimal lag adjusted with
 \code{p.adjust.method} (equal to \code{p.value} when \code{"none"}).}
-\item{\code{p.global}}{Max-statistic p-value of the scan across lags,
+\item{\code{p.global}}{P-value of the scan across lags for \code{stat},
 accounting for testing several lags and selecting the optimal one.}
 \item{\code{n_perm}}{Number of permutations or surrogates, the same at
 every lag (the exact count for the cyclic scheme).}
@@ -86,7 +90,7 @@ harmonics of period \code{n} and \code{period}.}
 element \code{i} of every vector comes from the same permutation.}
 \item{\code{null.rv}}{List of permuted RV coefficients, paired with
 \code{null}.}
-\item{\code{permutation}, \code{mirror}, \code{p.adjust.method}, \code{n}, \code{period},
+\item{\code{permutation}, \code{stat}, \code{mirror}, \code{p.adjust.method}, \code{n}, \code{period},
 \code{call}}{Settings used; \code{mirror} is \code{NA} unless the scheme is cyclic,
 and \code{n} is the number of rows after any truncation to whole cycles.}
 }
@@ -101,8 +105,9 @@ must correspond one to one. At lag \code{k > 0}, \code{X} at time \code{t} is pa
 \code{Y} at time \code{t + k} (X leads Y), and the series are truncated to the
 overlapping window of \code{n - k} rows. Negative lags (Y leads X) are tested
 when \code{bidirectional = TRUE}. The statistic at each lag is the symmetric
-Procrustes sum of squares \eqn{m^2} from \code{\link[vegan:procrustes]{vegan::procrustes()}}; the lag of
-maximal concordance is the one with the smallest \eqn{m^2}.
+Procrustes sum of squares \eqn{m^2} from \code{\link[vegan:procrustes]{vegan::procrustes()}}. The
+optimal lag is chosen by the scan statistic set by \code{stat} (by default the
+lag with the smallest per-lag p-value; see below).
 
 Three permutation schemes are available:
 \itemize{
@@ -180,9 +185,9 @@ The per-lag p-values (\code{p.value}) are not corrected for testing several
 lags, nor for selecting the lag with the smallest \eqn{m^2}. Reporting the
 raw p-value at the optimal lag therefore inflates Type I error roughly to
 the rate at which any lag is significant. The global p-value (\code{p.global})
-accounts for both: it compares the observed minimum \eqn{m^2} across lags
-with the distribution of the minimum across lags under each permutation
-(a max-statistic test), so it is the p-value of the whole
+accounts for both: it compares the most extreme observed score across
+lags with the distribution of the most extreme score across lags under
+each permutation (a max-statistic test), so it is the p-value of the whole
 scan-and-select procedure and is the one to report for the optimal lag.
 Because \eqn{m^2} at neighboring lags is strongly correlated, a Bonferroni
 level of \eqn{\alpha / m} for \eqn{m} lags would be conservative: the
@@ -192,24 +197,51 @@ finds it from the data (Manly and Navarro Alberto 2020, pp. 83--84). The
 same source recommends at least \eqn{100m} randomizations for \eqn{m}
 tests.
 With \code{p.adjust.method = "maxT"}, every lag receives the corresponding
-single-step max-statistic adjusted p-value, and the adjusted p-value at
+single-step adjusted p-value for the chosen \code{stat}, and the adjusted p-value at
 the optimal lag equals \code{p.global}. Any method of \code{\link[stats:p.adjust]{stats::p.adjust()}} can be
 requested instead; with few permutations, as in the cyclic scheme,
 corrections such as Holm may make significance unattainable.
 
-\eqn{m^2} values at different lags are based on different numbers of rows
-(\verb{n - |k|}), and \eqn{m^2} is smaller and more variable when fewer rows
-overlap. The lag of the smallest \eqn{m^2} therefore tends to fall at the
-longest lags scanned, even when the series are independent: in 200 pairs
-of independent series simulated with \code{\link[=simulate_lagged_series]{simulate_lagged_series()}}
+The score compared across lags is set by \code{stat}:
+\itemize{
+\item \code{"minP"} (default): the per-lag p-value. The global statistic is the
+smallest p-value across lags, and its null distribution is obtained by
+converting every permuted \eqn{m^2} to a p-value within its own lag
+(the minP procedure of Westfall and Young 1993; Ge et al. 2003). The
+optimal lag is the one with the smallest p-value; ties, common with few
+permutations, are broken by \eqn{z} and then by \eqn{m^2}.
+\item \code{"z"}: \eqn{m^2} centered and scaled by the mean and standard deviation
+of its own null distribution. The optimal lag is the one with the
+largest \eqn{z} and equals the effect lag.
+\item \code{"raw"}: \eqn{m^2} itself, the statistic of versions up to 0.6. The
+optimal lag is the one with the smallest \eqn{m^2}.
+}
+
+All three are computed from the same permutations and give valid global
+tests. They differ in how power is spread across lags, because
+\eqn{m^2} values at different lags are based on different numbers of
+rows (\verb{n - |k|}), and \eqn{m^2} is smaller and more variable when fewer
+rows overlap. Under \code{"raw"}, the optimal lag therefore tends to fall at
+the longest lags scanned, even when the series are independent: in 200
+pairs of independent series simulated with \code{\link[=simulate_lagged_series]{simulate_lagged_series()}}
 (\code{n_times = 12}, lags -3 to 3), it fell at \eqn{\pm 3} in about half of
-the replicates rather than in two of seven. The global p-value remains
-valid, but has more power for long lags than for short ones. The effect
-lag (largest \eqn{z}) places every lag on the scale of its own null
-distribution and fell at \eqn{\pm 3} in about a quarter of the same
-replicates. When the two lags differ, \code{print()} says so; an optimal lag at
-the end of the scan should be read with caution, and candidate lags kept
-within a range justified by the biology of the system.
+the replicates rather than in two of seven, and the test had less power
+for a true lag of zero. \code{"minP"} and \code{"z"} place every lag on the scale
+of its own null distribution, so the optimal lag is close to uniform
+across lags under independence. In simulations, \code{"minP"} kept the
+nominal size best, and \code{"z"} had slightly more power and a slightly
+liberal size, because it estimates the mean and standard deviation from
+the same permutations. The same reasoning motivates selecting among
+candidates by p-value in conditional inference trees (Hothorn et al.
+2006). Because per-lag p-values are discrete, the smallest global p-value
+that \code{"minP"} can reach grows with the number of lags: roughly
+\eqn{(m + 1) / (N + 1)} for \eqn{m} lags and \eqn{N} permutations, so
+\eqn{N} should be at least \eqn{100m} (Manly and Navarro Alberto 2020,
+p. 84), and a message is issued when p < 0.05 cannot be reached. With the
+cyclic scheme, permutations are few, and \code{"z"} is then preferable.
+When the optimal lag and the effect lag differ, \code{print()} says so;
+candidate lags should be kept within a range justified by the biology of
+the system.
 }
 \examples{
 sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
@@ -218,15 +250,27 @@ fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1)
 fit
 fit$p.global
 fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
-                             permutation = "cyclic")
+                             permutation = "cyclic", stat = "z")
 fit_cyclic$profile
 plot(fit)
 residuals(fit)
 }
 \references{
+Ge, Y., Dudoit, S. and Speed, T. P. (2003). Resampling-based multiple
+testing for microarray data analysis. \emph{Test} 12, 1--77.
+\doi{10.1007/BF02595811}
+
+Hothorn, T., Hornik, K. and Zeileis, A. (2006). Unbiased recursive
+partitioning: a conditional inference framework. \emph{Journal of
+Computational and Graphical Statistics} 15, 651--674.
+\doi{10.1198/106186006X133933}
+
 Manly, B. F. J. and Navarro Alberto, J. A. (2020). \emph{Randomization,
 Bootstrap and Monte Carlo Methods in Biology}, 4th ed. Chapman and
 Hall/CRC, New York. \doi{10.1201/9780429329203}
+
+Westfall, P. H. and Young, S. S. (1993). \emph{Resampling-Based Multiple
+Testing: Examples and Methods for p-Value Adjustment}. Wiley, New York.
 }
 \seealso{
 \code{\link[vegan:protest]{vegan::protest()}}, \code{\link[vegan:procrustes]{vegan::procrustes()}}

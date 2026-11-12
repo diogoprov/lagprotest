@@ -30,7 +30,7 @@
 #'   already accounts for the lags scanned within each pair.
 #' @param seed Passed to [lagged_protest()] for every pair.
 #' @param ... Further arguments passed to [lagged_protest()], such as
-#'   `permutation`, `nperm` or `period`.
+#'   `permutation`, `nperm`, `period` or `stat`.
 #'
 #' @return A data frame with one row per pair and columns `x`, `y`,
 #'   `optimal_lag`, `n` (rows at the optimal lag), `m2`, `r`, `p.value` (raw

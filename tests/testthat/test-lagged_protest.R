@@ -86,7 +86,8 @@ test_that("p-values are raw by default and adjusted on request", {
 })
 
 test_that("the global p-value is the max-statistic over lags", {
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 99, seed = 1)
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 99, seed = 1,
+                        stat = "raw")
   null_min <- do.call(pmin, unname(fit$null))
   expect_equal(fit$p.global,
                (sum(null_min <= fit$m2) + 1) / (length(null_min) + 1))
@@ -218,9 +219,9 @@ test_that("period truncates the series to whole cycles", {
 test_that("a period dividing n leaves the series unchanged", {
   expect_no_message(
     fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, period = 12, nperm = 99,
-                          seed = 1)
+                          seed = 1, stat = "raw")
   )
-  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99, seed = 1)
+  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99, seed = 1, stat = "raw")
   expect_equal(fit$profile, ref$profile)
 })
 
