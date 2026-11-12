@@ -30,3 +30,13 @@ test_that("lakewa_blocks() subsets years and validates input", {
   expect_error(lakewa_blocks(from = 1990, to = 1980))
   expect_error(lakewa_blocks(interpolate = NA))
 })
+
+test_that("lakewa_blocks() explains how to get MARSS when it is missing", {
+  local_mocked_bindings(has_marss = function() FALSE)
+  expect_error(lakewa_blocks(), "needs the MARSS package")
+})
+
+test_that("fill_linear() interpolates inside and holds the ends", {
+  expect_equal(fill_linear(c(NA, 1, NA, 3, NA)), c(1, 1, 2, 3, 3))
+  expect_error(fill_linear(c(NA, 2, NA)), "Too few observed values")
+})

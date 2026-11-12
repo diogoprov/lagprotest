@@ -46,7 +46,7 @@
 #' fit$optimal_lag
 #' @export
 lakewa_blocks <- function(from = 1962, to = 1994, interpolate = TRUE) {
-  if (!requireNamespace("MARSS", quietly = TRUE)) {
+  if (!has_marss()) {
     stop("`lakewa_blocks()` needs the MARSS package: ",
          "install.packages(\"MARSS\")", call. = FALSE)
   }
@@ -67,14 +67,7 @@ lakewa_blocks <- function(from = 1962, to = 1994, interpolate = TRUE) {
   vars <- c(env, phyto, zoo)
 
   if (interpolate) {
-    idx <- seq_len(nrow(d))
-    d[vars] <- lapply(d[vars], function(x) {
-      if (sum(!is.na(x)) < 2) {
-        stop("Too few observed values to interpolate in the selected ",
-             "period.", call. = FALSE)
-      }
-      stats::approx(idx, x, idx, rule = 2)$y
-    })
+    d[vars] <- lapply(d[vars], fill_linear)
   }
 
   rn <- sprintf("%d-%02d", as.integer(d$Year), as.integer(d$Month))
@@ -86,4 +79,16 @@ lakewa_blocks <- function(from = 1962, to = 1994, interpolate = TRUE) {
   list(Environment = block(env),
        Phytoplankton = block(phyto, log1p),
        Zooplankton = block(zoo, log1p))
+}
+
+has_marss <- function() requireNamespace("MARSS", quietly = TRUE)
+
+# Linear interpolation over the index; end gaps take the nearest value.
+fill_linear <- function(x) {
+  if (sum(!is.na(x)) < 2) {
+    stop("Too few observed values to interpolate in the selected period.",
+         call. = FALSE)
+  }
+  idx <- seq_along(x)
+  stats::approx(idx, x, idx, rule = 2)$y
 }
