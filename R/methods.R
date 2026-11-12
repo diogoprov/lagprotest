@@ -1,7 +1,8 @@
 #' @export
 print.lagged_protest <- function(x, digits = 3, ...) {
   cat("\nLagged PROTEST\n\n")
-  cat("Call: ", deparse(x$call, width.cutoff = 70L), "\n", sep = "")
+  cat("Call: ", paste(deparse(x$call, width.cutoff = 70L), collapse = "\n"),
+      "\n", sep = "")
   scheme <- switch(x$permutation,
     cyclic = paste0("cyclic shift", if (isTRUE(x$mirror)) " with mirror"),
     phase = "phase-randomized surrogates",
@@ -27,6 +28,11 @@ print.lagged_protest <- function(x, digits = 3, ...) {
     cat("Effect at lag ", e$lag, " (largest z): Z = ",
         format(e$Z, digits = digits), ", A = ", format(e$A, digits = digits),
         ", corrected RV = ", format(e$RV, digits = digits), "\n", sep = "")
+    if (e$lag != x$optimal_lag) {
+      cat("  The optimal lag (smallest m2) and the effect lag (largest z)",
+          "differ; m2\n  favors long lags, which use fewer rows (see",
+          "?lagged_protest).\n")
+    }
   }
   if (!is.null(x$ar1)) {
     cat("Mean lag-1 autocorrelation, raw (residual after removing the cycle): X ",
@@ -56,19 +62,60 @@ print.lagged_protest <- function(x, digits = 3, ...) {
 #' Summarize a lagged PROTEST
 #'
 #' @param object A `"lagged_protest"` object.
+#' @param x A `"summary.lagged_protest"` object.
+#' @param digits Number of significant digits to print.
 #' @param ... Unused.
-#' @return The lag profile (a data frame), with the optimal lag flagged.
-#'   The scan-level measures are attached as attributes: `p.global`,
-#'   `effect` (lag of the largest z, `Z`, `A` and corrected `RV`) and `ar1`
-#'   (raw and residual lag-1 autocorrelation of `X` and `Y`).
+#' @return An object of class `"summary.lagged_protest"`: the lag profile (a
+#'   data frame), with the optimal lag flagged in `optimal`. The scan-level
+#'   measures are attached as attributes: `optimal_lag`, `p.global`, `effect`
+#'   (lag of the largest z, `Z`, `A` and corrected `RV`) and `ar1` (raw and
+#'   residual lag-1 autocorrelation of `X` and `Y`). Printing it shows the
+#'   profile followed by these measures; it can otherwise be used as a data
+#'   frame.
+#' @examples
+#' sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
+#'                               seed = 1)
+#' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
+#' s <- summary(fit)
+#' s
+#' attr(s, "effect")
 #' @export
 summary.lagged_protest <- function(object, ...) {
   out <- object$profile
   out$optimal <- out$lag == object$optimal_lag
+  attr(out, "optimal_lag") <- object$optimal_lag
   attr(out, "p.global") <- object$p.global
   attr(out, "effect") <- object$effect
   attr(out, "ar1") <- object$ar1
+  class(out) <- c("summary.lagged_protest", class(out))
   out
+}
+
+#' @rdname summary.lagged_protest
+#' @export
+print.summary.lagged_protest <- function(x, digits = 3, ...) {
+  print(as.data.frame(unclass(x), stringsAsFactors = FALSE),
+        digits = digits, row.names = FALSE)
+  p_global <- attr(x, "p.global")
+  if (!is.null(p_global)) {
+    cat("\nOptimal lag ", attr(x, "optimal_lag"), ", global p = ",
+        format(p_global, digits = digits), "\n", sep = "")
+  }
+  e <- attr(x, "effect")
+  if (!is.null(e) && !is.na(e$lag)) {
+    cat("Effect at lag ", e$lag, " (largest z): Z = ",
+        format(e$Z, digits = digits), ", A = ", format(e$A, digits = digits),
+        ", corrected RV = ", format(e$RV, digits = digits), "\n", sep = "")
+  }
+  ar1 <- attr(x, "ar1")
+  if (!is.null(ar1)) {
+    cat("Mean lag-1 autocorrelation, raw (residual): X ",
+        format(ar1$raw[1], digits = 2), " (",
+        format(ar1$residual[1], digits = 2), "), Y ",
+        format(ar1$raw[2], digits = 2), " (",
+        format(ar1$residual[2], digits = 2), ")\n", sep = "")
+  }
+  invisible(x)
 }
 
 #' Lag profile of a lagged PROTEST as a data frame

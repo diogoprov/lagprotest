@@ -27,7 +27,10 @@ passed as \code{X}.}
 defaults to \code{TRUE} here.}
 
 \item{p.adjust.method}{Correction of the global p-values across pairs,
-any method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"BH"}.}
+any method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"BH"}. Because this
+argument is taken by \code{lagged_protest_pairs()}, the per-lag adjustment of
+\code{\link[=lagged_protest]{lagged_protest()}} cannot be set here and stays \code{"none"}; \code{p.global}
+already accounts for the lags scanned within each pair.}
 
 \item{seed}{Passed to \code{\link[=lagged_protest]{lagged_protest()}} for every pair.}
 
@@ -37,11 +40,15 @@ any method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code
 \value{
 A data frame with one row per pair and columns \code{x}, \code{y},
 \code{optimal_lag}, \code{n} (rows at the optimal lag), \code{m2}, \code{r}, \code{p.value} (raw
-p at the optimal lag), \code{p.global}, the effect measures \code{Z} and \code{A} at
-the effect lag (see \code{effect} in \code{\link[=lagged_protest]{lagged_protest()}}), and
-\code{p.global.adjusted} (adjusted across pairs). Unlike \code{m2}, \code{Z} and \code{A}
-are on a common scale across pairs with different numbers of rows. The \code{\link[=lagged_protest]{lagged_protest()}} fits are stored, named
-\code{"x -> y"}, in the attribute \code{"fits"}.
+p at the optimal lag), \code{p.global}, \code{effect_lag} (the lag of the largest
+standardized concordance \eqn{z}), the effect measures \code{Z}, \code{A} and the
+corrected \code{RV} at \code{effect_lag} (see \code{effect} in \code{\link[=lagged_protest]{lagged_protest()}}), and
+\code{p.global.adjusted} (adjusted across pairs). \code{effect_lag} can differ
+from \code{optimal_lag}, which favors long lags (see Details in
+\code{\link[=lagged_protest]{lagged_protest()}}). Unlike \code{m2}, \code{Z}, \code{A} and \code{RV} are on a common
+scale across pairs with different numbers of rows. The
+\code{\link[=lagged_protest]{lagged_protest()}} fits are stored, named \code{"x -> y"}, in the attribute
+\code{"fits"}.
 }
 \description{
 Runs \code{\link[=lagged_protest]{lagged_protest()}} on pairs of data sets from a named list, such as

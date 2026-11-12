@@ -102,10 +102,47 @@ across five lags, and significance at α = 0.05 is unattainable
 (see Caveats).
 
 `summary()` returns the profile as a data frame, with the optimal lag
-flagged:
+flagged, and prints the global p-value and the effect measures described
+next below it:
 
 ```{r summary}
 summary(fit)
+```
+
+## Strength of the association
+
+A p-value is bounded by the number of permutations and mixes the strength
+of an association with the length of the series. `lagged_protest()`
+therefore also returns continuous measures, computed from the same
+permutations:
+
+```{r effect}
+fit$effect
+```
+
+At each lag, `z` in the profile is the observed *m*² standardized by the
+mean and standard deviation of its permutation null, with the sign reversed
+so that larger values mean stronger concordance, and `a` is the concordance
+relative to the null mean. The effect lag is the lag of the largest `z`.
+`Z` is the position of that largest `z` among the largest `z` of each
+permutation, in standard deviations; `A` and the corrected RV coefficient
+are scaled so that 0 is the value expected by chance and 1 is perfect
+concordance. All three are near 0 for independent series.
+
+The effect lag and the optimal lag usually agree when the association is
+strong, as here. They can differ because *m*² is smaller and more variable
+when fewer rows overlap, so the smallest *m*² tends to fall at the longest
+lags even for independent series, whereas `z` places every lag on the scale
+of its own null distribution. `print()` notes when the two differ (see
+Caveats).
+
+`fit$ar1` gives the mean lag-1 autocorrelation of the columns of each
+series, raw and after removing the seasonal harmonics. It is descriptive,
+and helps judge whether the series are short and strongly autocorrelated
+enough for the phase scheme to be liberal (see Caveats):
+
+```{r ar1}
+fit$ar1
 ```
 
 ## Plotting the lag profile
@@ -117,8 +154,10 @@ plot(fit)
 The solid line is the observed *m*² at each lag. The dashed line is the 5%
 quantile of the permutation null distribution at that lag: observed values
 below it are significant at α = 0.05 before correction. Filled points mark
-lags with p < 0.05 (after adjustment, if one was requested), and the dotted
-vertical line marks the optimal lag.
+lags with p < 0.05 (after adjustment, if one was requested), the dotted
+vertical line marks the optimal lag, and the circle around it is filled
+when the global p-value is below 0.05. `ggplot2::autoplot(fit)` draws the
+same plot with ggplot2, and `as.data.frame(fit)` returns the data behind it.
 
 ## Residuals per observation
 
@@ -229,9 +268,20 @@ nominal level, but only the phase scheme retains power.
   `1 / (2(n − 1) + 1)`, 0.043 for `n = 12`. Corrections across many lags may
   then be unattainable at α = 0.05. The phase scheme has no such floor.
 * **Different window sizes.** *m*² at lag *k* is based on `n − k` rows, so
-  long lags rest on fewer observations. Keep the candidate lags within a
-  range justified by the biology of the system.
+  long lags rest on fewer observations, and the smallest *m*² tends to fall
+  at the longest lags scanned even for independent series. An optimal lag
+  at the end of the scan should be compared with the effect lag in
+  `fit$effect`, and candidate lags kept within a range justified by the
+  biology of the system.
 * **Scaling.** With `scale = TRUE` (default) variables are standardized on
   the full series before truncation.
+
+## Several data sets
+
+`lagged_protest_pairs()` runs `lagged_protest()` on every pair of data sets
+in a named list (or on chosen pairs), scanning both directions through the
+sign of the lag, and adjusts the global p-values across pairs. The article
+[Seasonal liver plasticity in a treefrog](https://provetelab.org/lagprotest/articles/liver-example.html)
+applies it to the `dminutus_liver` data set.
 
 ## References

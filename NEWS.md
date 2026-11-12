@@ -18,7 +18,6 @@
   article cite Manly and Navarro Alberto (2020) for the p-value formula and
   the recommended number of permutations, and pp. 83–84 for the
   max-statistic adjustment of correlated tests.
-
 * The liver example article now checks the lag scan with two statistics that
   weigh all lags equally (minP and the standardized m²), computed from the
   surrogates stored in each fit. The raw minimum m² favors long lags, and the
@@ -42,6 +41,23 @@
 * The fits stored by `lagged_protest_pairs()` now carry a call that names
   the data sets and shows the values of `lags`, `bidirectional` and `seed`,
   so `print()` is informative and `eval(fit$call)` reproduces the fit.
+* `lagged_protest_pairs()` gains the columns `effect_lag` (the lag to which
+  `Z` and `A` refer, which can differ from `optimal_lag`) and `RV`.
+* `summary()` now returns an object of class `"summary.lagged_protest"`
+  (still a data frame) whose `print()` method shows the global p-value,
+  the effect measures and the autocorrelation below the profile; before,
+  these were attributes that were not printed.
+* `print()` notes when the optimal lag (smallest *m*²) and the effect lag
+  (largest *z*) differ, and no longer runs the lines of a long call
+  together.
+* The documentation of `lagged_protest()`, the "Get started" vignette and
+  the README now explain that the smallest *m*² favors the longest lags
+  scanned, describe the effect measures and `ar1`, and point to
+  `lagged_protest_pairs()`, `autoplot()` and the liver example. Smaller
+  fixes: the `mirror` element is documented, `n_perm` is described as the
+  same at every lag, and the per-lag adjustment that
+  `lagged_protest_pairs()` cannot set is noted.
+* New `inst/CITATION`, so `citation("lagprotest")` gives the Zenodo DOI.
 
 # lagprotest 0.6.0
 
