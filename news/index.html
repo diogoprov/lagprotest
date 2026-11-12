@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,9 +37,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.7.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
+<ul><li>New <code><a href="../reference/elpa_blocks.html">elpa_blocks()</a></code> builds monthly environment (temperature, salinity, Secchi depth) and juvenile fish blocks for the Patos Lagoon estuary from the PELD-ELPA beach-seine survey (1996–2016). The archive (CC BY-NC 4.0) is read from a local copy or downloaded from the SiBBr IPT rather than shipped with lagprotest.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.0" id="lagprotest-070">lagprotest 0.7.0<a class="anchor" aria-label="anchor" href="#lagprotest-070"></a></h2>
 <ul><li><p><strong>Breaking:</strong> <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> gains <code>stat = c("minP", "z", "raw")</code>, the scan statistic used for the global p-value and the optimal lag, with <code>"minP"</code> as the new default. <code>"minP"</code> compares lags by their per-lag p-values (Westfall and Young’s minP), <code>"z"</code> by <em>m</em>² standardized by its own null distribution, and <code>"raw"</code> by <em>m</em>² itself, the behavior of earlier versions. All three use the same permutations and are valid global tests; <code>"raw"</code> favors the longest lags, which rest on fewer rows, and has less power for short lags. Use <code>stat = "raw"</code> to reproduce results from version 0.6 and earlier. The liver example article keeps <code>"raw"</code> to match the analysis submitted for publication.</p></li>

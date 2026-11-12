@@ -32,3 +32,6 @@
 
 - [`lakewa_blocks()`](https://provetelab.org/lagprotest/reference/lakewa_blocks.md)
   : Lake Washington plankton and limnology blocks
+
+- [`elpa_blocks()`](https://provetelab.org/lagprotest/reference/elpa_blocks.md)
+  : Patos Lagoon juvenile fish and environment blocks (PELD-ELPA)

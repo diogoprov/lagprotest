@@ -1,5 +1,15 @@
 # Changelog
 
+## lagprotest (development version)
+
+- New
+  [`elpa_blocks()`](https://provetelab.org/lagprotest/reference/elpa_blocks.md)
+  builds monthly environment (temperature, salinity, Secchi depth) and
+  juvenile fish blocks for the Patos Lagoon estuary from the PELD-ELPA
+  beach-seine survey (1996–2016). The archive (CC BY-NC 4.0) is read
+  from a local copy or downloaded from the SiBBr IPT rather than shipped
+  with lagprotest.
+
 ## lagprotest 0.7.0
 
 - **Breaking:**
