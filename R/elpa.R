@@ -117,7 +117,8 @@ elpa_blocks <- function(habitat = c("estuary", "sandy beach"),
     by_event <- val[match(ev$key, ef_key[s])]
     m <- tapply(by_event, factor(ev$t, levels = months), mean, na.rm = TRUE)
     m[is.nan(m)] <- NA
-    fill_linear(as.numeric(m))
+    m <- as.numeric(m)
+    if (anyNA(m)) fill_linear(m) else m
   }, numeric(length(months)))
   if (!is.matrix(env)) env <- matrix(env, nrow = 1)
   colnames(env) <- names(env_vars)

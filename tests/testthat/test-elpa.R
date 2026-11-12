@@ -114,3 +114,37 @@ test_that("elpa_download() reuses a cached archive", {
   expect_identical(elpa_download(dir), dest)
   expect_match(elpa_url(), "^https://ipt\\.sibbr\\.gov\\.br/")
 })
+
+test_that("elpa_download() fetches the archive when it is not cached", {
+  dir <- tempfile("cache")
+  dir.create(dir)
+  local_mocked_bindings(
+    download.file = function(url, destfile, ...) {
+      expect_identical(url, elpa_url())
+      file.create(destfile)
+      0L
+    },
+    .package = "utils"
+  )
+  expect_message(dest <- elpa_download(dir), "CC BY-NC")
+  expect_true(file.exists(dest))
+})
+
+test_that("elpa_blocks() handles a one-month period", {
+  dir <- fake_dir()
+  el <- elpa_blocks("estuary", from = c(2000, 1), to = c(2000, 1),
+                    species = "all", hellinger = FALSE, path = dir)
+  expect_equal(dim(el$Fish), c(1L, 3L))
+  expect_equal(dim(el$Environment), c(1L, 3L))
+  expect_identical(rownames(el$Fish), "2000-01")
+  # Secchi was not recorded in the estuary in month 2: nothing to fill from.
+  expect_error(elpa_blocks("estuary", from = c(2000, 2), to = c(2000, 2),
+                           path = dir), "Too few observed values")
+})
+
+test_that("elpa_blocks() downloads the archive when no path is given", {
+  dir <- fake_dir()
+  local_mocked_bindings(elpa_download = function(...) dir)
+  expect_equal(elpa_blocks(from = c(2000, 1), to = c(2000, 3)),
+               elpa_blocks(from = c(2000, 1), to = c(2000, 3), path = dir))
+})

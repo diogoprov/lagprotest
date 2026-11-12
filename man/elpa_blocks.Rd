@@ -4,12 +4,14 @@
 \alias{elpa_blocks}
 \title{Patos Lagoon juvenile fish and environment blocks (PELD-ELPA)}
 \source{
-Vieira, J. P., Garcia, A. M. and others. PELD-ELPA: Species
-composition and abundance patterns of fish assemblages at shallow
-waters of Patos Lagoon estuary. Version 1.16. Sistema de Informação
-sobre a Biodiversidade Brasileira (SiBBr), via GBIF,
+Vieira, J. P., Garcia, A. M. and Lemos, V. M. PELD-ELPA:
+Species composition and abundance patterns of fish assemblages at
+shallow waters of Patos Lagoon estuary. Version 1.16. Sistema de
+Informação sobre a Biodiversidade Brasileira (SiBBr), via GBIF,
 \doi{10.15468/kci8zb}. Licensed CC BY-NC 4.0: cite the dataset and do
-not use it commercially.
+not use it commercially. The program is described in Lemos et al.
+(2022), Earth System Science Data 14: 1015–1041,
+\doi{10.5194/essd-14-1015-2022}.
 }
 \usage{
 elpa_blocks(
