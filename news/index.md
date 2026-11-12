@@ -1,6 +1,6 @@
 # Changelog
 
-## lagprotest (development version)
+## lagprotest 0.7.0
 
 - **Breaking:**
   [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
