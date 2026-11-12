@@ -1,4 +1,4 @@
-# lagprotest (development version)
+# lagprotest 0.7.0
 
 * **Breaking:** `lagged_protest()` gains `stat = c("minP", "z", "raw")`,
   the scan statistic used for the global p-value and the optimal lag, with
