@@ -214,7 +214,9 @@ knitr::kable(pw, digits = 3)
 |  96 |         1.000 | 1.000 |
 
 Both schemes recovered the true lag equally well, because the optimal
-lag does not depend on the null distribution:
+lag (the smallest *m*²) does not depend on the null distribution. The
+effect lag in `fit$effect`, which standardizes *m*² by its null mean and
+standard deviation at each lag, does depend on it:
 
 ``` r
 

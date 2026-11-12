@@ -51,18 +51,32 @@ sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.5,
                               seed = 1)
 
 fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1)
-fit             # lag profile, optimal lag, per-lag and global p-values
+fit             # optimal lag, global p, effect measures, lag profile
+fit$p.global    # p-value of the whole scan, to report for the optimal lag
+fit$effect      # effect lag (largest z), Z, A and corrected RV
 plot(fit)       # m2 against lag, with the permutation null quantile
 residuals(fit)  # per-observation residuals at the optimal lag
 ```
 
 Report the global p-value (`fit$p.global`) for the optimal lag: it
 accounts for scanning several lags and selecting the best one, whereas
-the per-lag p-values do not.
+the per-lag p-values do not. The continuous measures in `fit$effect`
+(`Z`, `A` and the chance-corrected RV coefficient) describe the strength
+of the association and, unlike p-values, are not bounded by the number
+of permutations.
+
+[`lagged_protest_pairs()`](https://provetelab.org/lagprotest/reference/lagged_protest_pairs.md)
+runs the scan on every pair of data sets in a named list and adjusts the
+global p-values across pairs. The package includes a real example,
+`dminutus_liver` (monthly hepatic and climatic series of a treefrog),
+analyzed in the article [Seasonal liver plasticity in a
+treefrog](https://provetelab.org/lagprotest/articles/liver-example.html).
 
 Inputs can be matrices or data frames (rows = ordered time points,
 columns = variables) or `dist` objects, which are converted to principal
-coordinates.
+coordinates. See the
+[articles](https://provetelab.org/lagprotest/articles/) for choosing a
+permutation scheme and simulating series for a calibration study.
 
 ## Status
 

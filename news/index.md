@@ -64,6 +64,35 @@
   [`print()`](https://rdrr.io/r/base/print.html) is informative and
   `eval(fit$call)` reproduces the fit.
 
+- [`lagged_protest_pairs()`](https://provetelab.org/lagprotest/reference/lagged_protest_pairs.md)
+  gains the columns `effect_lag` (the lag to which `Z` and `A` refer,
+  which can differ from `optimal_lag`) and `RV`.
+
+- [`summary()`](https://rdrr.io/r/base/summary.html) now returns an
+  object of class `"summary.lagged_protest"` (still a data frame) whose
+  [`print()`](https://rdrr.io/r/base/print.html) method shows the global
+  p-value, the effect measures and the autocorrelation below the
+  profile; before, these were attributes that were not printed.
+
+- [`print()`](https://rdrr.io/r/base/print.html) notes when the optimal
+  lag (smallest *m*²) and the effect lag (largest *z*) differ, and no
+  longer runs the lines of a long call together.
+
+- The documentation of
+  [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md),
+  the “Get started” vignette and the README now explain that the
+  smallest *m*² favors the longest lags scanned, describe the effect
+  measures and `ar1`, and point to
+  [`lagged_protest_pairs()`](https://provetelab.org/lagprotest/reference/lagged_protest_pairs.md),
+  [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
+  and the liver example. Smaller fixes: the `mirror` element is
+  documented, `n_perm` is described as the same at every lag, and the
+  per-lag adjustment that
+  [`lagged_protest_pairs()`](https://provetelab.org/lagprotest/reference/lagged_protest_pairs.md)
+  cannot set is noted.
+
+- New `inst/CITATION`, so `citation("lagprotest")` gives the Zenodo DOI.
+
 ## lagprotest 0.6.0
 
 - New [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)

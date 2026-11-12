@@ -187,41 +187,91 @@ permutations, so a raw p-value at its minimum of 0.043 becomes 0.217
 after Holm correction across five lags, and significance at α = 0.05 is
 unattainable (see Caveats).</p>
 <p><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> returns the profile as a data frame, with the
-optimal lag flagged:</p>
+optimal lag flagged, and prints the global p-value and the effect
+measures described next below it:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   lag  n         m2         r p.value p.adjusted nperm          z          a</span></span>
-<span><span class="co">#&gt; 1   0 12 0.31032769 0.8304651   0.962      0.962   999 -1.5503712 -0.2012070</span></span>
-<span><span class="co">#&gt; 2   1 11 0.20776926 0.8900734   0.138      0.138   999  1.1073458  0.1732326</span></span>
-<span><span class="co">#&gt; 3   2 10 0.09221418 0.9527779   0.001      0.001   999  3.5330820  0.6170489</span></span>
-<span><span class="co">#&gt; 4   3  9 0.27479436 0.8515901   0.818      0.818   999 -0.8777031 -0.1706562</span></span>
-<span><span class="co">#&gt; 5   4  8 0.30456477 0.8339276   0.876      0.876   999 -1.1807311 -0.2616815</span></span>
-<span><span class="co">#&gt;   optimal</span></span>
-<span><span class="co">#&gt; 1   FALSE</span></span>
-<span><span class="co">#&gt; 2   FALSE</span></span>
-<span><span class="co">#&gt; 3    TRUE</span></span>
-<span><span class="co">#&gt; 4   FALSE</span></span>
-<span><span class="co">#&gt; 5   FALSE</span></span></code></pre></div>
+<span><span class="co">#&gt;  lag  n     m2     r p.value p.adjusted nperm      z      a optimal</span></span>
+<span><span class="co">#&gt;    0 12 0.3103 0.830   0.962      0.962   999 -1.550 -0.201   FALSE</span></span>
+<span><span class="co">#&gt;    1 11 0.2078 0.890   0.138      0.138   999  1.107  0.173   FALSE</span></span>
+<span><span class="co">#&gt;    2 10 0.0922 0.953   0.001      0.001   999  3.533  0.617    TRUE</span></span>
+<span><span class="co">#&gt;    3  9 0.2748 0.852   0.818      0.818   999 -0.878 -0.171   FALSE</span></span>
+<span><span class="co">#&gt;    4  8 0.3046 0.834   0.876      0.876   999 -1.181 -0.262   FALSE</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Optimal lag 2, global p = 0.003</span></span>
+<span><span class="co">#&gt; Effect at lag 2 (largest z): Z = 3.22, A = 0.51, corrected RV = 0.318</span></span>
+<span><span class="co">#&gt; Mean lag-1 autocorrelation, raw (residual): X 0.7 (-0.018), Y 0.54 (-0.049)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="strength-of-the-association">Strength of the association<a class="anchor" aria-label="anchor" href="#strength-of-the-association"></a>
+</h2>
+<p>A p-value is bounded by the number of permutations and mixes the
+strength of an association with the length of the series.
+<code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> therefore also returns continuous
+measures, computed from the same permutations:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">effect</span></span>
+<span><span class="co">#&gt; $lag</span></span>
+<span><span class="co">#&gt; [1] 2</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $Z</span></span>
+<span><span class="co">#&gt; [1] 3.217432</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $A</span></span>
+<span><span class="co">#&gt; [1] 0.5099893</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $RV</span></span>
+<span><span class="co">#&gt; [1] 0.3180133</span></span></code></pre></div>
+<p>At each lag, <code>z</code> in the profile is the observed
+<em>m</em>² standardized by the mean and standard deviation of its
+permutation null, with the sign reversed so that larger values mean
+stronger concordance, and <code>a</code> is the concordance relative to
+the null mean. The effect lag is the lag of the largest <code>z</code>.
+<code>Z</code> is the position of that largest <code>z</code> among the
+largest <code>z</code> of each permutation, in standard deviations;
+<code>A</code> and the corrected RV coefficient are scaled so that 0 is
+the value expected by chance and 1 is perfect concordance. All three are
+near 0 for independent series.</p>
+<p>The effect lag and the optimal lag usually agree when the association
+is strong, as here. They can differ because <em>m</em>² is smaller and
+more variable when fewer rows overlap, so the smallest <em>m</em>² tends
+to fall at the longest lags even for independent series, whereas
+<code>z</code> places every lag on the scale of its own null
+distribution. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> notes when the two differ (see
+Caveats).</p>
+<p><code>fit$ar1</code> gives the mean lag-1 autocorrelation of the
+columns of each series, raw and after removing the seasonal harmonics.
+It is descriptive, and helps judge whether the series are short and
+strongly autocorrelated enough for the phase scheme to be liberal (see
+Caveats):</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">ar1</span></span>
+<span><span class="co">#&gt;   series       raw    residual</span></span>
+<span><span class="co">#&gt; 1      X 0.6991221 -0.01815912</span></span>
+<span><span class="co">#&gt; 2      Y 0.5396661 -0.04854199</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="plotting-the-lag-profile">Plotting the lag profile<a class="anchor" aria-label="anchor" href="#plotting-the-lag-profile"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="lagprotest_files/figure-html/plot-1.png" class="r-plt" alt="Lag profile: m2 against lag, with a dashed line for the 5% quantile of the permutation null distribution at each lag." width="576"></p>
 <p>The solid line is the observed <em>m</em>² at each lag. The dashed
 line is the 5% quantile of the permutation null distribution at that
 lag: observed values below it are significant at α = 0.05 before
 correction. Filled points mark lags with p &lt; 0.05 (after adjustment,
-if one was requested), and the dotted vertical line marks the optimal
-lag.</p>
+if one was requested), the dotted vertical line marks the optimal lag,
+and the circle around it is filled when the global p-value is below
+0.05. <code>ggplot2::autoplot(fit)</code> draws the same plot with
+ggplot2, and <code>as.data.frame(fit)</code> returns the data behind
+it.</p>
 </div>
 <div class="section level2">
 <h2 id="residuals-per-observation">Residuals per observation<a class="anchor" aria-label="anchor" href="#residuals-per-observation"></a>
 </h2>
 <p>Procrustes residuals show which time points fit the superimposition
 well and which deviate, at the optimal lag:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    x_row y_row   residual</span></span>
 <span><span class="co">#&gt; 1      1     3 0.09796321</span></span>
@@ -284,7 +334,7 @@ at α = 0.05: for the raw p-value at the optimal lag, and for the global
 p-value under each scheme. A second set of series, in which
 <code>Y</code> follows <code>X</code> with a lag of two, gives the power
 of the global p-value:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rates</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">true_lag</span>, <span class="va">n_rep</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n_rep</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="fl">24</span>, period <span class="op">=</span> <span class="fl">24</span>, true_lag <span class="op">=</span> <span class="va">true_lag</span>,</span>
@@ -350,12 +400,25 @@ unattainable at α = 0.05. The phase scheme has no such floor.</li>
 <li>
 <strong>Different window sizes.</strong> <em>m</em>² at lag
 <em>k</em> is based on <code>n − k</code> rows, so long lags rest on
-fewer observations. Keep the candidate lags within a range justified by
-the biology of the system.</li>
+fewer observations, and the smallest <em>m</em>² tends to fall at the
+longest lags scanned even for independent series. An optimal lag at the
+end of the scan should be compared with the effect lag in
+<code>fit$effect</code>, and candidate lags kept within a range
+justified by the biology of the system.</li>
 <li>
 <strong>Scaling.</strong> With <code>scale = TRUE</code> (default)
 variables are standardized on the full series before truncation.</li>
 </ul>
+</div>
+<div class="section level2">
+<h2 id="several-data-sets">Several data sets<a class="anchor" aria-label="anchor" href="#several-data-sets"></a>
+</h2>
+<p><code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs()</a></code> runs
+<code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> on every pair of data sets in a named list
+(or on chosen pairs), scanning both directions through the sign of the
+lag, and adjusts the global p-values across pairs. The article <a href="https://provetelab.org/lagprotest/articles/liver-example.html">Seasonal
+liver plasticity in a treefrog</a> applies it to the
+<code>dminutus_liver</code> data set.</p>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

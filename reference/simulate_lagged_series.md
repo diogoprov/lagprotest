@@ -70,7 +70,8 @@ A list with matrices `X` (`n_times` x `n_vars_x`) and `Y` (`n_times` x
 
 Setting `amplitude = 0` removes the seasonal component and leaves pure
 AR(1) series; setting `autocorr = 0` gives white noise around the
-seasonal signal (the design of the original simulation, Appendix S1).
+seasonal signal. The article "Simulating lagged series" shows how to use
+the function for a calibration study.
 
 ## Examples
 

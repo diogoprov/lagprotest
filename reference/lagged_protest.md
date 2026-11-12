@@ -31,7 +31,10 @@ lagged_protest(
 
 - lags:
 
-  Integer vector of non-negative candidate lags.
+  Integer vector of non-negative candidate lags (default `0:6`). Every
+  lag must leave at least 3 overlapping rows; long lags rest on few rows
+  (6 for lag 6 with `n = 12`) and are favored by the smallest \\m^2\\
+  (see Details).
 
 - permutation:
 
@@ -110,7 +113,7 @@ An object of class `"lagged_protest"`, a list with:
 
 - `n_perm`:
 
-  Number of permutations or surrogates at the optimal lag (the exact
+  Number of permutations or surrogates, the same at every lag (the exact
   count for the cyclic scheme).
 
 - `profile`:
@@ -149,10 +152,10 @@ An object of class `"lagged_protest"`, a list with:
 
   List of permuted RV coefficients, paired with `null`.
 
-- `permutation`, `p.adjust.method`, `n`, `period`, `call`:
+- `permutation`, `mirror`, `p.adjust.method`, `n`, `period`, `call`:
 
-  Settings used; `n` is the number of rows after any truncation to whole
-  cycles.
+  Settings used; `mirror` is `NA` unless the scheme is cyclic, and `n`
+  is the number of rows after any truncation to whole cycles.
 
 ## Details
 
@@ -260,9 +263,23 @@ single-step max-statistic adjusted p-value, and the adjusted p-value at
 the optimal lag equals `p.global`. Any method of
 [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) can be
 requested instead; with few permutations, as in the cyclic scheme,
-corrections such as Holm may make significance unattainable. Note that
+corrections such as Holm may make significance unattainable.
+
 \\m^2\\ values at different lags are based on different numbers of rows
-(`n - |k|`).
+(`n - |k|`), and \\m^2\\ is smaller and more variable when fewer rows
+overlap. The lag of the smallest \\m^2\\ therefore tends to fall at the
+longest lags scanned, even when the series are independent: in 200 pairs
+of independent series simulated with
+[`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
+(`n_times = 12`, lags -3 to 3), it fell at \\\pm 3\\ in about half of
+the replicates rather than in two of seven. The global p-value remains
+valid, but has more power for long lags than for short ones. The effect
+lag (largest \\z\\) places every lag on the scale of its own null
+distribution and fell at \\\pm 3\\ in about a quarter of the same
+replicates. When the two lags differ,
+[`print()`](https://rdrr.io/r/base/print.html) says so; an optimal lag
+at the end of the scan should be read with caution, and candidate lags
+kept within a range justified by the biology of the system.
 
 ## References
 

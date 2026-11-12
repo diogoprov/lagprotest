@@ -245,19 +245,22 @@ different question:</p>
 <span><span class="va">modules</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs</a></span><span class="op">(</span><span class="va">dminutus_liver</span>, pairs <span class="op">=</span> <span class="va">module_edges</span>,</span>
 <span>                                lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>, nperm <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"optimal_lag"</span>, <span class="st">"n"</span>, <span class="st">"m2"</span>, <span class="st">"r"</span>, <span class="st">"p.value"</span>, <span class="st">"p.global"</span>,</span>
-<span>          <span class="st">"p.global.adjusted"</span><span class="op">)</span></span>
+<span>          <span class="st">"p.global.adjusted"</span>, <span class="st">"effect_lag"</span>, <span class="st">"Z"</span>, <span class="st">"A"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">climate</span><span class="op">[</span>, <span class="va">cols</span><span class="op">]</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
+<table style="width:100%;" class="table">
 <colgroup>
-<col width="9%">
-<col width="17%">
-<col width="14%">
-<col width="3%">
 <col width="7%">
-<col width="7%">
-<col width="9%">
+<col width="13%">
 <col width="10%">
-<col width="21%">
+<col width="2%">
+<col width="5%">
+<col width="5%">
+<col width="7%">
+<col width="8%">
+<col width="16%">
+<col width="10%">
+<col width="6%">
+<col width="6%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">x</th>
@@ -269,6 +272,9 @@ different question:</p>
 <th align="right">p.value</th>
 <th align="right">p.global</th>
 <th align="right">p.global.adjusted</th>
+<th align="right">effect_lag</th>
+<th align="right">Z</th>
+<th align="right">A</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -281,6 +287,9 @@ different question:</p>
 <td align="right">0.011</td>
 <td align="right">0.011</td>
 <td align="right">0.044</td>
+<td align="right">3</td>
+<td align="right">1.731</td>
+<td align="right">0.308</td>
 </tr>
 <tr class="even">
 <td align="left">Climate</td>
@@ -292,6 +301,9 @@ different question:</p>
 <td align="right">0.062</td>
 <td align="right">0.137</td>
 <td align="right">0.274</td>
+<td align="right">-3</td>
+<td align="right">0.536</td>
+<td align="right">0.167</td>
 </tr>
 <tr class="odd">
 <td align="left">Climate</td>
@@ -303,6 +315,9 @@ different question:</p>
 <td align="right">0.102</td>
 <td align="right">0.828</td>
 <td align="right">0.828</td>
+<td align="right">0</td>
+<td align="right">-0.016</td>
+<td align="right">-0.052</td>
 </tr>
 <tr class="even">
 <td align="left">Climate</td>
@@ -314,22 +329,28 @@ different question:</p>
 <td align="right">0.005</td>
 <td align="right">0.225</td>
 <td align="right">0.300</td>
+<td align="right">0</td>
+<td align="right">1.747</td>
+<td align="right">0.132</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">modules</span><span class="op">[</span>, <span class="va">cols</span><span class="op">]</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
+<table style="width:100%;" class="table">
 <colgroup>
-<col width="16%">
 <col width="13%">
-<col width="13%">
-<col width="3%">
-<col width="6%">
-<col width="6%">
-<col width="8%">
 <col width="10%">
-<col width="20%">
+<col width="10%">
+<col width="2%">
+<col width="5%">
+<col width="5%">
+<col width="7%">
+<col width="7%">
+<col width="15%">
+<col width="9%">
+<col width="6%">
+<col width="6%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">x</th>
@@ -341,6 +362,9 @@ different question:</p>
 <th align="right">p.value</th>
 <th align="right">p.global</th>
 <th align="right">p.global.adjusted</th>
+<th align="right">effect_lag</th>
+<th align="right">Z</th>
+<th align="right">A</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -353,6 +377,9 @@ different question:</p>
 <td align="right">0.148</td>
 <td align="right">0.777</td>
 <td align="right">0.777</td>
+<td align="right">1</td>
+<td align="right">-0.577</td>
+<td align="right">-0.070</td>
 </tr>
 <tr class="even">
 <td align="left">Morphometry</td>
@@ -364,6 +391,9 @@ different question:</p>
 <td align="right">0.036</td>
 <td align="right">0.459</td>
 <td align="right">0.688</td>
+<td align="right">-1</td>
+<td align="right">0.743</td>
+<td align="right">0.077</td>
 </tr>
 <tr class="odd">
 <td align="left">Density</td>
@@ -375,6 +405,9 @@ different question:</p>
 <td align="right">0.006</td>
 <td align="right">0.100</td>
 <td align="right">0.301</td>
+<td align="right">1</td>
+<td align="right">2.044</td>
+<td align="right">0.220</td>
 </tr>
 </tbody>
 </table>
@@ -521,7 +554,11 @@ and Young 1993)</span>. Taking the smallest p-value across tests in each
 randomization follows the procedure described by <span class="citation">Manly and Navarro Alberto (2020, 83–84)</span> for
 correlated tests, for which the Bonferroni level is too strict; they
 recommend at least 100<em>m</em> randomizations for <em>m</em> tests, a
-condition met here by 9999 permutations for seven lags:</p>
+condition met here by 9999 permutations for seven lags. The standardized
+<em>m</em>² at each lag is also returned, with the opposite sign, as
+<code>z</code> in <code>fit$profile</code>, and its largest value gives
+the effect lag (<code>effect_lag</code> in the tables above); the
+function below adds the corresponding global p-values:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">balanced_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">null</span><span class="op">)</span></span>

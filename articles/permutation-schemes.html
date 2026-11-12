@@ -391,7 +391,10 @@ rather than shifts of the observed one and do not have this problem
 </tbody>
 </table>
 <p>Both schemes recovered the true lag equally well, because the optimal
-lag does not depend on the null distribution:</p>
+lag (the smallest <em>m</em>²) does not depend on the null distribution.
+The effect lag in <code>fit$effect</code>, which standardizes
+<em>m</em>² by its null mean and standard deviation at each lag, does
+depend on it:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">opt_true</span> <span class="op">~</span> <span class="va">n</span> <span class="op">+</span> <span class="va">scheme</span>, data <span class="op">=</span> <span class="va">power</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    n        scheme  opt_true</span></span>

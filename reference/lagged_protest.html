@@ -76,7 +76,10 @@ to principal coordinates. Both must have the same number of rows.</p></dd>
 
 
 <dt id="arg-lags">lags<a class="anchor" aria-label="anchor" href="#arg-lags"></a></dt>
-<dd><p>Integer vector of non-negative candidate lags.</p></dd>
+<dd><p>Integer vector of non-negative candidate lags (default
+<code>0:6</code>). Every lag must leave at least 3 overlapping rows; long lags rest
+on few rows (6 for lag 6 with <code>n = 12</code>) and are favored by the smallest
+\(m^2\) (see Details).</p></dd>
 
 
 <dt id="arg-permutation">permutation<a class="anchor" aria-label="anchor" href="#arg-permutation"></a></dt>
@@ -148,8 +151,8 @@ optimal lag.</p></dd>
 accounting for testing several lags and selecting the optimal one.</p></dd>
 
 <dt><code>n_perm</code></dt>
-<dd><p>Number of permutations or surrogates at the optimal
-lag (the exact count for the cyclic scheme).</p></dd>
+<dd><p>Number of permutations or surrogates, the same at
+every lag (the exact count for the cyclic scheme).</p></dd>
 
 <dt><code>profile</code></dt>
 <dd><p>Data frame with <code>lag</code>, <code>n</code> (rows used), <code>m2</code>, <code>r</code>,
@@ -180,10 +183,10 @@ element <code>i</code> of every vector comes from the same permutation.</p></dd>
 <dd><p>List of permuted RV coefficients, paired with
 <code>null</code>.</p></dd>
 
-<dt><code>permutation</code>, <code>p.adjust.method</code>, <code>n</code>, <code>period</code>, <code>call</code></dt>
-<dd><p>Settings
-used; <code>n</code> is the number of rows after any truncation to whole
-cycles.</p></dd>
+<dt><code>permutation</code>, <code>mirror</code>, <code>p.adjust.method</code>, <code>n</code>, <code>period</code>,
+<code>call</code></dt>
+<dd><p>Settings used; <code>mirror</code> is <code>NA</code> unless the scheme is cyclic,
+and <code>n</code> is the number of rows after any truncation to whole cycles.</p></dd>
 
 
 </dl></div>
@@ -279,9 +282,20 @@ With <code>p.adjust.method = "maxT"</code>, every lag receives the corresponding
 single-step max-statistic adjusted p-value, and the adjusted p-value at
 the optimal lag equals <code>p.global</code>. Any method of <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code> can be
 requested instead; with few permutations, as in the cyclic scheme,
-corrections such as Holm may make significance unattainable. Note that
-\(m^2\) values at different lags are based on different numbers of rows
-(<code>n - |k|</code>).</p>
+corrections such as Holm may make significance unattainable.</p>
+<p>\(m^2\) values at different lags are based on different numbers of rows
+(<code>n - |k|</code>), and \(m^2\) is smaller and more variable when fewer rows
+overlap. The lag of the smallest \(m^2\) therefore tends to fall at the
+longest lags scanned, even when the series are independent: in 200 pairs
+of independent series simulated with <code><a href="simulate_lagged_series.html">simulate_lagged_series()</a></code>
+(<code>n_times = 12</code>, lags -3 to 3), it fell at \(\pm 3\) in about half of
+the replicates rather than in two of seven. The global p-value remains
+valid, but has more power for long lags than for short ones. The effect
+lag (largest \(z\)) places every lag on the scale of its own null
+distribution and fell at \(\pm 3\) in about a quarter of the same
+replicates. When the two lags differ, <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> says so; an optimal lag at
+the end of the scan should be read with caution, and candidate lags kept
+within a range justified by the biology of the system.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

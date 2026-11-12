@@ -103,11 +103,14 @@
 <span>                              seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">fit</span>             <span class="co"># lag profile, optimal lag, per-lag and global p-values</span></span>
+<span><span class="va">fit</span>             <span class="co"># optimal lag, global p, effect measures, lag profile</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">p.global</span>    <span class="co"># p-value of the whole scan, to report for the optimal lag</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">effect</span>      <span class="co"># effect lag (largest z), Z, A and corrected RV</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>       <span class="co"># m2 against lag, with the permutation null quantile</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>  <span class="co"># per-observation residuals at the optimal lag</span></span></code></pre></div>
-<p>Report the global p-value (<code>fit$p.global</code>) for the optimal lag: it accounts for scanning several lags and selecting the best one, whereas the per-lag p-values do not.</p>
-<p>Inputs can be matrices or data frames (rows = ordered time points, columns = variables) or <code>dist</code> objects, which are converted to principal coordinates.</p>
+<p>Report the global p-value (<code>fit$p.global</code>) for the optimal lag: it accounts for scanning several lags and selecting the best one, whereas the per-lag p-values do not. The continuous measures in <code>fit$effect</code> (<code>Z</code>, <code>A</code> and the chance-corrected RV coefficient) describe the strength of the association and, unlike p-values, are not bounded by the number of permutations.</p>
+<p><code><a href="reference/lagged_protest_pairs.html">lagged_protest_pairs()</a></code> runs the scan on every pair of data sets in a named list and adjusts the global p-values across pairs. The package includes a real example, <code>dminutus_liver</code> (monthly hepatic and climatic series of a treefrog), analyzed in the article <a href="https://provetelab.org/lagprotest/articles/liver-example.html">Seasonal liver plasticity in a treefrog</a>.</p>
+<p>Inputs can be matrices or data frames (rows = ordered time points, columns = variables) or <code>dist</code> objects, which are converted to principal coordinates. See the <a href="https://provetelab.org/lagprotest/articles/">articles</a> for choosing a permutation scheme and simulating series for a calibration study.</p>
 </div>
 <div class="section level2">
 <h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>

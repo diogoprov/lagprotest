@@ -44,7 +44,11 @@ lagged_protest_pairs(
 
   Correction of the global p-values across pairs, any method of
   [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html). Defaults
-  to `"BH"`.
+  to `"BH"`. Because this argument is taken by `lagged_protest_pairs()`,
+  the per-lag adjustment of
+  [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+  cannot be set here and stays `"none"`; `p.global` already accounts for
+  the lags scanned within each pair.
 
 - seed:
 
@@ -62,12 +66,15 @@ lagged_protest_pairs(
 
 A data frame with one row per pair and columns `x`, `y`, `optimal_lag`,
 `n` (rows at the optimal lag), `m2`, `r`, `p.value` (raw p at the
-optimal lag), `p.global`, the effect measures `Z` and `A` at the effect
-lag (see `effect` in
+optimal lag), `p.global`, `effect_lag` (the lag of the largest
+standardized concordance \\z\\), the effect measures `Z`, `A` and the
+corrected `RV` at `effect_lag` (see `effect` in
 [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)),
-and `p.global.adjusted` (adjusted across pairs). Unlike `m2`, `Z` and
-`A` are on a common scale across pairs with different numbers of rows.
-The
+and `p.global.adjusted` (adjusted across pairs). `effect_lag` can differ
+from `optimal_lag`, which favors long lags (see Details in
+[`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)).
+Unlike `m2`, `Z`, `A` and `RV` are on a common scale across pairs with
+different numbers of rows. The
 [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
 fits are stored, named `"x -> y"`, in the attribute `"fits"`.
 
@@ -97,13 +104,13 @@ blocks <- list(A = sim$X, B = sim$Y,
                C = simulate_lagged_series(n_times = 12, seed = 2)$X)
 res <- lagged_protest_pairs(blocks, lags = 0:3, nperm = 199, seed = 1)
 res
-#>   x y optimal_lag  n         m2         r p.value p.global          Z
-#> 1 A B           2 10 0.04963006 0.9748692   0.005    0.010 3.01849284
-#> 2 A C           3  9 0.21583858 0.8855289   0.095    0.275 0.01070847
-#> 3 B C           1 11 0.20289455 0.8928076   0.010    0.145 2.14847796
-#>            A p.global.adjusted
-#> 1 0.43827408            0.0300
-#> 2 0.09791283            0.2750
-#> 3 0.19365927            0.2175
+#>   x y optimal_lag  n         m2         r p.value p.global effect_lag
+#> 1 A B           2 10 0.04963006 0.9748692   0.005    0.010          2
+#> 2 A C           3  9 0.21583858 0.8855289   0.095    0.275          3
+#> 3 B C           1 11 0.20289455 0.8928076   0.010    0.145          1
+#>            Z          A        RV p.global.adjusted
+#> 1 3.01849284 0.43827408 0.1265330            0.0300
+#> 2 0.01070847 0.09791283 0.1760955            0.2750
+#> 3 2.14847796 0.19365927 0.2053255            0.2175
 plot(attr(res, "fits")[["A -> B"]])
 ```

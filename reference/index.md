@@ -11,6 +11,7 @@
 - [`as.data.frame(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/as.data.frame.lagged_protest.md)
   : Lag profile of a lagged PROTEST as a data frame
 - [`summary(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/summary.lagged_protest.md)
+  [`print(`*`<summary.lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/summary.lagged_protest.md)
   : Summarize a lagged PROTEST
 - [`residuals(`*`<lagged_protest>`*`)`](https://provetelab.org/lagprotest/reference/residuals.lagged_protest.md)
   : Per-observation Procrustes residuals at the optimal lag

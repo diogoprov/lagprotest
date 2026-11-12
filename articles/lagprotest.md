@@ -128,23 +128,76 @@ across five lags, and significance at α = 0.05 is unattainable (see
 Caveats).
 
 [`summary()`](https://rdrr.io/r/base/summary.html) returns the profile
-as a data frame, with the optimal lag flagged:
+as a data frame, with the optimal lag flagged, and prints the global
+p-value and the effect measures described next below it:
 
 ``` r
 
 summary(fit)
-#>   lag  n         m2         r p.value p.adjusted nperm          z          a
-#> 1   0 12 0.31032769 0.8304651   0.962      0.962   999 -1.5503712 -0.2012070
-#> 2   1 11 0.20776926 0.8900734   0.138      0.138   999  1.1073458  0.1732326
-#> 3   2 10 0.09221418 0.9527779   0.001      0.001   999  3.5330820  0.6170489
-#> 4   3  9 0.27479436 0.8515901   0.818      0.818   999 -0.8777031 -0.1706562
-#> 5   4  8 0.30456477 0.8339276   0.876      0.876   999 -1.1807311 -0.2616815
-#>   optimal
-#> 1   FALSE
-#> 2   FALSE
-#> 3    TRUE
-#> 4   FALSE
-#> 5   FALSE
+#>  lag  n     m2     r p.value p.adjusted nperm      z      a optimal
+#>    0 12 0.3103 0.830   0.962      0.962   999 -1.550 -0.201   FALSE
+#>    1 11 0.2078 0.890   0.138      0.138   999  1.107  0.173   FALSE
+#>    2 10 0.0922 0.953   0.001      0.001   999  3.533  0.617    TRUE
+#>    3  9 0.2748 0.852   0.818      0.818   999 -0.878 -0.171   FALSE
+#>    4  8 0.3046 0.834   0.876      0.876   999 -1.181 -0.262   FALSE
+#> 
+#> Optimal lag 2, global p = 0.003
+#> Effect at lag 2 (largest z): Z = 3.22, A = 0.51, corrected RV = 0.318
+#> Mean lag-1 autocorrelation, raw (residual): X 0.7 (-0.018), Y 0.54 (-0.049)
+```
+
+## Strength of the association
+
+A p-value is bounded by the number of permutations and mixes the
+strength of an association with the length of the series.
+[`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+therefore also returns continuous measures, computed from the same
+permutations:
+
+``` r
+
+fit$effect
+#> $lag
+#> [1] 2
+#> 
+#> $Z
+#> [1] 3.217432
+#> 
+#> $A
+#> [1] 0.5099893
+#> 
+#> $RV
+#> [1] 0.3180133
+```
+
+At each lag, `z` in the profile is the observed *m*² standardized by the
+mean and standard deviation of its permutation null, with the sign
+reversed so that larger values mean stronger concordance, and `a` is the
+concordance relative to the null mean. The effect lag is the lag of the
+largest `z`. `Z` is the position of that largest `z` among the largest
+`z` of each permutation, in standard deviations; `A` and the corrected
+RV coefficient are scaled so that 0 is the value expected by chance and
+1 is perfect concordance. All three are near 0 for independent series.
+
+The effect lag and the optimal lag usually agree when the association is
+strong, as here. They can differ because *m*² is smaller and more
+variable when fewer rows overlap, so the smallest *m*² tends to fall at
+the longest lags even for independent series, whereas `z` places every
+lag on the scale of its own null distribution.
+[`print()`](https://rdrr.io/r/base/print.html) notes when the two differ
+(see Caveats).
+
+`fit$ar1` gives the mean lag-1 autocorrelation of the columns of each
+series, raw and after removing the seasonal harmonics. It is
+descriptive, and helps judge whether the series are short and strongly
+autocorrelated enough for the phase scheme to be liberal (see Caveats):
+
+``` r
+
+fit$ar1
+#>   series       raw    residual
+#> 1      X 0.6991221 -0.01815912
+#> 2      Y 0.5396661 -0.04854199
 ```
 
 ## Plotting the lag profile
@@ -162,7 +215,10 @@ The solid line is the observed *m*² at each lag. The dashed line is the
 5% quantile of the permutation null distribution at that lag: observed
 values below it are significant at α = 0.05 before correction. Filled
 points mark lags with p \< 0.05 (after adjustment, if one was
-requested), and the dotted vertical line marks the optimal lag.
+requested), the dotted vertical line marks the optimal lag, and the
+circle around it is filled when the global p-value is below 0.05.
+`ggplot2::autoplot(fit)` draws the same plot with ggplot2, and
+`as.data.frame(fit)` returns the data behind it.
 
 ## Residuals per observation
 
@@ -293,10 +349,25 @@ nominal level, but only the phase scheme retains power.
   may then be unattainable at α = 0.05. The phase scheme has no such
   floor.
 - **Different window sizes.** *m*² at lag *k* is based on `n − k` rows,
-  so long lags rest on fewer observations. Keep the candidate lags
-  within a range justified by the biology of the system.
+  so long lags rest on fewer observations, and the smallest *m*² tends
+  to fall at the longest lags scanned even for independent series. An
+  optimal lag at the end of the scan should be compared with the effect
+  lag in `fit$effect`, and candidate lags kept within a range justified
+  by the biology of the system.
 - **Scaling.** With `scale = TRUE` (default) variables are standardized
   on the full series before truncation.
+
+## Several data sets
+
+[`lagged_protest_pairs()`](https://provetelab.org/lagprotest/reference/lagged_protest_pairs.md)
+runs
+[`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+on every pair of data sets in a named list (or on chosen pairs),
+scanning both directions through the sign of the lag, and adjusts the
+global p-values across pairs. The article [Seasonal liver plasticity in
+a
+treefrog](https://provetelab.org/lagprotest/articles/liver-example.html)
+applies it to the `dminutus_liver` data set.
 
 ## References
 

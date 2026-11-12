@@ -99,27 +99,27 @@ climate <- lagged_protest_pairs(dminutus_liver, pairs = climate_edges,
 modules <- lagged_protest_pairs(dminutus_liver, pairs = module_edges,
                                 lags = 0:3, nperm = 9999, seed = 1)
 cols <- c("x", "y", "optimal_lag", "n", "m2", "r", "p.value", "p.global",
-          "p.global.adjusted")
+          "p.global.adjusted", "effect_lag", "Z", "A")
 knitr::kable(climate[, cols], digits = 3)
 ```
 
-| x | y | optimal_lag | n | m2 | r | p.value | p.global | p.global.adjusted |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|
-| Climate | Histochemistry | 3 | 9 | 0.379 | 0.788 | 0.011 | 0.011 | 0.044 |
-| Climate | Morphometry | -3 | 9 | 0.422 | 0.761 | 0.062 | 0.137 | 0.274 |
-| Climate | Density | 0 | 12 | 0.378 | 0.789 | 0.102 | 0.828 | 0.828 |
-| Climate | Somatic | 0 | 12 | 0.477 | 0.724 | 0.005 | 0.225 | 0.300 |
+| x | y | optimal_lag | n | m2 | r | p.value | p.global | p.global.adjusted | effect_lag | Z | A |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Climate | Histochemistry | 3 | 9 | 0.379 | 0.788 | 0.011 | 0.011 | 0.044 | 3 | 1.731 | 0.308 |
+| Climate | Morphometry | -3 | 9 | 0.422 | 0.761 | 0.062 | 0.137 | 0.274 | -3 | 0.536 | 0.167 |
+| Climate | Density | 0 | 12 | 0.378 | 0.789 | 0.102 | 0.828 | 0.828 | 0 | -0.016 | -0.052 |
+| Climate | Somatic | 0 | 12 | 0.477 | 0.724 | 0.005 | 0.225 | 0.300 | 0 | 1.747 | 0.132 |
 
 ``` r
 
 knitr::kable(modules[, cols], digits = 3)
 ```
 
-| x | y | optimal_lag | n | m2 | r | p.value | p.global | p.global.adjusted |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|
-| Histochemistry | Morphometry | 1 | 11 | 0.664 | 0.580 | 0.148 | 0.777 | 0.777 |
-| Morphometry | Density | -1 | 11 | 0.515 | 0.696 | 0.036 | 0.459 | 0.688 |
-| Density | Somatic | 1 | 11 | 0.436 | 0.751 | 0.006 | 0.100 | 0.301 |
+| x | y | optimal_lag | n | m2 | r | p.value | p.global | p.global.adjusted | effect_lag | Z | A |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Histochemistry | Morphometry | 1 | 11 | 0.664 | 0.580 | 0.148 | 0.777 | 0.777 | 1 | -0.577 | -0.070 |
+| Morphometry | Density | -1 | 11 | 0.515 | 0.696 | 0.036 | 0.459 | 0.688 | -1 | 0.743 | 0.077 |
+| Density | Somatic | 1 | 11 | 0.436 | 0.751 | 0.006 | 0.100 | 0.301 | 1 | 2.044 | 0.220 |
 
 Climate led histochemistry by three months, and this was the only edge
 whose global p-value remained below 0.05 after adjustment within its
@@ -195,7 +195,10 @@ across tests in each randomization follows the procedure described by
 Manly and Navarro Alberto (2020, 83–84) for correlated tests, for which
 the Bonferroni level is too strict; they recommend at least 100*m*
 randomizations for *m* tests, a condition met here by 9999 permutations
-for seven lags:
+for seven lags. The standardized *m*² at each lag is also returned, with
+the opposite sign, as `z` in `fit$profile`, and its largest value gives
+the effect lag (`effect_lag` in the tables above); the function below
+adds the corresponding global p-values:
 
 ``` r
 
