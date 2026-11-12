@@ -17,7 +17,7 @@ simulate_lagged_series(
 )
 }
 \arguments{
-\item{n_times}{Number of time points.}
+\item{n_times}{Number of time points (at least 3).}
 
 \item{n_vars_x, n_vars_y}{Number of variables in \code{X} and \code{Y}.}
 

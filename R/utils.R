@@ -27,6 +27,34 @@ as_configuration <- function(M, scale, arg) {
   M
 }
 
+# Argument checks with messages naming the argument.
+check_flag <- function(x, arg) {
+  if (!is.logical(x) || length(x) != 1 || is.na(x)) {
+    stop("`", arg, "` must be TRUE or FALSE.", call. = FALSE)
+  }
+  invisible(x)
+}
+
+is_whole <- function(x, min) {
+  is.numeric(x) && length(x) == 1 && is.finite(x) && x == round(x) &&
+    x >= min
+}
+
+check_count <- function(x, arg, min = 1) {
+  if (!is_whole(x, min)) {
+    stop("`", arg, "` must be a single whole number of at least ", min, ".",
+         call. = FALSE)
+  }
+  invisible(x)
+}
+
+check_seed <- function(seed) {
+  if (!is.null(seed) && !is_whole(seed, -Inf)) {
+    stop("`seed` must be NULL or a single whole number.", call. = FALSE)
+  }
+  invisible(seed)
+}
+
 n_rows <- function(M) {
   if (inherits(M, "dist")) attr(M, "Size") else NROW(M)
 }
@@ -65,12 +93,6 @@ lag_index <- function(n, k) {
   }
 }
 
-# Symmetric Procrustes statistic m^2. Unequal column numbers are padded
-# with zeros by vegan::procrustes(), which warns; that is expected here.
-procrustes_m2 <- function(X, Y) {
-  suppressWarnings(vegan::procrustes(X, Y, symmetric = TRUE)$ss)
-}
-
 # Cyclic shift of the rows of M by s positions.
 cyclic_shift <- function(M, s) {
   n <- nrow(M)
@@ -88,14 +110,6 @@ with_seed <- function(seed, code) {
   }
   set.seed(seed)
   code
-}
-
-# RV coefficient between two configurations with the same rows.
-rv_coef <- function(X, Y) {
-  X <- sweep(X, 2, colMeans(X))
-  Y <- sweep(Y, 2, colMeans(Y))
-  sxy <- crossprod(X, Y)
-  sum(sxy^2) / sqrt(sum(crossprod(X)^2) * sum(crossprod(Y)^2))
 }
 
 # Mean lag-1 autocorrelation of the columns of a configuration. With
@@ -167,14 +181,19 @@ effect_measures <- function(lags, obs, rv, null, null_rv) {
 }
 
 # Message when no p-value below 0.05 can be reached with the permutations.
-check_min_p <- function(n_null, permutation) {
+check_min_p <- function(n_null, permutation, mirror = TRUE) {
   p_min <- 1 / (min(n_null) + 1)
   if (p_min >= 0.05) {
+    advice <- if (permutation != "cyclic") {
+      "increase `nperm`"
+    } else if (isTRUE(mirror)) {
+      "consider the phase scheme"
+    } else {
+      "consider `mirror = TRUE` or the phase scheme"
+    }
     message("The smallest attainable p-value is ", format(p_min, digits = 3),
             " (", min(n_null), " permutations), so p < 0.05 cannot be ",
-            "reached",
-            if (permutation == "cyclic") "; consider `mirror = TRUE` or the phase scheme" else
-              "; increase `nperm`", ".")
+            "reached; ", advice, ".")
   }
   invisible(p_min)
 }

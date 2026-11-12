@@ -27,6 +27,17 @@ test_that("each row matches a direct call to lagged_protest()", {
   expect_equal(res$p.global.adjusted, res$p.global)
 })
 
+test_that("stored fits carry a call that names the data sets", {
+  res <- lagged_protest_pairs(blocks, pairs = list(c("C", "A")), lags = 0:2,
+                              nperm = 49, seed = 1)
+  fit <- attr(res, "fits")[[1]]
+  expect_identical(fit$call$X, quote(blocks[["C"]]))
+  expect_identical(fit$call$Y, quote(blocks[["A"]]))
+  expect_identical(fit$call$lags, 0:2)
+  expect_identical(fit$call$seed, 1)
+  expect_identical(eval(fit$call)$p.global, fit$p.global)
+})
+
 test_that("pairs can be given as a matrix and arguments are passed on", {
   res <- lagged_protest_pairs(blocks, pairs = cbind(c("A", "B"), c("B", "C")),
                               lags = 0:1, bidirectional = FALSE,

@@ -75,5 +75,20 @@ phase_surrogate <- function(Y) {
   out
 }
 
-# m2 (symmetric Procrustes) and RV coefficient of one pair of configurations.
-pair_stats <- function(X, Y) c(procrustes_m2(X, Y), rv_coef(X, Y))
+# m2 (symmetric Procrustes) and RV coefficient of one pair of configurations
+# with the same rows. This is the inner loop of every permutation scheme, so
+# it avoids the S3 dispatch, warning handling and sweep() of the generic
+# functions. With both configurations centered and scaled to unit trace,
+# vegan::procrustes(X, Y, symmetric = TRUE)$ss equals 1 - (sum of the
+# singular values of X'Y)^2; padding X with zero columns, as vegan does when
+# it has fewer columns than Y, leaves the singular values unchanged. The
+# result matches vegan to floating-point rounding (tested).
+pair_stats <- function(X, Y) {
+  X <- X - rep(colMeans(X), each = nrow(X))
+  Y <- Y - rep(colMeans(Y), each = nrow(Y))
+  sxy <- crossprod(X, Y)
+  d <- svd(sxy, nu = 0, nv = 0)$d
+  m2 <- 1 - sum(d)^2 / (sum(X^2) * sum(Y^2))
+  rv <- sum(sxy^2) / sqrt(sum(crossprod(X)^2) * sum(crossprod(Y)^2))
+  c(m2, rv)
+}

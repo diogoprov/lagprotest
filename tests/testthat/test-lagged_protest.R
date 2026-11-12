@@ -35,14 +35,17 @@ test_that("an exact lagged copy gives m2 = 0 at the true lag", {
 test_that("cyclic permutation enumerates 2(n - 1) or n - 1 shifts", {
   fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, permutation = "cyclic")
   expect_equal(unique(fit$profile$nperm), 22L)
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, permutation = "cyclic",
-                        mirror = FALSE)
+  expect_message(
+    fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, permutation = "cyclic",
+                          mirror = FALSE),
+    "smallest attainable"
+  )
   expect_equal(unique(fit$profile$nperm), 11L)
   expect_true(all(fit$profile$p.value >= 1 / 12))
 })
 
 test_that("output is well formed", {
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 99, seed = 1)
   expect_s3_class(fit, "lagged_protest")
   expect_equal(fit$profile$lag, 0:4)
   expect_equal(fit$profile$n, 12 - 0:4)
@@ -83,14 +86,15 @@ test_that("p-values are raw by default and adjusted on request", {
 })
 
 test_that("the global p-value is the max-statistic over lags", {
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4)
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 99, seed = 1)
   null_min <- do.call(pmin, unname(fit$null))
   expect_equal(fit$p.global,
                (sum(null_min <= fit$m2) + 1) / (length(null_min) + 1))
   expect_gte(fit$p.global, fit$p.value)
   expect_output(print(fit), "Global p")
 
-  maxt <- lagged_protest(sim$X, sim$Y, lags = 0:4, p.adjust.method = "maxT")
+  maxt <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 99, seed = 1,
+                         p.adjust.method = "maxT")
   expect_equal(maxt$p.adjusted, maxt$p.global)
   expect_true(all(maxt$profile$p.adjusted >= maxt$profile$p.value))
 })
@@ -121,7 +125,8 @@ test_that("the phase scheme is reproducible and uses nperm surrogates", {
 })
 
 test_that("bidirectional adds negative lags", {
-  fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, bidirectional = TRUE)
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, bidirectional = TRUE,
+                        nperm = 99, seed = 1)
   expect_equal(fit$profile$lag, -2:2)
   expect_equal(fit$profile$n, 12 - abs(-2:2))
 })
@@ -136,7 +141,8 @@ test_that("free permutation is reproducible with a seed", {
 })
 
 test_that("dist inputs are accepted", {
-  fit <- lagged_protest(dist(sim$X), dist(sim$Y), lags = 0:3)
+  fit <- lagged_protest(dist(sim$X), dist(sim$Y), lags = 0:3, nperm = 99,
+                        seed = 1)
   expect_s3_class(fit, "lagged_protest")
   expect_equal(fit$optimal_lag, 2L)
 })
@@ -145,9 +151,48 @@ test_that("invalid inputs are rejected", {
   expect_error(lagged_protest(sim$X, sim$Y[-1, ]), "same number of rows")
   expect_error(lagged_protest(sim$X, sim$Y, lags = -1), "non-negative")
   expect_error(lagged_protest(sim$X, sim$Y, lags = 10), "at least 3")
+  expect_error(lagged_protest(sim$X, sim$Y, lags = integer(0)),
+               "non-negative")
   X <- sim$X
   X[1, 1] <- NA
   expect_error(lagged_protest(X, sim$Y), "missing")
+  expect_error(lagged_protest(data.frame(a = letters[1:12]), sim$Y),
+               "must be numeric")
+  X <- sim$X
+  X[, 1] <- 1
+  expect_error(lagged_protest(X, sim$Y), "constant columns")
+  expect_error(lagged_protest(sim$X, sim$Y, nperm = 0), "`nperm`")
+  expect_error(lagged_protest(sim$X, sim$Y, nperm = 2.5), "`nperm`")
+  expect_error(lagged_protest(sim$X, sim$Y, nperm = NA), "`nperm`")
+  expect_error(lagged_protest(sim$X, sim$Y, nperm = "99"), "`nperm`")
+  expect_error(lagged_protest(sim$X, sim$Y, seed = "a"), "`seed`")
+  expect_error(lagged_protest(sim$X, sim$Y, seed = 1:2), "`seed`")
+  expect_error(lagged_protest(sim$X, sim$Y, bidirectional = NA),
+               "`bidirectional` must be TRUE or FALSE")
+  expect_error(lagged_protest(sim$X, sim$Y, mirror = "yes"),
+               "`mirror` must be TRUE or FALSE")
+  expect_error(lagged_protest(sim$X, sim$Y, scale = c(TRUE, FALSE)),
+               "`scale` must be TRUE or FALSE")
+})
+
+test_that("nperm is ignored by the cyclic scheme", {
+  fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, permutation = "cyclic",
+                        nperm = NA)
+  expect_equal(fit$n_perm, 22L)
+})
+
+test_that("seed leaves the global random number stream untouched", {
+  set.seed(99)
+  before <- .Random.seed
+  a <- lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 39, seed = 5)
+  expect_identical(.Random.seed, before)
+  b <- lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 39, seed = 5)
+  expect_identical(a$null, b$null)
+  # Without a prior .Random.seed, none is left behind
+  rm(".Random.seed", envir = globalenv())
+  lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 39, seed = 5)
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+  set.seed(99)
 })
 
 test_that("period truncates the series to whole cycles", {
@@ -172,9 +217,10 @@ test_that("period truncates the series to whole cycles", {
 
 test_that("a period dividing n leaves the series unchanged", {
   expect_no_message(
-    fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, period = 12, seed = 1)
+    fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, period = 12, nperm = 99,
+                          seed = 1)
   )
-  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, seed = 1)
+  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99, seed = 1)
   expect_equal(fit$profile, ref$profile)
 })
 

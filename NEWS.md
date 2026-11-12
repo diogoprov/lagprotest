@@ -24,6 +24,25 @@
   surrogates stored in each fit. The raw minimum m² favors long lags, and the
   climate–histochemistry delay is weaker under the balanced statistics.
 
+* The permutation loop is about five times faster: *m*² and the RV
+  coefficient of each permuted pair are now computed directly from the
+  singular values of the cross-product matrix instead of calling
+  `vegan::procrustes()` for every permutation. Results with a fixed `seed`
+  are unchanged (p-values and lags identical, *m*² equal to floating-point
+  rounding); a new regression test guards them.
+* `lagged_protest()` and `simulate_lagged_series()` now check their
+  arguments and name the offending one in the error: `nperm` and `seed` must
+  be single whole numbers, `lags` must not be empty, `mirror`,
+  `bidirectional` and `scale` must be `TRUE` or `FALSE`, and the counts,
+  `period`, `amplitude` and `noise_sd` of the simulator must be valid.
+  Previously, `nperm = 2.5` was silently truncated and an invalid `seed`
+  produced an unrelated warning.
+* The minimum-P message no longer suggests `mirror = TRUE` when the cyclic
+  scheme already uses it.
+* The fits stored by `lagged_protest_pairs()` now carry a call that names
+  the data sets and shows the values of `lags`, `bidirectional` and `seed`,
+  so `print()` is informative and `eval(fit$call)` reproduces the fit.
+
 # lagprotest 0.6.0
 
 * New `as.data.frame()` method returns the lag profile in long form, with

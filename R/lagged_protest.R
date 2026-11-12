@@ -192,6 +192,11 @@ lagged_protest <- function(X, Y, lags = 0:6,
   permutation <- match.arg(permutation)
   p.adjust.method <- match.arg(p.adjust.method,
                                c(stats::p.adjust.methods, "maxT"))
+  check_flag(mirror, "mirror")
+  check_flag(bidirectional, "bidirectional")
+  check_flag(scale, "scale")
+  check_seed(seed)
+  if (permutation != "cyclic") check_count(nperm, "nperm")
 
   if (n_rows(X) != n_rows(Y)) {
     stop("`X` and `Y` must have the same number of rows.", call. = FALSE)
@@ -213,8 +218,8 @@ lagged_protest <- function(X, Y, lags = 0:6,
   if (is.null(rownames(Xc))) rownames(Xc) <- seq_len(n)
   if (is.null(rownames(Yc))) rownames(Yc) <- seq_len(n)
 
-  if (!is.numeric(lags) || anyNA(lags) || any(lags < 0) ||
-      any(lags != round(lags))) {
+  if (!is.numeric(lags) || length(lags) == 0 || anyNA(lags) ||
+      any(lags < 0) || any(lags != round(lags))) {
     stop("`lags` must be non-negative integers.", call. = FALSE)
   }
   lags <- as.integer(sort(unique(lags)))
@@ -222,9 +227,6 @@ lagged_protest <- function(X, Y, lags = 0:6,
   if (any(n - abs(lags) < 3)) {
     stop("Each lag must leave at least 3 overlapping rows (n = ", n, ").",
          call. = FALSE)
-  }
-  if (permutation != "cyclic" && (length(nperm) != 1 || nperm < 1)) {
-    stop("`nperm` must be a positive integer.", call. = FALSE)
   }
 
   obs_stats <- vapply(lags, function(k) {
@@ -243,7 +245,7 @@ lagged_protest <- function(X, Y, lags = 0:6,
   names(null) <- names(null_rv) <- lags
 
   n_null <- unname(lengths(null))
-  check_min_p(n_null, permutation)
+  check_min_p(n_null, permutation, mirror)
   cyc <- c(n, period)
   ar1 <- data.frame(
     series = c("X", "Y"),
