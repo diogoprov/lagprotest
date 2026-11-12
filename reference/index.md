@@ -29,3 +29,6 @@
   :
 
   Seasonal hepatic and climatic series of *Dendropsophus minutus*
+
+- [`lakewa_blocks()`](https://provetelab.org/lagprotest/reference/lakewa_blocks.md)
+  : Lake Washington plankton and limnology blocks

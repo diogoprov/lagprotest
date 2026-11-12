@@ -15,6 +15,13 @@
   and earlier. The liver example article keeps `"raw"` to match the
   analysis submitted for publication.
 
+- New
+  [`lakewa_blocks()`](https://provetelab.org/lagprotest/reference/lakewa_blocks.md)
+  builds monthly environment, phytoplankton and zooplankton blocks for
+  Lake Washington (1962–1994) from `lakeWAplanktonRaw` in the MARSS
+  package (now in Suggests). The data are read from MARSS rather than
+  shipped with lagprotest.
+
 - [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
   now returns continuous measures of evidence and strength computed from
   the same permutations as the p-values: per-lag `z` and `a` in the
