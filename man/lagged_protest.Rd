@@ -23,7 +23,10 @@ lagged_protest(
 points and columns as variables, or \code{dist} objects, which are converted
 to principal coordinates. Both must have the same number of rows.}
 
-\item{lags}{Integer vector of non-negative candidate lags.}
+\item{lags}{Integer vector of non-negative candidate lags (default
+\code{0:6}). Every lag must leave at least 3 overlapping rows; long lags rest
+on few rows (6 for lag 6 with \code{n = 12}) and are favored by the smallest
+\eqn{m^2} (see Details).}
 
 \item{permutation}{Permutation scheme, \code{"phase"}, \code{"cyclic"} or \code{"free"}.}
 
@@ -66,8 +69,8 @@ optimal lag.}
 \code{p.adjust.method} (equal to \code{p.value} when \code{"none"}).}
 \item{\code{p.global}}{Max-statistic p-value of the scan across lags,
 accounting for testing several lags and selecting the optimal one.}
-\item{\code{n_perm}}{Number of permutations or surrogates at the optimal
-lag (the exact count for the cyclic scheme).}
+\item{\code{n_perm}}{Number of permutations or surrogates, the same at
+every lag (the exact count for the cyclic scheme).}
 \item{\code{profile}}{Data frame with \code{lag}, \code{n} (rows used), \code{m2}, \code{r},
 \code{p.value}, \code{p.adjusted}, \code{nperm}, \code{z} and \code{a} for every lag.}
 \item{\code{residuals}}{Data frame of per-observation Procrustes residuals
@@ -83,9 +86,9 @@ harmonics of period \code{n} and \code{period}.}
 element \code{i} of every vector comes from the same permutation.}
 \item{\code{null.rv}}{List of permuted RV coefficients, paired with
 \code{null}.}
-\item{\code{permutation}, \code{p.adjust.method}, \code{n}, \code{period}, \code{call}}{Settings
-used; \code{n} is the number of rows after any truncation to whole
-cycles.}
+\item{\code{permutation}, \code{mirror}, \code{p.adjust.method}, \code{n}, \code{period},
+\code{call}}{Settings used; \code{mirror} is \code{NA} unless the scheme is cyclic,
+and \code{n} is the number of rows after any truncation to whole cycles.}
 }
 }
 \description{
@@ -192,9 +195,21 @@ With \code{p.adjust.method = "maxT"}, every lag receives the corresponding
 single-step max-statistic adjusted p-value, and the adjusted p-value at
 the optimal lag equals \code{p.global}. Any method of \code{\link[stats:p.adjust]{stats::p.adjust()}} can be
 requested instead; with few permutations, as in the cyclic scheme,
-corrections such as Holm may make significance unattainable. Note that
+corrections such as Holm may make significance unattainable.
+
 \eqn{m^2} values at different lags are based on different numbers of rows
-(\verb{n - |k|}).
+(\verb{n - |k|}), and \eqn{m^2} is smaller and more variable when fewer rows
+overlap. The lag of the smallest \eqn{m^2} therefore tends to fall at the
+longest lags scanned, even when the series are independent: in 200 pairs
+of independent series simulated with \code{\link[=simulate_lagged_series]{simulate_lagged_series()}}
+(\code{n_times = 12}, lags -3 to 3), it fell at \eqn{\pm 3} in about half of
+the replicates rather than in two of seven. The global p-value remains
+valid, but has more power for long lags than for short ones. The effect
+lag (largest \eqn{z}) places every lag on the scale of its own null
+distribution and fell at \eqn{\pm 3} in about a quarter of the same
+replicates. When the two lags differ, \code{print()} says so; an optimal lag at
+the end of the scan should be read with caution, and candidate lags kept
+within a range justified by the biology of the system.
 }
 \examples{
 sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,

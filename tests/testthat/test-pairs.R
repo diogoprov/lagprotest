@@ -13,6 +13,9 @@ test_that("all unordered pairs are analysed by default", {
   fits <- attr(res, "fits")
   expect_equal(res$Z, unname(vapply(fits, function(f) f$effect$Z, 1)))
   expect_equal(res$A, unname(vapply(fits, function(f) f$effect$A, 1)))
+  expect_equal(res$RV, unname(vapply(fits, function(f) f$effect$RV, 1)))
+  expect_identical(res$effect_lag,
+                   unname(vapply(fits, function(f) f$effect$lag, 1L)))
 })
 
 test_that("each row matches a direct call to lagged_protest()", {

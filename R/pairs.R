@@ -24,18 +24,25 @@
 #' @param lags,bidirectional Passed to [lagged_protest()]. `bidirectional`
 #'   defaults to `TRUE` here.
 #' @param p.adjust.method Correction of the global p-values across pairs,
-#'   any method of [stats::p.adjust()]. Defaults to `"BH"`.
+#'   any method of [stats::p.adjust()]. Defaults to `"BH"`. Because this
+#'   argument is taken by `lagged_protest_pairs()`, the per-lag adjustment of
+#'   [lagged_protest()] cannot be set here and stays `"none"`; `p.global`
+#'   already accounts for the lags scanned within each pair.
 #' @param seed Passed to [lagged_protest()] for every pair.
 #' @param ... Further arguments passed to [lagged_protest()], such as
 #'   `permutation`, `nperm` or `period`.
 #'
 #' @return A data frame with one row per pair and columns `x`, `y`,
 #'   `optimal_lag`, `n` (rows at the optimal lag), `m2`, `r`, `p.value` (raw
-#'   p at the optimal lag), `p.global`, the effect measures `Z` and `A` at
-#'   the effect lag (see `effect` in [lagged_protest()]), and
-#'   `p.global.adjusted` (adjusted across pairs). Unlike `m2`, `Z` and `A`
-#'   are on a common scale across pairs with different numbers of rows. The [lagged_protest()] fits are stored, named
-#'   `"x -> y"`, in the attribute `"fits"`.
+#'   p at the optimal lag), `p.global`, `effect_lag` (the lag of the largest
+#'   standardized concordance \eqn{z}), the effect measures `Z`, `A` and the
+#'   corrected `RV` at `effect_lag` (see `effect` in [lagged_protest()]), and
+#'   `p.global.adjusted` (adjusted across pairs). `effect_lag` can differ
+#'   from `optimal_lag`, which favors long lags (see Details in
+#'   [lagged_protest()]). Unlike `m2`, `Z`, `A` and `RV` are on a common
+#'   scale across pairs with different numbers of rows. The
+#'   [lagged_protest()] fits are stored, named `"x -> y"`, in the attribute
+#'   `"fits"`.
 #'
 #' @seealso [lagged_protest()]
 #'
@@ -90,8 +97,10 @@ lagged_protest_pairs <- function(data, pairs = NULL, lags = 0:6,
     r = vapply(fits, `[[`, numeric(1), "r"),
     p.value = vapply(fits, `[[`, numeric(1), "p.value"),
     p.global = vapply(fits, `[[`, numeric(1), "p.global"),
+    effect_lag = vapply(fits, function(f) f$effect$lag, integer(1)),
     Z = vapply(fits, function(f) f$effect$Z, numeric(1)),
     A = vapply(fits, function(f) f$effect$A, numeric(1)),
+    RV = vapply(fits, function(f) f$effect$RV, numeric(1)),
     row.names = NULL
   )
   out$p.global.adjusted <- stats::p.adjust(out$p.global,

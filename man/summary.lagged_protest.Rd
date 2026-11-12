@@ -2,21 +2,39 @@
 % Please edit documentation in R/methods.R
 \name{summary.lagged_protest}
 \alias{summary.lagged_protest}
+\alias{print.summary.lagged_protest}
 \title{Summarize a lagged PROTEST}
 \usage{
 \method{summary}{lagged_protest}(object, ...)
+
+\method{print}{summary.lagged_protest}(x, digits = 3, ...)
 }
 \arguments{
 \item{object}{A \code{"lagged_protest"} object.}
 
 \item{...}{Unused.}
+
+\item{x}{A \code{"summary.lagged_protest"} object.}
+
+\item{digits}{Number of significant digits to print.}
 }
 \value{
-The lag profile (a data frame), with the optimal lag flagged.
-The scan-level measures are attached as attributes: \code{p.global},
-\code{effect} (lag of the largest z, \code{Z}, \code{A} and corrected \code{RV}) and \code{ar1}
-(raw and residual lag-1 autocorrelation of \code{X} and \code{Y}).
+An object of class \code{"summary.lagged_protest"}: the lag profile (a
+data frame), with the optimal lag flagged in \code{optimal}. The scan-level
+measures are attached as attributes: \code{optimal_lag}, \code{p.global}, \code{effect}
+(lag of the largest z, \code{Z}, \code{A} and corrected \code{RV}) and \code{ar1} (raw and
+residual lag-1 autocorrelation of \code{X} and \code{Y}). Printing it shows the
+profile followed by these measures; it can otherwise be used as a data
+frame.
 }
 \description{
 Summarize a lagged PROTEST
+}
+\examples{
+sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
+                              seed = 1)
+fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
+s <- summary(fit)
+s
+attr(s, "effect")
 }

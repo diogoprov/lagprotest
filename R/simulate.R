@@ -9,7 +9,8 @@
 #'
 #' Setting `amplitude = 0` removes the seasonal component and leaves pure
 #' AR(1) series; setting `autocorr = 0` gives white noise around the
-#' seasonal signal (the design of the original simulation, Appendix S1).
+#' seasonal signal. The article "Simulating lagged series" shows how to use
+#' the function for a calibration study.
 #'
 #' @param n_times Number of time points (at least 3).
 #' @param n_vars_x,n_vars_y Number of variables in `X` and `Y`.

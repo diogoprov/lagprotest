@@ -82,7 +82,7 @@ climate <- lagged_protest_pairs(dminutus_liver, pairs = climate_edges,
 modules <- lagged_protest_pairs(dminutus_liver, pairs = module_edges,
                                 lags = 0:3, nperm = 9999, seed = 1)
 cols <- c("x", "y", "optimal_lag", "n", "m2", "r", "p.value", "p.global",
-          "p.global.adjusted")
+          "p.global.adjusted", "effect_lag", "Z", "A")
 knitr::kable(climate[, cols], digits = 3)
 knitr::kable(modules[, cols], digits = 3)
 ```
@@ -139,7 +139,10 @@ tests in each randomization follows the procedure described by
 @manly2020randomization [pp. 83--84] for correlated tests, for which the
 Bonferroni level is too strict; they recommend at least 100*m*
 randomizations for *m* tests, a condition met here by 9999 permutations for
-seven lags:
+seven lags. The standardized *m*² at each lag is also returned, with the
+opposite sign, as `z` in `fit$profile`, and its largest value gives the
+effect lag (`effect_lag` in the tables above); the function below adds the
+corresponding global p-values:
 
 ```{r balanced}
 balanced_p <- function(fit) {

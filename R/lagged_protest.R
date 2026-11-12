@@ -101,18 +101,29 @@
 #' single-step max-statistic adjusted p-value, and the adjusted p-value at
 #' the optimal lag equals `p.global`. Any method of [stats::p.adjust()] can be
 #' requested instead; with few permutations, as in the cyclic scheme,
-#' corrections such as Holm may make significance unattainable. Note that
+#' corrections such as Holm may make significance unattainable.
+#'
 #' \eqn{m^2} values at different lags are based on different numbers of rows
-#' (`n - |k|`).
+#' (`n - |k|`), and \eqn{m^2} is smaller and more variable when fewer rows
+#' overlap. The lag of the smallest \eqn{m^2} therefore tends to fall at the
+#' longest lags scanned, even when the series are independent: in 200 pairs
+#' of independent series simulated with [simulate_lagged_series()]
+#' (`n_times = 12`, lags -3 to 3), it fell at \eqn{\pm 3} in about half of
+#' the replicates rather than in two of seven. The global p-value remains
+#' valid, but has more power for long lags than for short ones. The effect
+#' lag (largest \eqn{z}) places every lag on the scale of its own null
+#' distribution and fell at \eqn{\pm 3} in about a quarter of the same
+#' replicates. When the two lags differ, `print()` says so; an optimal lag at
+#' the end of the scan should be read with caution, and candidate lags kept
+#' within a range justified by the biology of the system.
 #'
 #' @param X,Y Numeric matrices or data frames with rows as ordered time
 #'   points and columns as variables, or `dist` objects, which are converted
 #'   to principal coordinates. Both must have the same number of rows.
-#' @param period Optional length of the seasonal cycle, in rows. If given,
-#'   `X` and `Y` are truncated to their first `floor(n / period) * period`
-#'   rows (whole cycles) before analysis; a message reports the rows dropped.
-#'   `NULL` (default) uses all rows.
-#' @param lags Integer vector of non-negative candidate lags.
+#' @param lags Integer vector of non-negative candidate lags (default
+#'   `0:6`). Every lag must leave at least 3 overlapping rows; long lags rest
+#'   on few rows (6 for lag 6 with `n = 12`) and are favored by the smallest
+#'   \eqn{m^2} (see Details).
 #' @param permutation Permutation scheme, `"phase"`, `"cyclic"` or `"free"`.
 #' @param nperm Number of surrogates (`permutation = "phase"`) or random
 #'   permutations (`permutation = "free"`). Ignored for the cyclic scheme,
@@ -128,6 +139,10 @@
 #' @param p.adjust.method Correction of the per-lag p-values for multiple
 #'   lags: `"maxT"` for the single-step max-statistic adjustment, or any
 #'   method of [stats::p.adjust()]. Defaults to `"none"`.
+#' @param period Optional length of the seasonal cycle, in rows. If given,
+#'   `X` and `Y` are truncated to their first `floor(n / period) * period`
+#'   rows (whole cycles) before analysis; a message reports the rows dropped.
+#'   `NULL` (default) uses all rows.
 #' @param seed Optional integer seed for the `"phase"` and `"free"` schemes.
 #'   The global random number stream is left untouched.
 #'
@@ -142,8 +157,8 @@
 #'       `p.adjust.method` (equal to `p.value` when `"none"`).}
 #'     \item{`p.global`}{Max-statistic p-value of the scan across lags,
 #'       accounting for testing several lags and selecting the optimal one.}
-#'     \item{`n_perm`}{Number of permutations or surrogates at the optimal
-#'       lag (the exact count for the cyclic scheme).}
+#'     \item{`n_perm`}{Number of permutations or surrogates, the same at
+#'       every lag (the exact count for the cyclic scheme).}
 #'     \item{`profile`}{Data frame with `lag`, `n` (rows used), `m2`, `r`,
 #'       `p.value`, `p.adjusted`, `nperm`, `z` and `a` for every lag.}
 #'     \item{`residuals`}{Data frame of per-observation Procrustes residuals
@@ -159,9 +174,9 @@
 #'       element `i` of every vector comes from the same permutation.}
 #'     \item{`null.rv`}{List of permuted RV coefficients, paired with
 #'       `null`.}
-#'     \item{`permutation`, `p.adjust.method`, `n`, `period`, `call`}{Settings
-#'       used; `n` is the number of rows after any truncation to whole
-#'       cycles.}
+#'     \item{`permutation`, `mirror`, `p.adjust.method`, `n`, `period`,
+#'       `call`}{Settings used; `mirror` is `NA` unless the scheme is cyclic,
+#'       and `n` is the number of rows after any truncation to whole cycles.}
 #'   }
 #'
 #' @references

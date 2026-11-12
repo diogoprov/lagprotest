@@ -23,3 +23,25 @@ test_that("autoplot() returns a ggplot with the profile", {
   built <- ggplot2::ggplot_build(p)
   expect_length(built$data, 5)
 })
+
+test_that("summary() prints the profile and the scan-level measures", {
+  s <- summary(fit)
+  expect_s3_class(s, c("summary.lagged_protest", "data.frame"))
+  expect_identical(attr(s, "p.global"), fit$p.global)
+  expect_identical(attr(s, "optimal_lag"), fit$optimal_lag)
+  out <- capture.output(print(s))
+  expect_true(any(grepl("global p = ", out)))
+  expect_true(any(grepl("Effect at lag", out)))
+  expect_true(any(grepl("autocorrelation", out)))
+  # Subsets drop the attributes and print as a plain profile
+  expect_no_error(capture.output(print(s[s$optimal, c("lag", "m2")])))
+})
+
+test_that("print() notes when the optimal and effect lags differ", {
+  s <- simulate_lagged_series(n_times = 12, seed = 3)
+  f <- lagged_protest(s$X, s$Y, lags = 0:3, bidirectional = TRUE,
+                      nperm = 199, seed = 1)
+  expect_false(f$optimal_lag == f$effect$lag)
+  expect_output(print(f), "differ")
+  expect_false(any(grepl("differ", capture.output(print(fit)))))
+})

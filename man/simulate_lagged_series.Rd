@@ -51,7 +51,8 @@ points so that every row of \code{Y} has a source in \code{X}.
 \details{
 Setting \code{amplitude = 0} removes the seasonal component and leaves pure
 AR(1) series; setting \code{autocorr = 0} gives white noise around the
-seasonal signal (the design of the original simulation, Appendix S1).
+seasonal signal. The article "Simulating lagged series" shows how to use
+the function for a calibration study.
 }
 \examples{
 null_pair <- simulate_lagged_series(n_times = 12, seed = 42)

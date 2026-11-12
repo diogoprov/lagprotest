@@ -148,7 +148,9 @@ knitr::kable(pw, digits = 3)
 ```
 
 Both schemes recovered the true lag equally well, because the optimal lag
-does not depend on the null distribution:
+(the smallest *m*²) does not depend on the null distribution. The effect lag
+in `fit$effect`, which standardizes *m*² by its null mean and standard
+deviation at each lag, does depend on it:
 
 ```{r recovery}
 aggregate(opt_true ~ n + scheme, data = power, FUN = mean)
