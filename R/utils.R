@@ -146,12 +146,14 @@ mean_ar1 <- function(M, periods = NULL) {
 effect_measures <- function(lags, obs, rv, null, null_rv) {
   M <- do.call(cbind, unname(null))
   R <- do.call(cbind, unname(null_rv))
+  # Each value is standardized by the other B values at its lag (leave one
+  # out), so the observed z uses the permutations only and every permuted z
+  # is computed in the same way, with the observed among the others.
+  st <- loo_standardize(obs, M)
   mu <- colMeans(M)
-  s <- apply(M, 2, stats::sd)
-  s[s == 0] <- NA_real_
-  z <- (mu - obs) / s
+  z <- -st$observed
   a <- 1 - obs / mu
-  zn <- -sweep(sweep(M, 2, mu), 2, s, "/")
+  zn <- -st$null
   an <- 1 - sweep(M, 2, mu, "/")
   rows <- seq_len(nrow(M))
   kz <- which.max(z)
@@ -180,31 +182,63 @@ effect_measures <- function(lags, obs, rv, null, null_rv) {
   )
 }
 
+# Standardizes each of the B + 1 values at every lag (the observed m2 and
+# its B permuted values) by the mean and SD of the other B values. The
+# observed is thus standardized by its permutation distribution, and each
+# permuted value by the rest of the permutations plus the observed. Returns
+# the standardized observed (vector) and permuted (B x lags) values; NA
+# where the other values have no variance.
+loo_standardize <- function(observed, M) {
+  A <- rbind(observed, M)
+  B <- nrow(M)
+  if (B < 2) {
+    A[] <- NA_real_
+    return(list(observed = A[1, ], null = A[-1, , drop = FALSE]))
+  }
+  A0 <- sweep(A, 2, colMeans(A))
+  S <- colSums(A0)
+  Q <- colSums(A0^2)
+  mu <- sweep(-A0, 2, S, "+") / B
+  v <- (sweep(-A0^2, 2, Q, "+") - B * mu^2) / (B - 1)
+  # Variances at rounding level relative to the spread of the column are
+  # treated as zero (no spread among the other values).
+  v[v <= 1e-10 * rep(Q, each = B + 1) / B] <- NA_real_
+  s <- sqrt(v)
+  Z <- (A0 - mu) / s
+  list(observed = Z[1, ], null = Z[-1, , drop = FALSE])
+}
+
 # Per-lag scores of the scan statistic, observed and permuted (one row per
-# permutation), oriented so that smaller is more extreme.
+# permutation), oriented so that smaller is more extreme. Every score is a
+# function of the B + 1 values at that lag (observed and permuted) that
+# treats them alike, so under the null the observed and the permuted scores
+# are exchangeable and the global test is exact.
 #   raw:  m2 itself;
-#   z:    m2 centered and scaled by the mean and SD of its own null;
-#   minP: per-lag p-value; the permuted p of a surrogate is its rank within
-#         that lag's null divided by B + 1 (Westfall and Young 1993; Ge et
-#         al. 2003), consistent with the observed (count + 1) / (B + 1).
+#   z:    m2 centered and scaled by the mean and SD of the other B values
+#         at that lag (leave one out);
+#   minP: per-lag p-value, the rank (ties counted as "<=") among the B + 1
+#         values divided by B + 1 (Westfall and Young 1993; Ge et al. 2003);
+#         for the observed, this is (count + 1) / (B + 1).
 scan_scores <- function(stat, observed, p_raw, null) {
   M <- do.call(cbind, unname(null))
   B <- nrow(M)
   switch(stat,
     raw = list(observed = observed, null = M),
     z = {
-      mu <- colMeans(M)
-      s <- apply(M, 2, stats::sd)
-      if (any(!is.finite(s) | s == 0)) {
+      st <- loo_standardize(observed, M)
+      if (anyNA(st$observed) || anyNA(st$null)) {
         stop("The null distribution of m2 has no variance at some lag, so ",
              "`stat = \"z\"` is undefined; use `stat = \"minP\"` or ",
              "`\"raw\"`.", call. = FALSE)
       }
-      list(observed = (observed - mu) / s,
-           null = sweep(sweep(M, 2, mu), 2, s, "/"))
+      st
     },
-    minP = list(observed = p_raw,
-                null = apply(M, 2, rank, ties.method = "max") / (B + 1))
+    minP = {
+      P <- vapply(seq_len(ncol(M)), function(k) {
+        rank(c(observed[k], M[, k]), ties.method = "max")[-1]
+      }, numeric(B))
+      list(observed = p_raw, null = matrix(P, nrow = B) / (B + 1))
+    }
   )
 }
 

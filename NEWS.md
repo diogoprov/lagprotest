@@ -1,5 +1,34 @@
 # lagprotest (development version)
 
+* **Bug fix (changes results):** the global test now treats the observed
+  result and the permutations alike, so it is exact when the permutations
+  are exchangeable with the observed series.
+  - With `stat = "z"`, each permuted m² is now standardized by the mean and
+    SD of the other values at its lag, the observed among them (leave one
+    out). Before, every permuted value took part in its own standardization
+    and the observed did not, which made the test liberal. The observed `z`
+    in the profile is unchanged; `Z`, `A` and the corrected RV change
+    slightly, because each permutation may select a different lag.
+  - With `stat = "minP"`, each permuted m² is converted to a p-value by its
+    rank among the observed and permuted values, as the observed p-value
+    already was. Before, the observed value was left out, which made the
+    test conservative.
+  - With `permutation = "free"`, the full series of `Y` is now permuted
+    before lagging, as in the other schemes. Before, each permutation was
+    restricted to each lag's window, which made the permuted m² more
+    correlated across lags than the observed ones and the global test
+    liberal for every `stat`. Per-lag p-values were valid under either
+    version, but their values change.
+
+  With independent iid series (n = 12, lags -3 to 3, free scheme, 199
+  permutations, 5000 replicates), the rejection rate at P < 0.05 of the
+  `"z"` scan fell from 0.056 to 0.046, for an attainable size of 0.045.
+  The bug was found in a critical review of the method preprint. The liver
+  example article, which computes the balanced global p-values by hand, was
+  updated in the same way; its values change only in the fourth decimal.
+* The documentation of `nperm` gives the minimum number of permutations for
+  `stat = "minP"` (100 per lag tested).
+
 * New `elpa_blocks()` builds monthly environment (temperature, salinity,
   Secchi depth) and juvenile fish blocks for the Patos Lagoon estuary from
   the PELD-ELPA beach-seine survey (1996–2016). The archive (CC BY-NC 4.0)

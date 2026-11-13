@@ -140,7 +140,11 @@ also be computed from the surrogates stored in each fit, without new
 permutations, as done below: the smallest per-lag p-value across lags
 (minP), and the smallest standardized *m*², in which the *m*² at each lag
 is centered and scaled by the mean and standard deviation of its own null
-distribution [@westfall1993resampling]. Taking the smallest p-value across
+distribution [@westfall1993resampling]. The observed and the permuted values
+are scored in the same way: each permuted *m*² is converted to a p-value by
+its rank among all values at that lag, and standardized against the other
+values, so that the observed result is exchangeable with the permutations
+under the null. Taking the smallest p-value across
 tests in each randomization follows the procedure described by
 @manly2020randomization [pp. 83--84] for correlated tests, for which the
 Bonferroni level is too strict; they recommend at least 100*m*
@@ -152,16 +156,19 @@ corresponding global p-values:
 
 ```{r balanced}
 balanced_p <- function(fit) {
-  null <- do.call(cbind, fit$null)
-  B <- nrow(null)
-  mu <- colMeans(null)
-  s <- apply(null, 2, sd)
-  z_obs <- (fit$profile$m2 - mu) / s
-  z_null <- sweep(sweep(null, 2, mu), 2, s, "/")
-  p_null <- apply(null, 2, rank, ties.method = "max") / (B + 1)
-  c(z = (sum(apply(z_null, 1, min) <= min(z_obs)) + 1) / (B + 1),
-    minP = (sum(apply(p_null, 1, min) <= min(fit$profile$p.value)) + 1) /
-      (B + 1))
+  # Observed m2 in the first row, permuted values below; every value is
+  # scored in the same way within its lag.
+  all <- rbind(fit$profile$m2, do.call(cbind, fit$null))
+  n1 <- nrow(all)
+  loo_z <- function(v) {  # each value against the mean and SD of the others
+    m <- (sum(v) - v) / (n1 - 1)
+    s2 <- (sum(v^2) - v^2 - (n1 - 1) * m^2) / (n1 - 2)
+    (v - m) / sqrt(s2)
+  }
+  z <- apply(all, 2, loo_z)
+  p <- apply(all, 2, rank, ties.method = "max") / n1
+  glob <- function(S) mean(apply(S, 1, min) <= min(S[1, ]))
+  c(z = glob(z), minP = glob(p))
 }
 fits <- c(attr(climate, "fits"), attr(modules, "fits"))
 sens <- as.data.frame(t(sapply(fits, balanced_p)))

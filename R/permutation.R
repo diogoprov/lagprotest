@@ -24,12 +24,15 @@ null_cyclic <- function(X, Y, lags, mirror) {
   })
 }
 
-# Free permutation: rows of Y are permuted at random within the
-# overlapping window of each lag, as in vegan::protest(). Assumes rows are
-# exchangeable under the null, which autocorrelated series violate.
-# One permutation of 1..n is drawn per iteration and restricted to each
-# window (keeping the order of the window's rows), so the same permutation
-# is applied jointly to all lags, as the max-statistic requires.
+# Free permutation: the rows of the full Y series are permuted at random
+# and the permuted series is then lagged, as in the other schemes. Assumes
+# rows are exchangeable under the null, which autocorrelated series violate.
+# The observed pairing (the identity permutation) and every permuted one are
+# thus built in the same way, so the joint distribution of m2 across lags is
+# the same for all of them and the max-statistic test is exact. Permuting
+# within each lag's window instead (keeping the order of the permuted rows)
+# made the permuted m2 more correlated across lags than the observed ones,
+# and the global test liberal.
 null_free <- function(X, Y, lags, nperm) {
   n <- nrow(Y)
   perms <- lapply(seq_len(nperm), function(i) sample.int(n))
@@ -37,8 +40,7 @@ null_free <- function(X, Y, lags, nperm) {
     idx <- lag_index(n, k)
     Xk <- X[idx$x, , drop = FALSE]
     vapply(perms, function(pm) {
-      rows <- pm[pm %in% idx$y]
-      pair_stats(Xk, Y[rows, , drop = FALSE])
+      pair_stats(Xk, Y[pm[idx$y], , drop = FALSE])
     }, numeric(2))
   })
 }

@@ -35,7 +35,9 @@ on few rows (6 for lag 6 with \code{n = 12}) and are favored by the smallest
 permutations (\code{permutation = "free"}). Ignored for the cyclic scheme,
 whose permutations are enumerated. Use 999 or more for a test at the 5\%
 level and about 4999 when the 1\% level matters (Manly and Navarro
-Alberto 2020, pp. 57--59).}
+Alberto 2020, pp. 57--59). With \code{stat = "minP"}, use at least 100 per
+lag tested (for example, 699 or more for lags -3 to 3), otherwise the
+global p-value may be unable to fall below 0.05 (see Details).}
 
 \item{mirror}{Logical; with \code{permutation = "cyclic"}, also use the
 time-reversed shifts of \code{Y}, doubling the permutation set.}
@@ -131,8 +133,9 @@ the number of rows (e.g., 12 monthly samples of an annual cycle).
 Because a shift of \code{Y} combined with lag \code{k} is equivalent to another
 lag, some shifts reproduce the observed alignment at other lags; the
 global p-value (see below) is then valid but has low power.
-\item \code{"free"}: rows of \code{Y} are permuted at random within the overlapping
-window, as in \code{\link[vegan:protest]{vegan::protest()}}. This assumes exchangeable rows and can
+\item \code{"free"}: rows of \code{Y} are permuted at random, as in
+\code{\link[vegan:protest]{vegan::protest()}}, and the permuted series is then lagged like the
+observed one. This assumes exchangeable rows and can
 strongly inflate Type I error when both series are autocorrelated
 (Manly and Navarro Alberto 2020, ch. 10).
 }
@@ -171,7 +174,10 @@ chance-corrected at the effect lag as
 \eqn{(obs - \bar{null}) / (1 - \bar{null})}, with the null mean taken
 over the permutations at their own selected lags. \code{A} and the corrected RV
 are near 0 under the null and 1 for perfect concordance; \code{Z} is near 0
-under the null.
+under the null. Each permuted \eqn{z} is computed in the same way as the
+observed one, against the mean and standard deviation of the other values
+at that lag (the remaining permutations and the observed), so that the
+observed and the permuted values are treated alike.
 
 The mean lag-1 autocorrelation of the columns of each series is returned
 in \code{ar1}, both raw and after removing by regression the harmonics of
@@ -206,13 +212,16 @@ The score compared across lags is set by \code{stat}:
 \itemize{
 \item \code{"minP"} (default): the per-lag p-value. The global statistic is the
 smallest p-value across lags, and its null distribution is obtained by
-converting every permuted \eqn{m^2} to a p-value within its own lag
-(the minP procedure of Westfall and Young 1993; Ge et al. 2003). The
+converting every permuted \eqn{m^2} to a p-value within its own lag,
+as its rank among the observed and permuted values divided by
+\eqn{N + 1}, exactly as the observed p-value is computed (the minP
+procedure of Westfall and Young 1993; Ge et al. 2003). The
 optimal lag is the one with the smallest p-value; ties, common with few
 permutations, are broken by \eqn{z} and then by \eqn{m^2}.
 \item \code{"z"}: \eqn{m^2} centered and scaled by the mean and standard deviation
-of its own null distribution. The optimal lag is the one with the
-largest \eqn{z} and equals the effect lag.
+of its own null distribution, with each permuted value standardized
+against the others and the observed (see above). The optimal lag is the
+one with the largest \eqn{z} and equals the effect lag.
 \item \code{"raw"}: \eqn{m^2} itself, the statistic of versions up to 0.6. The
 optimal lag is the one with the smallest \eqn{m^2}.
 }
@@ -228,10 +237,12 @@ pairs of independent series simulated with \code{\link[=simulate_lagged_series]{
 the replicates rather than in two of seven, and the test had less power
 for a true lag of zero. \code{"minP"} and \code{"z"} place every lag on the scale
 of its own null distribution, so the optimal lag is close to uniform
-across lags under independence. In simulations, \code{"minP"} kept the
-nominal size best, and \code{"z"} had slightly more power and a slightly
-liberal size, because it estimates the mean and standard deviation from
-the same permutations. The same reasoning motivates selecting among
+across lags under independence. Because the observed and the permuted
+scores are computed in the same way, all three give exact tests when the
+permutations are exchangeable with the observed series (free and cyclic
+schemes). \code{"minP"} is conservative when the permutations are few relative
+to the number of lags, because per-lag p-values are discrete, and \code{"z"}
+then has more power. The same reasoning motivates selecting among
 candidates by p-value in conditional inference trees (Hothorn et al.
 2006). Because per-lag p-values are discrete, the smallest global p-value
 that \code{"minP"} can reach grows with the number of lags: roughly
