@@ -6,19 +6,24 @@ fit_scan <- function(stat, nperm = 199, ...) {
 }
 
 # Reference: the global statistics computed by hand from the stored
-# surrogates, as in the liver example article.
+# surrogates, with explicit loops. The observed and each surrogate are scored
+# in the same way within the B + 1 values of a lag: z against the other B
+# values, minP as the rank among all B + 1.
 reference_p <- function(fit) {
   null <- do.call(cbind, fit$null)
+  obs <- fit$profile$m2
   B <- nrow(null)
-  mu <- colMeans(null)
-  s <- apply(null, 2, sd)
-  z_obs <- (fit$profile$m2 - mu) / s
-  z_null <- sweep(sweep(null, 2, mu), 2, s, "/")
-  p_null <- apply(null, 2, rank, ties.method = "max") / (B + 1)
-  c(raw = (sum(apply(null, 1, min) <= min(fit$profile$m2)) + 1) / (B + 1),
-    z = (sum(apply(z_null, 1, min) <= min(z_obs)) + 1) / (B + 1),
-    minP = (sum(apply(p_null, 1, min) <= min(fit$profile$p.value)) + 1) /
-      (B + 1))
+  K <- ncol(null)
+  z <- p <- matrix(NA_real_, B + 1, K)
+  for (k in seq_len(K)) {
+    v <- c(obs[k], null[, k])
+    for (i in seq_len(B + 1)) {
+      z[i, k] <- (v[i] - mean(v[-i])) / sd(v[-i])
+      p[i, k] <- sum(v <= v[i]) / (B + 1)
+    }
+  }
+  glob <- function(S) mean(apply(S, 1, min) <= min(S[1, ]))
+  c(raw = glob(rbind(obs, null)), z = glob(z), minP = glob(p))
 }
 
 test_that("minP is the default scan statistic", {
@@ -70,4 +75,29 @@ test_that("minP warns when too few permutations for the number of lags", {
                  "at least 700 permutations")
   expect_no_message(fit_scan("minP", nperm = 999))
   expect_no_message(fit_scan("z", nperm = 99))
+})
+
+test_that("observed and permuted scores are computed alike", {
+  # Swapping the observed m2 with a permuted one must swap their scores and
+  # leave all others unchanged, for every statistic (exchangeability).
+  set.seed(1)
+  M <- matrix(runif(4 * 19), 19)
+  obs <- runif(4)
+  j <- 7
+  M2 <- M
+  M2[j, ] <- obs
+  score_all <- function(stat, o, N) {
+    p <- (colSums(sweep(N, 2, o, "<=")) + 1) / (nrow(N) + 1)
+    sc <- scan_scores(stat, o, p, split(N, col(N)))
+    rbind(sc$observed, sc$null)
+  }
+  for (stat in c("raw", "z", "minP")) {
+    a <- score_all(stat, obs, M)
+    b <- score_all(stat, M[j, ], M2)
+    expect_equal(b[c(j + 1, 2:j, 1, (j + 2):20), ], a,
+                 ignore_attr = TRUE, info = stat)
+  }
+  e1 <- effect_measures(1:4, obs, obs, split(M, col(M)), split(M, col(M)))
+  st <- loo_standardize(obs, M)
+  expect_equal(-st$observed, e1$per_lag$z)
 })

@@ -92,3 +92,9 @@ test_that("the corrected RV is NA when the null RV mean is 1", {
   expect_true(is.na(e$summary$RV))
   expect_false(is.na(e$summary$A))
 })
+
+test_that("loo_standardize() is NA with fewer than two permutations", {
+  st <- loo_standardize(c(0.2, 0.3), matrix(c(0.5, 0.6), 1))
+  expect_true(all(is.na(st$observed)))
+  expect_true(all(is.na(st$null)))
+})
