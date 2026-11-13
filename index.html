@@ -77,7 +77,7 @@
 <li>
 <code>permutation = "cyclic"</code>: cyclic shifts of the full series, optionally with its time reversal, applied before lagging. Keeps temporal autocorrelation under the null, but the global p-value has low power.</li>
 <li>
-<code>permutation = "free"</code>: free permutation of rows within the overlapping window, as in <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code>. Rows are assumed exchangeable, which autocorrelated series violate; Type I error can be severely inflated.</li>
+<code>permutation = "free"</code>: free permutation of rows, as in <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code>, applied before lagging. Rows are assumed exchangeable, which autocorrelated series violate; Type I error can be severely inflated.</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>

@@ -139,7 +139,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.711</td>
 <td align="right">0.538</td>
 <td align="right">0.092</td>
-<td align="right">0.255</td>
+<td align="right">0.254</td>
 </tr>
 <tr class="even">
 <td align="left">Somatic</td>
@@ -155,7 +155,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.609</td>
 <td align="right">0.625</td>
 <td align="right">0.102</td>
-<td align="right">0.255</td>
+<td align="right">0.254</td>
 </tr>
 <tr class="even">
 <td align="left">Somatic</td>
@@ -163,7 +163,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.477</td>
 <td align="right">0.724</td>
 <td align="right">0.004</td>
-<td align="right">0.046</td>
+<td align="right">0.045</td>
 </tr>
 <tr class="odd">
 <td align="left">Histochemistry</td>
@@ -211,7 +211,7 @@ and <code><a href="../reference/lagged_protest_pairs.html">lagged_protest_pairs(
 <td align="right">0.378</td>
 <td align="right">0.789</td>
 <td align="right">0.099</td>
-<td align="right">0.255</td>
+<td align="right">0.254</td>
 </tr>
 </tbody>
 </table>
@@ -293,7 +293,7 @@ current default, <code>stat = "minP"</code>:</p>
 <td align="right">0.011</td>
 <td align="right">0.044</td>
 <td align="right">3</td>
-<td align="right">1.731</td>
+<td align="right">1.730</td>
 <td align="right">0.308</td>
 </tr>
 <tr class="even">
@@ -307,7 +307,7 @@ current default, <code>stat = "minP"</code>:</p>
 <td align="right">0.137</td>
 <td align="right">0.274</td>
 <td align="right">-3</td>
-<td align="right">0.536</td>
+<td align="right">0.535</td>
 <td align="right">0.167</td>
 </tr>
 <tr class="odd">
@@ -321,7 +321,7 @@ current default, <code>stat = "minP"</code>:</p>
 <td align="right">0.828</td>
 <td align="right">0.828</td>
 <td align="right">0</td>
-<td align="right">-0.016</td>
+<td align="right">-0.017</td>
 <td align="right">-0.052</td>
 </tr>
 <tr class="even">
@@ -335,7 +335,7 @@ current default, <code>stat = "minP"</code>:</p>
 <td align="right">0.225</td>
 <td align="right">0.300</td>
 <td align="right">0</td>
-<td align="right">1.747</td>
+<td align="right">1.746</td>
 <td align="right">0.132</td>
 </tr>
 </tbody>
@@ -383,7 +383,7 @@ current default, <code>stat = "minP"</code>:</p>
 <td align="right">0.777</td>
 <td align="right">0.777</td>
 <td align="right">1</td>
-<td align="right">-0.577</td>
+<td align="right">-0.578</td>
 <td align="right">-0.070</td>
 </tr>
 <tr class="even">
@@ -397,7 +397,7 @@ current default, <code>stat = "minP"</code>:</p>
 <td align="right">0.459</td>
 <td align="right">0.688</td>
 <td align="right">-1</td>
-<td align="right">0.743</td>
+<td align="right">0.742</td>
 <td align="right">0.077</td>
 </tr>
 <tr class="odd">
@@ -411,7 +411,7 @@ current default, <code>stat = "minP"</code>:</p>
 <td align="right">0.100</td>
 <td align="right">0.301</td>
 <td align="right">1</td>
-<td align="right">2.044</td>
+<td align="right">2.042</td>
 <td align="right">0.220</td>
 </tr>
 </tbody>
@@ -555,7 +555,11 @@ scale.</p>
 each fit, without new permutations, as done below: the smallest per-lag
 p-value across lags (minP), and the smallest standardized <em>m</em>²,
 in which the <em>m</em>² at each lag is centered and scaled by the mean
-and standard deviation of its own null distribution <span class="citation">(Westfall and Young 1993)</span>. Taking the smallest
+and standard deviation of its own null distribution <span class="citation">(Westfall and Young 1993)</span>. The observed and the
+permuted values are scored in the same way: each permuted <em>m</em>² is
+converted to a p-value by its rank among all values at that lag, and
+standardized against the other values, so that the observed result is
+exchangeable with the permutations under the null. Taking the smallest
 p-value across tests in each randomization follows the procedure
 described by <span class="citation">Manly and Navarro Alberto (2020,
 83–84)</span> for correlated tests, for which the Bonferroni level is
@@ -568,16 +572,19 @@ tables above); the function below adds the corresponding global
 p-values:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">balanced_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">null</span><span class="op">)</span></span>
-<span>  <span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">null</span><span class="op">)</span></span>
-<span>  <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">null</span><span class="op">)</span></span>
-<span>  <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">null</span>, <span class="fl">2</span>, <span class="va">sd</span><span class="op">)</span></span>
-<span>  <span class="va">z_obs</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">profile</span><span class="op">$</span><span class="va">m2</span> <span class="op">-</span> <span class="va">mu</span><span class="op">)</span> <span class="op">/</span> <span class="va">s</span></span>
-<span>  <span class="va">z_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">null</span>, <span class="fl">2</span>, <span class="va">mu</span><span class="op">)</span>, <span class="fl">2</span>, <span class="va">s</span>, <span class="st">"/"</span><span class="op">)</span></span>
-<span>  <span class="va">p_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">null</span>, <span class="fl">2</span>, <span class="va">rank</span>, ties.method <span class="op">=</span> <span class="st">"max"</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">B</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>z <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">z_null</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">z_obs</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">B</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    minP <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">p_null</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">profile</span><span class="op">$</span><span class="va">p.value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span></span>
-<span>      <span class="op">(</span><span class="va">B</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="co"># Observed m2 in the first row, permuted values below; every value is</span></span>
+<span>  <span class="co"># scored in the same way within its lag.</span></span>
+<span>  <span class="va">all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">profile</span><span class="op">$</span><span class="va">m2</span>, <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">null</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">n1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">all</span><span class="op">)</span></span>
+<span>  <span class="va">loo_z</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="op">{</span>  <span class="co"># each value against the mean and SD of the others</span></span>
+<span>    <span class="va">m</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="op">-</span> <span class="va">v</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">n1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="va">s2</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">v</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">-</span> <span class="va">v</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="op">(</span><span class="va">n1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="va">m</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">n1</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>    <span class="op">(</span><span class="va">v</span> <span class="op">-</span> <span class="va">m</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s2</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">all</span>, <span class="fl">2</span>, <span class="va">loo_z</span><span class="op">)</span></span>
+<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">all</span>, <span class="fl">2</span>, <span class="va">rank</span>, ties.method <span class="op">=</span> <span class="st">"max"</span><span class="op">)</span> <span class="op">/</span> <span class="va">n1</span></span>
+<span>  <span class="va">glob</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">S</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">S</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">S</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>z <span class="op">=</span> <span class="fu">glob</span><span class="op">(</span><span class="va">z</span><span class="op">)</span>, minP <span class="op">=</span> <span class="fu">glob</span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">climate</span>, <span class="st">"fits"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">modules</span>, <span class="st">"fits"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">sens</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fits</span>, <span class="va">balanced_p</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -612,14 +619,14 @@ p-values:</p>
 <td align="left">Climate -&gt; Morphometry</td>
 <td align="right">0.294</td>
 <td align="right">0.372</td>
-<td align="right">0.587</td>
+<td align="right">0.588</td>
 <td align="right">0.745</td>
 </tr>
 <tr class="odd">
 <td align="left">Climate -&gt; Density</td>
 <td align="right">0.509</td>
 <td align="right">0.553</td>
-<td align="right">0.587</td>
+<td align="right">0.588</td>
 <td align="right">0.745</td>
 </tr>
 <tr class="even">
@@ -640,12 +647,12 @@ p-values:</p>
 <td align="left">Morphometry -&gt; Density</td>
 <td align="right">0.216</td>
 <td align="right">0.230</td>
-<td align="right">0.431</td>
+<td align="right">0.432</td>
 <td align="right">0.459</td>
 </tr>
 <tr class="odd">
 <td align="left">Density -&gt; Somatic</td>
-<td align="right">0.030</td>
+<td align="right">0.031</td>
 <td align="right">0.040</td>
 <td align="right">0.092</td>
 <td align="right">0.119</td>

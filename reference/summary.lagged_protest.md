@@ -55,20 +55,20 @@ s
 #>    3  9 0.1303 0.933   0.705      0.705   199 -0.553 -0.121   FALSE
 #>    4  8 0.1516 0.921   0.815      0.815   199 -0.944 -0.233   FALSE
 #> 
-#> Optimal lag 2, global p = 0.03
-#> Effect at lag 2 (largest z): Z = 3.02, A = 0.464, corrected RV = 0.193
+#> Optimal lag 2, global p = 0.025
+#> Effect at lag 2 (largest z): Z = 2.97, A = 0.463, corrected RV = 0.191
 #> Mean lag-1 autocorrelation, raw (residual): X 0.76 (-0.018), Y 0.66 (-0.049)
 attr(s, "effect")
 #> $lag
 #> [1] 2
 #> 
 #> $Z
-#> [1] 3.020769
+#> [1] 2.968458
 #> 
 #> $A
-#> [1] 0.4636411
+#> [1] 0.463416
 #> 
 #> $RV
-#> [1] 0.1930574
+#> [1] 0.1905474
 #> 
 ```

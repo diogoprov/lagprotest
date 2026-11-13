@@ -65,8 +65,8 @@ fit
 #> P-value adjustment across lags: none
 #> 
 #> Optimal lag: 2  (m2 = 0.0922, r = 0.953, p = 0.001)
-#> Global p across lags (minP scan): 0.006
-#> Effect at lag 2 (largest z): Z = 3.22, A = 0.51, corrected RV = 0.318
+#> Global p across lags (minP scan): 0.005
+#> Effect at lag 2 (largest z): Z = 3.21, A = 0.51, corrected RV = 0.318
 #> Mean lag-1 autocorrelation, raw (residual after removing the cycle): X 0.7 (-0.018), Y 0.54 (-0.049)
 #> 
 #> Lag profile:
@@ -101,7 +101,7 @@ scan-and-select procedure:
 ``` r
 
 fit$p.global
-#> [1] 0.006
+#> [1] 0.005
 ```
 
 Comparing lags by their p-values, rather than by *m*² itself, matters
@@ -118,7 +118,7 @@ All three are valid global tests computed from the same permutations:
 sapply(c("minP", "z", "raw"), function(s)
   lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1, stat = s)$p.global)
 #>  minP     z   raw 
-#> 0.006 0.002 0.003
+#> 0.005 0.002 0.003
 ```
 
 Per-lag p-values can also be corrected. `p.adjust.method = "maxT"` gives
@@ -159,8 +159,8 @@ summary(fit)
 #>    3  9 0.2748 0.852   0.818      0.818   999 -0.878 -0.171   FALSE
 #>    4  8 0.3046 0.834   0.876      0.876   999 -1.181 -0.262   FALSE
 #> 
-#> Optimal lag 2, global p = 0.006
-#> Effect at lag 2 (largest z): Z = 3.22, A = 0.51, corrected RV = 0.318
+#> Optimal lag 2, global p = 0.005
+#> Effect at lag 2 (largest z): Z = 3.21, A = 0.51, corrected RV = 0.318
 #> Mean lag-1 autocorrelation, raw (residual): X 0.7 (-0.018), Y 0.54 (-0.049)
 ```
 
@@ -179,7 +179,7 @@ fit$effect
 #> [1] 2
 #> 
 #> $Z
-#> [1] 3.217432
+#> [1] 3.207857
 #> 
 #> $A
 #> [1] 0.5099893

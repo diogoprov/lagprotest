@@ -58,16 +58,16 @@ knitr::kable(lag0[, c("x", "y", "m2", "r", "p.value", "p.global.adjusted")],
 
 | x              | y              |    m2 |     r | p.value | p.global.adjusted |
 |:---------------|:---------------|------:|------:|--------:|------------------:|
-| Somatic        | Histochemistry | 0.711 | 0.538 |   0.092 |             0.255 |
+| Somatic        | Histochemistry | 0.711 | 0.538 |   0.092 |             0.254 |
 | Somatic        | Morphometry    | 0.815 | 0.430 |   0.374 |             0.623 |
-| Somatic        | Density        | 0.609 | 0.625 |   0.102 |             0.255 |
-| Somatic        | Climate        | 0.477 | 0.724 |   0.004 |             0.046 |
+| Somatic        | Density        | 0.609 | 0.625 |   0.102 |             0.254 |
+| Somatic        | Climate        | 0.477 | 0.724 |   0.004 |             0.045 |
 | Histochemistry | Morphometry    | 0.806 | 0.440 |   0.609 |             0.751 |
 | Histochemistry | Density        | 0.704 | 0.544 |   0.190 |             0.381 |
 | Histochemistry | Climate        | 0.791 | 0.457 |   0.743 |             0.751 |
 | Morphometry    | Density        | 0.755 | 0.495 |   0.558 |             0.751 |
 | Morphometry    | Climate        | 0.772 | 0.478 |   0.751 |             0.751 |
-| Density        | Climate        | 0.378 | 0.789 |   0.099 |             0.255 |
+| Density        | Climate        | 0.378 | 0.789 |   0.099 |             0.254 |
 
 Somatic indices and climate were the only pair concordant after the
 adjustment. Density and climate had the lowest *m*², yet this
@@ -110,10 +110,10 @@ knitr::kable(climate[, cols], digits = 3)
 
 | x | y | optimal_lag | n | m2 | r | p.value | p.global | p.global.adjusted | effect_lag | Z | A |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Climate | Histochemistry | 3 | 9 | 0.379 | 0.788 | 0.011 | 0.011 | 0.044 | 3 | 1.731 | 0.308 |
-| Climate | Morphometry | -3 | 9 | 0.422 | 0.761 | 0.062 | 0.137 | 0.274 | -3 | 0.536 | 0.167 |
-| Climate | Density | 0 | 12 | 0.378 | 0.789 | 0.102 | 0.828 | 0.828 | 0 | -0.016 | -0.052 |
-| Climate | Somatic | 0 | 12 | 0.477 | 0.724 | 0.005 | 0.225 | 0.300 | 0 | 1.747 | 0.132 |
+| Climate | Histochemistry | 3 | 9 | 0.379 | 0.788 | 0.011 | 0.011 | 0.044 | 3 | 1.730 | 0.308 |
+| Climate | Morphometry | -3 | 9 | 0.422 | 0.761 | 0.062 | 0.137 | 0.274 | -3 | 0.535 | 0.167 |
+| Climate | Density | 0 | 12 | 0.378 | 0.789 | 0.102 | 0.828 | 0.828 | 0 | -0.017 | -0.052 |
+| Climate | Somatic | 0 | 12 | 0.477 | 0.724 | 0.005 | 0.225 | 0.300 | 0 | 1.746 | 0.132 |
 
 ``` r
 
@@ -122,9 +122,9 @@ knitr::kable(modules[, cols], digits = 3)
 
 | x | y | optimal_lag | n | m2 | r | p.value | p.global | p.global.adjusted | effect_lag | Z | A |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Histochemistry | Morphometry | 1 | 11 | 0.664 | 0.580 | 0.148 | 0.777 | 0.777 | 1 | -0.577 | -0.070 |
-| Morphometry | Density | -1 | 11 | 0.515 | 0.696 | 0.036 | 0.459 | 0.688 | -1 | 0.743 | 0.077 |
-| Density | Somatic | 1 | 11 | 0.436 | 0.751 | 0.006 | 0.100 | 0.301 | 1 | 2.044 | 0.220 |
+| Histochemistry | Morphometry | 1 | 11 | 0.664 | 0.580 | 0.148 | 0.777 | 0.777 | 1 | -0.578 | -0.070 |
+| Morphometry | Density | -1 | 11 | 0.515 | 0.696 | 0.036 | 0.459 | 0.688 | -1 | 0.742 | 0.077 |
+| Density | Somatic | 1 | 11 | 0.436 | 0.751 | 0.006 | 0.100 | 0.301 | 1 | 2.042 | 0.220 |
 
 Climate led histochemistry by three months, and this was the only edge
 whose global p-value remained below 0.05 after adjustment within its
@@ -196,29 +196,36 @@ also be computed from the surrogates stored in each fit, without new
 permutations, as done below: the smallest per-lag p-value across lags
 (minP), and the smallest standardized *m*², in which the *m*² at each
 lag is centered and scaled by the mean and standard deviation of its own
-null distribution (Westfall and Young 1993). Taking the smallest p-value
-across tests in each randomization follows the procedure described by
-Manly and Navarro Alberto (2020, 83–84) for correlated tests, for which
-the Bonferroni level is too strict; they recommend at least 100*m*
-randomizations for *m* tests, a condition met here by 9999 permutations
-for seven lags. The standardized *m*² at each lag is also returned, with
-the opposite sign, as `z` in `fit$profile`, and its largest value gives
-the effect lag (`effect_lag` in the tables above); the function below
-adds the corresponding global p-values:
+null distribution (Westfall and Young 1993). The observed and the
+permuted values are scored in the same way: each permuted *m*² is
+converted to a p-value by its rank among all values at that lag, and
+standardized against the other values, so that the observed result is
+exchangeable with the permutations under the null. Taking the smallest
+p-value across tests in each randomization follows the procedure
+described by Manly and Navarro Alberto (2020, 83–84) for correlated
+tests, for which the Bonferroni level is too strict; they recommend at
+least 100*m* randomizations for *m* tests, a condition met here by 9999
+permutations for seven lags. The standardized *m*² at each lag is also
+returned, with the opposite sign, as `z` in `fit$profile`, and its
+largest value gives the effect lag (`effect_lag` in the tables above);
+the function below adds the corresponding global p-values:
 
 ``` r
 
 balanced_p <- function(fit) {
-  null <- do.call(cbind, fit$null)
-  B <- nrow(null)
-  mu <- colMeans(null)
-  s <- apply(null, 2, sd)
-  z_obs <- (fit$profile$m2 - mu) / s
-  z_null <- sweep(sweep(null, 2, mu), 2, s, "/")
-  p_null <- apply(null, 2, rank, ties.method = "max") / (B + 1)
-  c(z = (sum(apply(z_null, 1, min) <= min(z_obs)) + 1) / (B + 1),
-    minP = (sum(apply(p_null, 1, min) <= min(fit$profile$p.value)) + 1) /
-      (B + 1))
+  # Observed m2 in the first row, permuted values below; every value is
+  # scored in the same way within its lag.
+  all <- rbind(fit$profile$m2, do.call(cbind, fit$null))
+  n1 <- nrow(all)
+  loo_z <- function(v) {  # each value against the mean and SD of the others
+    m <- (sum(v) - v) / (n1 - 1)
+    s2 <- (sum(v^2) - v^2 - (n1 - 1) * m^2) / (n1 - 2)
+    (v - m) / sqrt(s2)
+  }
+  z <- apply(all, 2, loo_z)
+  p <- apply(all, 2, rank, ties.method = "max") / n1
+  glob <- function(S) mean(apply(S, 1, min) <= min(S[1, ]))
+  c(z = glob(z), minP = glob(p))
 }
 fits <- c(attr(climate, "fits"), attr(modules, "fits"))
 sens <- as.data.frame(t(sapply(fits, balanced_p)))
@@ -231,12 +238,12 @@ knitr::kable(sens, digits = 3)
 |                                |     z |  minP | z.adjusted | minP.adjusted |
 |:-------------------------------|------:|------:|-----------:|--------------:|
 | Climate -\> Histochemistry     | 0.056 | 0.068 |      0.223 |         0.203 |
-| Climate -\> Morphometry        | 0.294 | 0.372 |      0.587 |         0.745 |
-| Climate -\> Density            | 0.509 | 0.553 |      0.587 |         0.745 |
+| Climate -\> Morphometry        | 0.294 | 0.372 |      0.588 |         0.745 |
+| Climate -\> Density            | 0.509 | 0.553 |      0.588 |         0.745 |
 | Climate -\> Somatic            | 0.059 | 0.031 |      0.223 |         0.124 |
 | Histochemistry -\> Morphometry | 0.694 | 0.695 |      0.694 |         0.695 |
-| Morphometry -\> Density        | 0.216 | 0.230 |      0.431 |         0.459 |
-| Density -\> Somatic            | 0.030 | 0.040 |      0.092 |         0.119 |
+| Morphometry -\> Density        | 0.216 | 0.230 |      0.432 |         0.459 |
+| Density -\> Somatic            | 0.031 | 0.040 |      0.092 |         0.119 |
 
 The optimal lag of every edge is the same under the three statistics,
 because they differ only in how the lags are compared under the null.

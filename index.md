@@ -15,11 +15,10 @@ Three permutation schemes are available:
 - `permutation = "cyclic"`: cyclic shifts of the full series, optionally
   with its time reversal, applied before lagging. Keeps temporal
   autocorrelation under the null, but the global p-value has low power.
-- `permutation = "free"`: free permutation of rows within the
-  overlapping window, as in
-  [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html).
-  Rows are assumed exchangeable, which autocorrelated series violate;
-  Type I error can be severely inflated.
+- `permutation = "free"`: free permutation of rows, as in
+  [`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html),
+  applied before lagging. Rows are assumed exchangeable, which
+  autocorrelated series violate; Type I error can be severely inflated.
 
 ## Installation
 
