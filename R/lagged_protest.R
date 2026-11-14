@@ -30,8 +30,8 @@
 #'   of 0.10 to 0.34 in simulations with `simulate_lagged_series(waveform =
 #'   "sawtooth")` or `"pulse"`, 24 or 48 monthly samples). When the series
 #'   span several whole cycles, removing from both the mean of each position
-#'   in the cycle (e.g., the mean of each calendar month) before the test
-#'   restored the Type I error in those simulations.
+#'   in the cycle (e.g., the mean of each calendar month; `deseason =
+#'   "monthly"`) restored the Type I error in those simulations.
 #' * `"cyclic"`: the full `Y` series is cyclically shifted by
 #'   `1, ..., n - 1` positions before lagging, and optionally also
 #'   time-reversed (`mirror = TRUE`). This keeps the temporal autocorrelation
@@ -58,6 +58,43 @@
 #' cycles. In simulations, this restored the Type I error of series that
 #' already spanned complete cycles, whereas removing the seasonal component
 #' by harmonic regression did not.
+#'
+#' Two optional preprocessing steps are applied to both series, in this
+#' order, after truncation to whole cycles and before the columns are
+#' standardized (`scale`):
+#'
+#' * `deseason = "monthly"` subtracts from every column the mean of each
+#'   position in the cycle (e.g., the mean of each calendar month), so that
+#'   the test addresses the anomalies rather than a seasonal cycle that both
+#'   series may share. It requires `period` and at least two whole cycles;
+#'   the first row is taken as position 1 of the cycle. In simulations, it
+#'   restored the Type I error of the phase scheme for shared seasonal cycles
+#'   of any shape (see the caveat on non-sinusoidal cycles above), whereas
+#'   removing two harmonics by regression did not suffice for a sawtooth.
+#'   The scan then measures concordance among anomalies only. With
+#'   strongly autocorrelated noise (AR(1) of 0.9), it remained slightly
+#'   liberal (up to about 0.08).
+#' * `prewhiten = "prais"` removes AR(1) autocorrelation from every column by
+#'   the Prais-Winsten transformation, \eqn{x_1\sqrt{1 - \rho^2}} for the
+#'   first row and \eqn{x_t - \rho x_{t-1}} for the others, with
+#'   \eqn{\rho} the lag-1 autocorrelation of the column (returned in
+#'   `rho`). Unlike ordinary prewhitening, it keeps all `n` rows: dropping
+#'   the first row after removing seasonal means made the test strongly
+#'   liberal in simulations, and so did prewhitening before removing them.
+#'   For strongly autocorrelated series without seasonality, prewhitening
+#'   brought the Type I error of the phase scheme from 0.10--0.19 back to
+#'   the nominal level, and it increased power when the anomalies were
+#'   strongly autocorrelated. Combined with `deseason`, it can be liberal
+#'   when an abrupt seasonal cycle varies in amplitude among years and the
+#'   noise is strongly autocorrelated (about 0.10 in simulations with a
+#'   sawtooth cycle and AR(1) of 0.9), where `deseason` alone was not. A
+#'   warning is issued when it is requested for a seasonal series (`period`
+#'   given) without `deseason`, a combination that inflated the Type I
+#'   error in simulations.
+#'
+#' With a single cycle (`n` equal to `period`), seasonal means cannot be
+#' separated from the signal; a message then recalls that the phase scheme
+#' assumes a close-to-sinusoidal shared cycle.
 #'
 #' P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 #' permuted \eqn{m^2} values smaller than or equal to the observed one and
@@ -192,6 +229,12 @@
 #'   `X` and `Y` are truncated to their first `floor(n / period) * period`
 #'   rows (whole cycles) before analysis; a message reports the rows dropped.
 #'   `NULL` (default) uses all rows.
+#' @param deseason `"none"` (default) or `"monthly"`, to subtract from both
+#'   series the mean of each position in the cycle of length `period`
+#'   (see Details).
+#' @param prewhiten `"none"` (default) or `"prais"`, for Prais-Winsten AR(1)
+#'   prewhitening of every column of both series, applied after `deseason`
+#'   (see Details).
 #' @param seed Optional integer seed for the `"phase"` and `"free"` schemes.
 #'   The global random number stream is left untouched.
 #'
@@ -217,15 +260,19 @@
 #'       `A` and the chance-corrected `RV` coefficient at that lag (see
 #'       Details).}
 #'     \item{`ar1`}{Data frame with the mean lag-1 autocorrelation of the
-#'       columns of `X` and `Y`, `raw` and `residual` after removing the
-#'       harmonics of period `n` and `period`.}
+#'       columns of `X` and `Y`, as analyzed (after any preprocessing), `raw`
+#'       and `residual` after removing the harmonics of period `n` and
+#'       `period`.}
 #'     \item{`null`}{List of permuted \eqn{m^2} values, one element per lag;
 #'       element `i` of every vector comes from the same permutation.}
 #'     \item{`null.rv`}{List of permuted RV coefficients, paired with
 #'       `null`.}
+#'     \item{`rho`}{With `prewhiten = "prais"`, a list with the AR(1)
+#'       coefficients used for the columns of `X` and `Y`; otherwise `NULL`.}
 #'     \item{`permutation`, `stat`, `mirror`, `p.adjust.method`, `n`, `period`,
-#'       `call`}{Settings used; `mirror` is `NA` unless the scheme is cyclic,
-#'       and `n` is the number of rows after any truncation to whole cycles.}
+#'       `deseason`, `prewhiten`, `call`}{Settings used; `mirror` is `NA`
+#'       unless the scheme is cyclic, and `n` is the number of rows after any
+#'       truncation to whole cycles.}
 #'   }
 #'
 #' @references
@@ -258,16 +305,28 @@
 #' fit_cyclic$profile
 #' plot(fit)
 #' residuals(fit)
+#'
+#' # Four years of monthly data sharing an abrupt seasonal cycle: test the
+#' # anomalies, with AR(1) prewhitening
+#' saw <- simulate_lagged_series(n_times = 48, true_lag = 2,
+#'                               waveform = "sawtooth", noise_sd = 1,
+#'                               seed = 1)
+#' lagged_protest(saw$X, saw$Y, lags = 0:4, period = 12,
+#'                deseason = "monthly", prewhiten = "prais", seed = 1)
 #' @export
 lagged_protest <- function(X, Y, lags = 0:6,
                            permutation = c("phase", "cyclic", "free"),
                            nperm = 999, mirror = TRUE, bidirectional = FALSE,
                            scale = TRUE, stat = c("minP", "z", "raw"),
                            p.adjust.method = "none",
-                           period = NULL, seed = NULL) {
+                           period = NULL,
+                           deseason = c("none", "monthly"),
+                           prewhiten = c("none", "prais"), seed = NULL) {
   call <- match.call()
   permutation <- match.arg(permutation)
   stat <- match.arg(stat)
+  deseason <- match.arg(deseason)
+  prewhiten <- match.arg(prewhiten)
   p.adjust.method <- match.arg(p.adjust.method,
                                c(stats::p.adjust.methods, "maxT"))
   check_flag(mirror, "mirror")
@@ -290,8 +349,44 @@ lagged_protest <- function(X, Y, lags = 0:6,
       Y <- first_rows(Y, m)
     }
   }
-  Xc <- as_configuration(X, scale, "X")
-  Yc <- as_configuration(Y, scale, "Y")
+  if (deseason == "monthly") {
+    if (is.null(period) || !is_whole(period, 2)) {
+      stop("`deseason = \"monthly\"` needs `period`, a whole number of rows ",
+           "of at least 2.", call. = FALSE)
+    }
+    if (n_rows(X) < 2 * period) {
+      stop("`deseason = \"monthly\"` needs at least two whole cycles (",
+           2 * period, " rows); with one cycle the seasonal means are the ",
+           "series itself.", call. = FALSE)
+    }
+  } else if (!is.null(period) && permutation == "phase" &&
+             n_rows(X) < 2 * period) {
+    message("The series spans a single cycle of period ", period, ": phase ",
+            "surrogates assume that a seasonal cycle shared by `X` and `Y` ",
+            "is close to sinusoidal (see ?lagged_protest).")
+  }
+  if (prewhiten != "none" && deseason == "none" && !is.null(period)) {
+    warning("Prewhitening a seasonal series without `deseason` can inflate ",
+            "the Type I error; consider `deseason = \"monthly\"`.",
+            call. = FALSE)
+  }
+  Xc <- as_configuration(X, "X")
+  Yc <- as_configuration(Y, "Y")
+  rho <- NULL
+  if (deseason == "monthly") {
+    Xc <- remove_cycle_means(Xc, period)
+    Yc <- remove_cycle_means(Yc, period)
+  }
+  if (prewhiten == "prais") {
+    px <- prais_winsten(Xc)
+    py <- prais_winsten(Yc)
+    Xc <- px$series
+    Yc <- py$series
+    rho <- list(X = px$rho, Y = py$rho)
+  }
+  preprocessed <- deseason != "none" || prewhiten != "none"
+  if (scale && !inherits(X, "dist")) Xc <- scale_columns(Xc, "X", preprocessed)
+  if (scale && !inherits(Y, "dist")) Yc <- scale_columns(Yc, "Y", preprocessed)
   n <- nrow(Xc)
   if (is.null(rownames(Xc))) rownames(Xc) <- seq_len(n)
   if (is.null(rownames(Yc))) rownames(Yc) <- seq_len(n)
@@ -402,6 +497,9 @@ lagged_protest <- function(X, Y, lags = 0:6,
       p.adjust.method = p.adjust.method,
       n = n,
       period = period,
+      deseason = deseason,
+      prewhiten = prewhiten,
+      rho = rho,
       call = call
     ),
     class = "lagged_protest"

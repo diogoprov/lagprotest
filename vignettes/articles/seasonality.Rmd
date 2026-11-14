@@ -1,0 +1,137 @@
+---
+title: "Seasonality and autocorrelation"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r library}
+library(lagprotest)
+```
+
+The permutation schemes of `lagged_protest()` keep the autocorrelation of
+`Y` under the null, but each rests on assumptions about the seasonal cycle
+and the noise around it (see
+[Choosing a permutation scheme](permutation-schemes.html)). Two features of
+real series break those assumptions: a seasonal cycle that both series
+share and that is not close to a sine wave, and strong autocorrelation of
+the anomalies around the cycle. This article describes the two
+preprocessing options that address them, `deseason` and `prewhiten`, and
+when to use each.
+
+## What each option does
+
+Both options are applied to `X` and `Y` after they are truncated to whole
+cycles (`period`) and before their columns are standardized (`scale`):
+
+* `deseason = "monthly"` subtracts from every column the mean of each
+  position in the cycle, for example the mean of all Januaries, of all
+  Februaries, and so on. It needs `period` and at least two whole cycles,
+  and takes the first row as position 1 of the cycle.
+* `prewhiten = "prais"` replaces every column by its residuals from an
+  AR(1) process, using the Prais–Winsten transformation, which keeps all
+  rows. The AR(1) coefficient of each column is its lag-1 autocorrelation
+  after any `deseason`, and is returned in `fit$rho`.
+
+## Removing a shared seasonal cycle
+
+Two independent series that share a seasonal cycle are concordant at every
+lag, because Procrustes analysis compares the shapes of the two
+trajectories and their cycles have the same shape. Phase surrogates handle
+a shared sinusoidal cycle, because a sine wave keeps its shape when its
+phase changes, but not an abrupt one: a sawtooth or a short pulse is abrupt
+only because the phases of its harmonics are aligned, and the surrogates
+draw new phases for every harmonic.
+
+The simulation below generates two independent series with the same
+sawtooth cycle over four years of monthly data:
+
+```{r sawtooth-null}
+null <- simulate_lagged_series(n_times = 48, waveform = "sawtooth",
+                               noise_sd = 0.5, seed = 1)
+fit_raw <- lagged_protest(null$X, null$Y, lags = 0:4, period = 12,
+                          seed = 1)
+fit_des <- lagged_protest(null$X, null$Y, lags = 0:4, period = 12,
+                          deseason = "monthly", seed = 1)
+c(raw = fit_raw$p.global, deseasoned = fit_des$p.global)
+```
+
+Without preprocessing, the test rejects the null for this pair of
+independent series; with the seasonal means removed, it does not. This is
+not a rare pair: the test without preprocessing rejected for 9 of the first
+20 seeds. Over many such pairs, it rejected the null in about a third of
+the replicates at α = 0.05 (see
+[Simulating lagged series](simulating-series.html#seasonal-waveforms)),
+whereas with `deseason = "monthly"` it rejected at about the nominal rate
+for every waveform tested.
+
+Removing the seasonal means changes the question. Without it, the test asks
+whether the two trajectories are concordant at some lag, seasonal cycle
+included; with it, whether their departures from the average cycle are. The
+second question is the one that a shared response to the calendar cannot
+answer, and is the safer one whenever both series are seasonal. A lag in
+the seasonal cycle itself, as when a response peaks two months after its
+driver every year, is removed together with the cycle: it can be described
+by comparing the seasonal means, but it is not tested.
+
+## Removing autocorrelation of the anomalies
+
+Phase surrogates keep the autocorrelation of `Y`, but in short series with
+strongly autocorrelated noise the test was still liberal in simulations
+(see [Choosing a permutation scheme](permutation-schemes.html)). Prais–Winsten
+prewhitening removes that autocorrelation before the test. Ordinary
+prewhitening, which drops the first row, should not be applied by hand
+after removing seasonal means: the dropped row breaks the balance of the
+cycle positions and made the test strongly liberal in simulations.
+
+The residual autocorrelation reported by `lagged_protest()` helps decide.
+The series below have strongly autocorrelated noise and no seasonality:
+
+```{r ar-null}
+ar <- simulate_lagged_series(n_times = 24, amplitude = 0, autocorr = 0.9,
+                             seed = 3)
+fit <- lagged_protest(ar$X, ar$Y, lags = 0:4, seed = 1)
+fit$ar1
+fit_pw <- lagged_protest(ar$X, ar$Y, lags = 0:4, prewhiten = "prais",
+                         seed = 1)
+round(fit_pw$rho$X, 2)
+fit_pw$ar1
+```
+
+For non-seasonal series with an AR(1) coefficient of 0.9, the Type I error
+of the phase scheme was 0.19 with 24 samples and 0.10 with 48, and 0.03 to
+0.04 after prewhitening (400 replicates, 199 surrogates).
+
+Prewhitening has a cost when it is combined with `deseason`: when an abrupt
+seasonal cycle varies in amplitude from year to year and the noise is
+strongly autocorrelated, the test was liberal (about 0.10 for a sawtooth with AR(1) of 0.9),
+whereas `deseason` alone stayed close to the nominal level. Requesting
+`prewhiten` for a seasonal series without `deseason` triggers a warning,
+because prewhitening does not remove a shared cycle and made the test more
+liberal in simulations of series with several abrupt cycles.
+
+## A recommended sequence
+
+1. Plot both series and decide whether a seasonal cycle is present and how
+   long it is.
+2. If the series span several whole cycles, give `period`, so that both are
+   truncated to whole cycles, and use `deseason = "monthly"` unless the
+   seasonal cycle itself is what you want to test.
+3. If they span a single cycle, seasonal means cannot be removed. Phase
+   surrogates then assume that any shared cycle is close to sinusoidal;
+   check whether the seasonal trajectories are smooth, and interpret
+   concordance with that limitation in mind.
+4. Look at the residual autocorrelation in `fit$ar1`. It is biased
+   downwards in short series (about 0.4 for a true AR(1) coefficient of 0.9
+   with 24 samples, in the example above), so a clearly positive value in a
+   short series may hide strong autocorrelation. In that case, consider
+   `prewhiten = "prais"`, and report results with and without it if the
+   seasonal cycle is abrupt.
+5. Report the preprocessing used, which `print()` shows, together with the
+   global p-value for the scan.
+
+With simulated data matching your design, the
+[Simulating lagged series](simulating-series.html) article shows how to
+check calibration and power of each combination before analyzing real
+data.

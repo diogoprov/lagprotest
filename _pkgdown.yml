@@ -30,5 +30,6 @@ articles:
     navbar: Articles
     contents:
       - articles/permutation-schemes
+      - articles/seasonality
       - articles/simulating-series
       - articles/liver-example

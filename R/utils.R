@@ -1,7 +1,6 @@
 # Convert input to a numeric matrix of configuration scores.
-# dist objects are ordinated by PCoA (all axes with positive eigenvalues);
-# matrices and data frames are optionally z-scored column-wise.
-as_configuration <- function(M, scale, arg) {
+# dist objects are ordinated by PCoA (all axes with positive eigenvalues).
+as_configuration <- function(M, arg) {
   if (inherits(M, "dist")) {
     n <- attr(M, "Size")
     pcoa <- suppressWarnings(stats::cmdscale(M, k = n - 1, eig = TRUE))
@@ -16,15 +15,50 @@ as_configuration <- function(M, scale, arg) {
          call. = FALSE)
   }
   if (anyNA(M)) stop("`", arg, "` contains missing values.", call. = FALSE)
-  if (scale) {
-    sds <- apply(M, 2, stats::sd)
-    if (any(sds == 0)) {
-      stop("`", arg, "` has constant columns; cannot scale.", call. = FALSE)
-    }
-    M <- scale(M)
-    attr(M, "scaled:center") <- attr(M, "scaled:scale") <- NULL
-  }
   M
+}
+
+# z-score the columns of a configuration.
+scale_columns <- function(M, arg, preprocessed = FALSE) {
+  sds <- apply(M, 2, stats::sd)
+  if (any(sds <= 1e-12 * max(1, sds))) {
+    stop("`", arg, "` has constant columns",
+         if (preprocessed) " after preprocessing (`deseason`, `prewhiten`)",
+         "; cannot scale.", call. = FALSE)
+  }
+  M <- scale(M)
+  attr(M, "scaled:center") <- attr(M, "scaled:scale") <- NULL
+  M
+}
+
+# Subtract from every column the mean of its position in the cycle (e.g.,
+# each calendar month), over the whole series. Rows are assumed to start at
+# position 1 of the cycle and to span whole cycles.
+remove_cycle_means <- function(M, period) {
+  pos <- factor((seq_len(nrow(M)) - 1) %% period)
+  out <- M - apply(M, 2, stats::ave, pos)
+  dim(out) <- dim(M)
+  dimnames(out) <- dimnames(M)
+  out
+}
+
+# Prais-Winsten AR(1) prewhitening of every column, which keeps all n rows:
+# the first row is scaled by sqrt(1 - rho^2) and the others replaced by
+# x_t - rho x_{t-1}, with rho the lag-1 autocorrelation of the centered
+# column. Dropping the first row instead breaks the calibration after
+# seasonal means are removed.
+prais_winsten <- function(M) {
+  n <- nrow(M)
+  M <- sweep(M, 2, colMeans(M))
+  rho <- apply(M, 2, function(x) {
+    ss <- sum(x^2)
+    if (ss < 1e-12) 0 else sum(x[-1] * x[-n]) / ss
+  })
+  out <- M
+  out[1, ] <- sqrt(1 - rho^2) * M[1, ]
+  out[-1, ] <- M[-1, , drop = FALSE] -
+    sweep(M[-n, , drop = FALSE], 2, rho, "*")
+  list(series = out, rho = rho)
 }
 
 # Argument checks with messages naming the argument.
