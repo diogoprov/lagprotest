@@ -117,7 +117,8 @@ of two months:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 12  5</span></span></code></pre></div>
 <p><code><a href="../reference/simulate_lagged_series.html">simulate_lagged_series()</a></code> builds seasonal sinusoids plus
-AR(1) noise. With <code>true_lag = NULL</code> it returns two
+AR(1) noise (other seasonal shapes are available through
+<code>waveform</code>). With <code>true_lag = NULL</code> it returns two
 independent series, which is useful for checking Type I error.</p>
 </div>
 <div class="section level2">

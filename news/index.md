@@ -2,6 +2,26 @@
 
 ## lagprotest (development version)
 
+- [`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
+  gains `waveform`, `spread`, `amp_sd_vars` and `amp_sd_cycles`. The
+  default seasonal signal (`waveform = "circle"`, unchanged, so earlier
+  seeds give the same series) is a degenerate case: its variables trace
+  a circle, a shift in time is a rotation that Procrustes analysis
+  absorbs, and calibration estimated with it is a best case. The new
+  waveforms (`"sine"`, `"harmonics"`, `"sawtooth"`, `"pulse"`) give each
+  variable the same periodic shape with phase offsets set by `spread`,
+  and the amplitude can vary among variables and among cycles.
+
+- Documentation: the phase scheme assumes that a seasonal cycle shared
+  by `X` and `Y` is close to sinusoidal. With a shared sawtooth or pulse
+  cycle its Type I error was 0.10 to 0.34 in simulations; removing the
+  mean of each position in the cycle from both series, when they span
+  several whole cycles, restored it. See
+  [`?lagged_protest`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+  and the article “Simulating lagged series”, whose calibration study
+  now uses `stat = "z"` (with 99 surrogates, `"minP"` was too
+  conservative to show the power claimed in the text).
+
 - **Bug fix (changes results):** the global test now treats the observed
   result and the permutations alike, so it is exact when the
   permutations are exchangeable with the observed series.

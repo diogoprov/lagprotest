@@ -85,13 +85,15 @@ small calibration study.</p>
 <div class="section level2">
 <h2 id="what-the-function-generates">What the function generates<a class="anchor" aria-label="anchor" href="#what-the-function-generates"></a>
 </h2>
-<p>Each variable of <code>X</code> is a sine wave with period
+<p>Each variable of <code>X</code> is a seasonal signal with period
 <code>period</code> and amplitude <code>amplitude</code>, plus AR(1)
 noise with coefficient <code>autocorr</code> and marginal standard
-deviation <code>noise_sd</code>. All variables share a random phase,
-offset among variables so that they do not peak at the same time, which
-gives the series a two-dimensional seasonal trajectory, as in many
-ecological and physiological data sets.</p>
+deviation <code>noise_sd</code>. By default
+(<code>waveform = "circle"</code>), every variable is a sine wave; all
+share a random phase, offset among variables by evenly spaced steps so
+that they do not peak at the same time. This default is a special case,
+discussed in <a href="#seasonal-waveforms">Seasonal waveforms</a> below:
+the seasonal part of the series traces a circle.</p>
 <p><code>Y</code> depends on <code>true_lag</code>:</p>
 <ul>
 <li>
@@ -150,6 +152,11 @@ scheme</a>).</li>
 <code>amplitude</code>: the strength of the seasonal signal.
 <code>amplitude = 0</code> removes it and leaves pure AR(1) series.</li>
 <li>
+<code>waveform</code>, <code>spread</code>, <code>amp_sd_vars</code>
+and <code>amp_sd_cycles</code>: the shape of the seasonal signal, how
+far apart in phase the variables are, and how much the seasonal
+amplitude varies among variables and from one cycle to the next (see <a href="#seasonal-waveforms">Seasonal waveforms</a>).</li>
+<li>
 <code>autocorr</code> and <code>noise_sd</code>: the persistence and
 size of the non-seasonal variation. <code>noise_sd</code> applies both
 to <code>X</code> and to the noise added to <code>Y</code>. Because
@@ -170,14 +177,19 @@ over a plausible range.</p>
 <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> on each, and returns the proportion of
 replicates in which the global p-value was below α, together with the
 proportion in which the optimal lag matched the true one. Each replicate
-gets its own seed, so the study is reproducible.</p>
+gets its own seed, so the study is reproducible. The optional
+<code>prep</code> function is applied to both series before the test.
+The scan uses <code>stat = "z"</code>: with only 99 surrogates per
+replicate, the default <code>stat = "minP"</code> is conservative,
+because it needs at least 100 surrogates per lag scanned.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">calibrate</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n_rep</span>, <span class="va">true_lag</span> <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">n_times</span> <span class="op">=</span> <span class="fl">24</span>, <span class="va">lags</span> <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
-<span>                      <span class="va">nperm</span> <span class="op">=</span> <span class="fl">99</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
+<span>                      <span class="va">nperm</span> <span class="op">=</span> <span class="fl">99</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">prep</span> <span class="op">=</span> <span class="va">identity</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n_rep</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="va">n_times</span>, true_lag <span class="op">=</span> <span class="va">true_lag</span>,</span>
 <span>                                seed <span class="op">=</span> <span class="va">i</span>, <span class="va">...</span><span class="op">)</span></span>
-<span>    <span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">X</span>, <span class="va">s</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="va">lags</span>, nperm <span class="op">=</span> <span class="va">nperm</span>, seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
+<span>    <span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="fu">prep</span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">X</span><span class="op">)</span>, <span class="fu">prep</span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span>, lags <span class="op">=</span> <span class="va">lags</span>, nperm <span class="op">=</span> <span class="va">nperm</span>,</span>
+<span>                        stat <span class="op">=</span> <span class="st">"z"</span>, seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>reject <span class="op">=</span> <span class="va">f</span><span class="op">$</span><span class="va">p.global</span> <span class="op">&lt;</span> <span class="va">alpha</span>,</span>
 <span>      lag_found <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">true_lag</span><span class="op">)</span><span class="op">)</span> <span class="cn">NA</span> <span class="kw">else</span> <span class="va">f</span><span class="op">$</span><span class="va">optimal_lag</span> <span class="op">==</span> <span class="va">true_lag</span><span class="op">)</span></span>
 <span>  <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
@@ -197,241 +209,77 @@ surrogates.</p>
 <span>  power_n12 <span class="op">=</span> <span class="fu">calibrate</span><span class="op">(</span><span class="fl">100</span>, true_lag <span class="op">=</span> <span class="fl">2</span>, n_times <span class="op">=</span> <span class="fl">12</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>,</span>
 <span>                        period <span class="op">=</span> <span class="fl">12</span>, autocorr <span class="op">=</span> <span class="fl">0.5</span>, noise_sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.06 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 5 lags), so p &lt; 0.05 cannot be reached; use at least 500 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
-<span><span class="co">#&gt; With `stat = "minP"`, the smallest attainable global p-value is 0.05 (99 permutations, 4 lags), so p &lt; 0.05 cannot be reached; use at least 400 permutations or `stat = "z"`.</span></span>
 <span><span class="co">#&gt;            reject lag_found</span></span>
-<span><span class="co">#&gt; type_I_n24   0.03        NA</span></span>
-<span><span class="co">#&gt; power_n24    0.12      1.00</span></span>
-<span><span class="co">#&gt; power_n12    0.58      0.93</span></span></code></pre></div>
+<span><span class="co">#&gt; type_I_n24   0.05        NA</span></span>
+<span><span class="co">#&gt; power_n24    1.00      1.00</span></span>
+<span><span class="co">#&gt; power_n12    0.56      0.94</span></span></code></pre></div>
 <p>The first row should be close to 0.05. The second shows that two
 years of monthly data detect a two-month lag almost always. The third,
 with a single year of noisier data, shows that the global p-value
 detects the lag far less often even when the optimal lag is still
 usually the true one: the lag is easier to locate than to declare
 significant.</p>
+</div>
+<div class="section level2">
+<h2 id="seasonal-waveforms">Seasonal waveforms<a class="anchor" aria-label="anchor" href="#seasonal-waveforms"></a>
+</h2>
+<p>With the default <code>waveform = "circle"</code>, the seasonal part
+of each series spans a plane with evenly spaced phase offsets among its
+variables, so its configuration is a circle and a shift in time is an
+exact rotation of that circle. Procrustes analysis removes rotations, so
+a time shift of the seasonal cycle alone leaves the configuration
+unchanged. Phase surrogates of such a series are calibrated, but the
+generator is a best case and rarely describes real data, whose variables
+need not peak at evenly spaced times nor follow a sine wave.</p>
+<p>The other waveforms break this symmetry. Each variable follows the
+same periodic function, <code>"sine"</code>, <code>"harmonics"</code> (a
+sine with its second and third harmonics), <code>"sawtooth"</code> (a
+slow rise and an abrupt drop) or <code>"pulse"</code> (a short peak once
+per cycle), shifted by an offset around a common phase set by
+<code>spread</code>. All are scaled to the variance of a sine wave of
+the same amplitude. Amplitudes can vary among variables and among cycles
+with <code>amp_sd_vars</code> and <code>amp_sd_cycles</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">w</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"circle"</span>, <span class="st">"harmonics"</span>, <span class="st">"sawtooth"</span>, <span class="st">"pulse"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="fl">36</span>, waveform <span class="op">=</span> <span class="va">w</span>, noise_sd <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>                              amp_sd_cycles <span class="op">=</span> <span class="fl">0.2</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">X</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"l"</span>, main <span class="op">=</span> <span class="va">w</span>, xlab <span class="op">=</span> <span class="st">"Time"</span>, ylab <span class="op">=</span> <span class="st">"X[, 1]"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p><img src="simulating-series_files/figure-html/waveforms-1.png" class="r-plt" alt="Four panels showing one variable over 36 time points for the circle, harmonics, sawtooth and pulse waveforms." width="700"></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
+<p>The waveform matters for the phase scheme. A phase surrogate keeps
+the amplitude of every frequency but draws new phases, and an abrupt
+cycle is abrupt only because the phases of its harmonics are aligned.
+Two independent series with the same sawtooth cycle are therefore more
+concordant with each other than either is with the surrogates of the
+other, and the test rejects too often. Removing the mean of each
+position in the cycle (here, each calendar month) from both series
+before the test removes the shared shape and restores calibration,
+provided the series span several whole cycles:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">deseason</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">M</span>, <span class="va">period</span> <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">M</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">M</span>, <span class="fl">2</span>, <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span>, <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">M</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="va">period</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  sawtooth <span class="op">=</span> <span class="fu">calibrate</span><span class="op">(</span><span class="fl">100</span>, n_times <span class="op">=</span> <span class="fl">48</span>, period <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>                       waveform <span class="op">=</span> <span class="st">"sawtooth"</span>, noise_sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>  sawtooth_deseasoned <span class="op">=</span> <span class="fu">calibrate</span><span class="op">(</span><span class="fl">100</span>, n_times <span class="op">=</span> <span class="fl">48</span>, period <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>                                  waveform <span class="op">=</span> <span class="st">"sawtooth"</span>, noise_sd <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>                                  prep <span class="op">=</span> <span class="va">deseason</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">[</span>, <span class="st">"reject"</span><span class="op">]</span></span>
+<span><span class="co">#&gt;            sawtooth sawtooth_deseasoned </span></span>
+<span><span class="co">#&gt;                0.41                0.03</span></span></code></pre></div>
+<p>In a larger run with the default <code>stat = "minP"</code> (400
+replicates, 199 surrogates, <code>autocorr = 0.5</code>,
+<code>noise_sd = 0.5</code>, lags 0–4), the Type I error of the phase
+scheme was 0.26 with 24 monthly samples and 0.34 with 48 for a shared
+sawtooth, 0.10 and 0.18 for a shared pulse, and 0.03 to 0.05 for the
+circle, sine and harmonics waveforms; after removing the monthly means
+it was 0.01 to 0.04 for every waveform. With a single cycle
+(<code>n_times</code> equal to <code>period</code>), the monthly means
+are the series itself, so this remedy is not available.</p>
 </div>
 <div class="section level2">
 <h2 id="extending-the-study">Extending the study<a class="anchor" aria-label="anchor" href="#extending-the-study"></a>
@@ -445,6 +293,8 @@ call of <code><a href="../reference/lagged_protest.html">lagged_protest()</a></c
 <code>n_times = 24, period = 18</code>;</li>
 <li>check robustness to non-seasonal series with
 <code>amplitude = 0</code>;</li>
+<li>check robustness to the shape of the seasonal cycle with
+<code>waveform</code> and <code>spread</code>;</li>
 <li>use data sets of different dimension with <code>n_vars_x</code>
 different from <code>n_vars_y</code>.</li>
 </ul>

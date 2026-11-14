@@ -47,9 +47,9 @@ dim(sim$Y)
 ```
 
 [`simulate_lagged_series()`](https://provetelab.org/lagprotest/reference/simulate_lagged_series.md)
-builds seasonal sinusoids plus AR(1) noise. With `true_lag = NULL` it
-returns two independent series, which is useful for checking Type I
-error.
+builds seasonal sinusoids plus AR(1) noise (other seasonal shapes are
+available through `waveform`). With `true_lag = NULL` it returns two
+independent series, which is useful for checking Type I error.
 
 ## Running the test
 

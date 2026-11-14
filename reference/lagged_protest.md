@@ -189,7 +189,16 @@ Three permutation schemes are available:
   global p-value. It assumes a stationary `Y` and treats the series as
   periodic with period `n`. In simulations, it was liberal for short,
   strongly autocorrelated series (AR(1) of 0.7 or more with `n` of 48 or
-  less).
+  less). It also assumes that any seasonal cycle shared by `X` and `Y`
+  is close to sinusoidal: new phases destroy the alignment among the
+  harmonics of an abrupt cycle (a sawtooth or a short pulse), so the
+  surrogates no longer share the shape of the cycle, and the test can be
+  strongly liberal (Type I error of 0.10 to 0.34 in simulations with
+  `simulate_lagged_series(waveform = "sawtooth")` or `"pulse"`, 24 or 48
+  monthly samples). When the series span several whole cycles, removing
+  from both the mean of each position in the cycle (e.g., the mean of
+  each calendar month) before the test restored the Type I error in
+  those simulations.
 
 - `"cyclic"`: the full `Y` series is cyclically shifted by
   `1, ..., n - 1` positions before lagging, and optionally also
