@@ -12,6 +12,12 @@ print.lagged_protest <- function(x, digits = 3, ...) {
       if (!is.null(x$period)) paste0(" (whole cycles of period ", x$period,
                                      ")"),
       "\n", sep = "")
+  prep <- c(if (identical(x$deseason, "monthly")) "seasonal means removed",
+            if (identical(x$prewhiten, "prais"))
+              "Prais-Winsten AR(1) prewhitening")
+  if (length(prep)) {
+    cat("Preprocessing: ", paste(prep, collapse = ", then "), "\n", sep = "")
+  }
   cat("P-value adjustment across lags: ", x$p.adjust.method, "\n\n", sep = "")
   adjusted <- x$p.adjust.method != "none"
   cat("Optimal lag: ", x$optimal_lag,

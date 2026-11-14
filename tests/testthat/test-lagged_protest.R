@@ -217,9 +217,11 @@ test_that("period truncates the series to whole cycles", {
 })
 
 test_that("a period dividing n leaves the series unchanged", {
-  expect_no_message(
+  # Only the single-cycle reminder, no truncation.
+  expect_message(
     fit <- lagged_protest(sim$X, sim$Y, lags = 0:3, period = 12, nperm = 99,
-                          seed = 1, stat = "raw")
+                          seed = 1, stat = "raw"),
+    "^The series spans a single cycle"
   )
   ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99, seed = 1, stat = "raw")
   expect_equal(fit$profile, ref$profile)

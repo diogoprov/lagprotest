@@ -1,5 +1,23 @@
 # lagprotest (development version)
 
+* `lagged_protest()` gains two preprocessing options, both off by default,
+  applied to `X` and `Y` after truncation to whole cycles and before
+  standardization:
+  - `deseason = "monthly"` subtracts the mean of each position in the cycle
+    of length `period` (at least two whole cycles required). It restored
+    the Type I error of the phase scheme for shared seasonal cycles of any
+    shape in simulations.
+  - `prewhiten = "prais"` applies Prais-Winsten AR(1) prewhitening to every
+    column, keeping all rows; the coefficients are returned in `rho`. It
+    restored the Type I error for strongly autocorrelated non-seasonal
+    series, but can be liberal combined with `deseason` when an abrupt
+    cycle varies among years and the noise is strongly autocorrelated.
+  - A warning is issued for `prewhiten` on a seasonal series without
+    `deseason`, and a message recalls the sinusoidal assumption of the
+    phase scheme when the series spans a single cycle of `period`.
+  - `print()` reports the preprocessing, and `ar1` now describes the series
+    as analyzed. New article "Seasonality and autocorrelation".
+
 * `simulate_lagged_series()` gains `waveform`, `spread`, `amp_sd_vars` and
   `amp_sd_cycles`. The default seasonal signal (`waveform = "circle"`,
   unchanged, so earlier seeds give the same series) is a degenerate case:

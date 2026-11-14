@@ -16,6 +16,8 @@ lagged_protest(
   stat = c("minP", "z", "raw"),
   p.adjust.method = "none",
   period = NULL,
+  deseason = c("none", "monthly"),
+  prewhiten = c("none", "prais"),
   seed = NULL
 )
 }
@@ -60,6 +62,14 @@ method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"no
 rows (whole cycles) before analysis; a message reports the rows dropped.
 \code{NULL} (default) uses all rows.}
 
+\item{deseason}{\code{"none"} (default) or \code{"monthly"}, to subtract from both
+series the mean of each position in the cycle of length \code{period}
+(see Details).}
+
+\item{prewhiten}{\code{"none"} (default) or \code{"prais"}, for Prais-Winsten AR(1)
+prewhitening of every column of both series, applied after \code{deseason}
+(see Details).}
+
 \item{seed}{Optional integer seed for the \code{"phase"} and \code{"free"} schemes.
 The global random number stream is left untouched.}
 }
@@ -86,15 +96,19 @@ at the optimal lag, with the paired row labels of \code{X} and \code{Y}.}
 \code{A} and the chance-corrected \code{RV} coefficient at that lag (see
 Details).}
 \item{\code{ar1}}{Data frame with the mean lag-1 autocorrelation of the
-columns of \code{X} and \code{Y}, \code{raw} and \code{residual} after removing the
-harmonics of period \code{n} and \code{period}.}
+columns of \code{X} and \code{Y}, as analyzed (after any preprocessing), \code{raw}
+and \code{residual} after removing the harmonics of period \code{n} and
+\code{period}.}
 \item{\code{null}}{List of permuted \eqn{m^2} values, one element per lag;
 element \code{i} of every vector comes from the same permutation.}
 \item{\code{null.rv}}{List of permuted RV coefficients, paired with
 \code{null}.}
+\item{\code{rho}}{With \code{prewhiten = "prais"}, a list with the AR(1)
+coefficients used for the columns of \code{X} and \code{Y}; otherwise \code{NULL}.}
 \item{\code{permutation}, \code{stat}, \code{mirror}, \code{p.adjust.method}, \code{n}, \code{period},
-\code{call}}{Settings used; \code{mirror} is \code{NA} unless the scheme is cyclic,
-and \code{n} is the number of rows after any truncation to whole cycles.}
+\code{deseason}, \code{prewhiten}, \code{call}}{Settings used; \code{mirror} is \code{NA}
+unless the scheme is cyclic, and \code{n} is the number of rows after any
+truncation to whole cycles.}
 }
 }
 \description{
@@ -128,8 +142,7 @@ new phases destroy the alignment among the harmonics of an abrupt cycle
 shape of the cycle, and the test can be strongly liberal (Type I error
 of 0.10 to 0.34 in simulations with \code{simulate_lagged_series(waveform = "sawtooth")} or \code{"pulse"}, 24 or 48 monthly samples). When the series
 span several whole cycles, removing from both the mean of each position
-in the cycle (e.g., the mean of each calendar month) before the test
-restored the Type I error in those simulations.
+in the cycle (e.g., the mean of each calendar month; \code{deseason = "monthly"}) restored the Type I error in those simulations.
 \item \code{"cyclic"}: the full \code{Y} series is cyclically shifted by
 \verb{1, ..., n - 1} positions before lagging, and optionally also
 time-reversed (\code{mirror = TRUE}). This keeps the temporal autocorrelation
@@ -157,6 +170,44 @@ first \code{floor(n / period) * period} rows, so that the analysis spans whole
 cycles. In simulations, this restored the Type I error of series that
 already spanned complete cycles, whereas removing the seasonal component
 by harmonic regression did not.
+
+Two optional preprocessing steps are applied to both series, in this
+order, after truncation to whole cycles and before the columns are
+standardized (\code{scale}):
+\itemize{
+\item \code{deseason = "monthly"} subtracts from every column the mean of each
+position in the cycle (e.g., the mean of each calendar month), so that
+the test addresses the anomalies rather than a seasonal cycle that both
+series may share. It requires \code{period} and at least two whole cycles;
+the first row is taken as position 1 of the cycle. In simulations, it
+restored the Type I error of the phase scheme for shared seasonal cycles
+of any shape (see the caveat on non-sinusoidal cycles above), whereas
+removing two harmonics by regression did not suffice for a sawtooth.
+The scan then measures concordance among anomalies only. With
+strongly autocorrelated noise (AR(1) of 0.9), it remained slightly
+liberal (up to about 0.08).
+\item \code{prewhiten = "prais"} removes AR(1) autocorrelation from every column by
+the Prais-Winsten transformation, \eqn{x_1\sqrt{1 - \rho^2}} for the
+first row and \eqn{x_t - \rho x_{t-1}} for the others, with
+\eqn{\rho} the lag-1 autocorrelation of the column (returned in
+\code{rho}). Unlike ordinary prewhitening, it keeps all \code{n} rows: dropping
+the first row after removing seasonal means made the test strongly
+liberal in simulations, and so did prewhitening before removing them.
+For strongly autocorrelated series without seasonality, prewhitening
+brought the Type I error of the phase scheme from 0.10--0.19 back to
+the nominal level, and it increased power when the anomalies were
+strongly autocorrelated. Combined with \code{deseason}, it can be liberal
+when an abrupt seasonal cycle varies in amplitude among years and the
+noise is strongly autocorrelated (about 0.10 in simulations with a
+sawtooth cycle and AR(1) of 0.9), where \code{deseason} alone was not. A
+warning is issued when it is requested for a seasonal series (\code{period}
+given) without \code{deseason}, a combination that inflated the Type I
+error in simulations.
+}
+
+With a single cycle (\code{n} equal to \code{period}), seasonal means cannot be
+separated from the signal; a message then recalls that the phase scheme
+assumes a close-to-sinusoidal shared cycle.
 
 P-values are computed as \code{(b + 1) / (N + 1)}, where \code{b} is the number of
 permuted \eqn{m^2} values smaller than or equal to the observed one and
@@ -273,6 +324,14 @@ fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
 fit_cyclic$profile
 plot(fit)
 residuals(fit)
+
+# Four years of monthly data sharing an abrupt seasonal cycle: test the
+# anomalies, with AR(1) prewhitening
+saw <- simulate_lagged_series(n_times = 48, true_lag = 2,
+                              waveform = "sawtooth", noise_sd = 1,
+                              seed = 1)
+lagged_protest(saw$X, saw$Y, lags = 0:4, period = 12,
+               deseason = "monthly", prewhiten = "prais", seed = 1)
 }
 \references{
 Ge, Y., Dudoit, S. and Speed, T. P. (2003). Resampling-based multiple
