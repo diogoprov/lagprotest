@@ -5,8 +5,9 @@ articles:
   lagprotest: lagprotest.html
   articles/liver-example: liver-example.html
   articles/permutation-schemes: permutation-schemes.html
+  articles/seasonality: seasonality.html
   articles/simulating-series: simulating-series.html
-last_built: 2026-11-14T14:24Z
+last_built: 2026-11-14T15:55Z
 urls:
   reference: https://provetelab.org/lagprotest/reference
   article: https://provetelab.org/lagprotest/articles

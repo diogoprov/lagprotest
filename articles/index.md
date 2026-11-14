@@ -9,6 +9,8 @@
 
 - [Choosing a permutation
   scheme](https://provetelab.org/lagprotest/articles/permutation-schemes.md):
+- [Seasonality and
+  autocorrelation](https://provetelab.org/lagprotest/articles/seasonality.md):
 - [Simulating lagged
   series](https://provetelab.org/lagprotest/articles/simulating-series.md):
 - [Example: seasonal liver plasticity in a

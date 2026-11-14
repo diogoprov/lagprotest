@@ -41,6 +41,7 @@
 <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
     <li><a class="dropdown-item" href="../articles/permutation-schemes.html">Choosing a permutation scheme</a></li>
+    <li><a class="dropdown-item" href="../articles/seasonality.html">Seasonality and autocorrelation</a></li>
     <li><a class="dropdown-item" href="../articles/simulating-series.html">Simulating lagged series</a></li>
     <li><a class="dropdown-item" href="../articles/liver-example.html">Example: seasonal liver plasticity in a treefrog</a></li>
   </ul>
@@ -97,8 +98,7 @@ all schemes somewhat liberal;</li>
 <li>the seasonal signal in this study is sinusoidal; when the series
 share an abrupt seasonal cycle (a sawtooth or a pulse), phase surrogates
 are liberal unless the mean of each position in the cycle is removed
-first (see <a href="simulating-series.html#seasonal-waveforms">Simulating lagged
-series</a>).</li>
+first (<code>deseason = "monthly"</code>; see <a href="seasonality.html">Seasonality and autocorrelation</a>).</li>
 </ul>
 <div class="section level2">
 <h2 id="the-simulation-study">The simulation study<a class="anchor" aria-label="anchor" href="#the-simulation-study"></a>

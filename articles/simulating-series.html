@@ -41,6 +41,7 @@
 <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
     <li><a class="dropdown-item" href="../articles/permutation-schemes.html">Choosing a permutation scheme</a></li>
+    <li><a class="dropdown-item" href="../articles/seasonality.html">Seasonality and autocorrelation</a></li>
     <li><a class="dropdown-item" href="../articles/simulating-series.html">Simulating lagged series</a></li>
     <li><a class="dropdown-item" href="../articles/liver-example.html">Example: seasonal liver plasticity in a treefrog</a></li>
   </ul>
@@ -257,7 +258,12 @@ concordant with each other than either is with the surrogates of the
 other, and the test rejects too often. Removing the mean of each
 position in the cycle (here, each calendar month) from both series
 before the test removes the shared shape and restores calibration,
-provided the series span several whole cycles:</p>
+provided the series span several whole cycles. The helper below does
+this by hand, so that it can be passed to <code>calibrate()</code>; in
+an analysis,
+<code>lagged_protest(..., period = 12, deseason = "monthly")</code> does
+the same (see <a href="seasonality.html">Seasonality and
+autocorrelation</a>):</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">deseason</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">M</span>, <span class="va">period</span> <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">M</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">M</span>, <span class="fl">2</span>, <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span>, <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">M</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="va">period</span><span class="op">)</span></span>

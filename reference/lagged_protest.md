@@ -18,6 +18,8 @@ lagged_protest(
   stat = c("minP", "z", "raw"),
   p.adjust.method = "none",
   period = NULL,
+  deseason = c("none", "monthly"),
+  prewhiten = c("none", "prais"),
   seed = NULL
 )
 ```
@@ -84,6 +86,17 @@ lagged_protest(
   cycles) before analysis; a message reports the rows dropped. `NULL`
   (default) uses all rows.
 
+- deseason:
+
+  `"none"` (default) or `"monthly"`, to subtract from both series the
+  mean of each position in the cycle of length `period` (see Details).
+
+- prewhiten:
+
+  `"none"` (default) or `"prais"`, for Prais-Winsten AR(1) prewhitening
+  of every column of both series, applied after `deseason` (see
+  Details).
+
 - seed:
 
   Optional integer seed for the `"phase"` and `"free"` schemes. The
@@ -148,8 +161,8 @@ An object of class `"lagged_protest"`, a list with:
 - `ar1`:
 
   Data frame with the mean lag-1 autocorrelation of the columns of `X`
-  and `Y`, `raw` and `residual` after removing the harmonics of period
-  `n` and `period`.
+  and `Y`, as analyzed (after any preprocessing), `raw` and `residual`
+  after removing the harmonics of period `n` and `period`.
 
 - `null`:
 
@@ -160,8 +173,13 @@ An object of class `"lagged_protest"`, a list with:
 
   List of permuted RV coefficients, paired with `null`.
 
+- `rho`:
+
+  With `prewhiten = "prais"`, a list with the AR(1) coefficients used
+  for the columns of `X` and `Y`; otherwise `NULL`.
+
 - `permutation`, `stat`, `mirror`, `p.adjust.method`, `n`, `period`,
-  `call`:
+  `deseason`, `prewhiten`, `call`:
 
   Settings used; `mirror` is `NA` unless the scheme is cyclic, and `n`
   is the number of rows after any truncation to whole cycles.
@@ -197,8 +215,8 @@ Three permutation schemes are available:
   `simulate_lagged_series(waveform = "sawtooth")` or `"pulse"`, 24 or 48
   monthly samples). When the series span several whole cycles, removing
   from both the mean of each position in the cycle (e.g., the mean of
-  each calendar month) before the test restored the Type I error in
-  those simulations.
+  each calendar month; `deseason = "monthly"`) restored the Type I error
+  in those simulations.
 
 - `"cyclic"`: the full `Y` series is cyclically shifted by
   `1, ..., n - 1` positions before lagging, and optionally also
@@ -229,6 +247,44 @@ both series to their first `floor(n / period) * period` rows, so that
 the analysis spans whole cycles. In simulations, this restored the Type
 I error of series that already spanned complete cycles, whereas removing
 the seasonal component by harmonic regression did not.
+
+Two optional preprocessing steps are applied to both series, in this
+order, after truncation to whole cycles and before the columns are
+standardized (`scale`):
+
+- `deseason = "monthly"` subtracts from every column the mean of each
+  position in the cycle (e.g., the mean of each calendar month), so that
+  the test addresses the anomalies rather than a seasonal cycle that
+  both series may share. It requires `period` and at least two whole
+  cycles; the first row is taken as position 1 of the cycle. In
+  simulations, it restored the Type I error of the phase scheme for
+  shared seasonal cycles of any shape (see the caveat on non-sinusoidal
+  cycles above), whereas removing two harmonics by regression did not
+  suffice for a sawtooth. The scan then measures concordance among
+  anomalies only. With strongly autocorrelated noise (AR(1) of 0.9), it
+  remained slightly liberal (up to about 0.08).
+
+- `prewhiten = "prais"` removes AR(1) autocorrelation from every column
+  by the Prais-Winsten transformation, \\x_1\sqrt{1 - \rho^2}\\ for the
+  first row and \\x_t - \rho x\_{t-1}\\ for the others, with \\\rho\\
+  the lag-1 autocorrelation of the column (returned in `rho`). Unlike
+  ordinary prewhitening, it keeps all `n` rows: dropping the first row
+  after removing seasonal means made the test strongly liberal in
+  simulations, and so did prewhitening before removing them. For
+  strongly autocorrelated series without seasonality, prewhitening
+  brought the Type I error of the phase scheme from 0.10–0.19 back to
+  the nominal level, and it increased power when the anomalies were
+  strongly autocorrelated. Combined with `deseason`, it can be liberal
+  when an abrupt seasonal cycle varies in amplitude among years and the
+  noise is strongly autocorrelated (about 0.10 in simulations with a
+  sawtooth cycle and AR(1) of 0.9), where `deseason` alone was not. A
+  warning is issued when it is requested for a seasonal series (`period`
+  given) without `deseason`, a combination that inflated the Type I
+  error in simulations.
+
+With a single cycle (`n` equal to `period`), seasonal means cannot be
+separated from the signal; a message then recalls that the phase scheme
+assumes a close-to-sinusoidal shared cycle.
 
 P-values are computed as `(b + 1) / (N + 1)`, where `b` is the number of
 permuted \\m^2\\ values smaller than or equal to the observed one and
@@ -414,4 +470,35 @@ residuals(fit)
 #> 8      8    10 0.06927409
 #> 9      9    11 0.07813342
 #> 10    10    12 0.08188577
+
+# Four years of monthly data sharing an abrupt seasonal cycle: test the
+# anomalies, with AR(1) prewhitening
+saw <- simulate_lagged_series(n_times = 48, true_lag = 2,
+                              waveform = "sawtooth", noise_sd = 1,
+                              seed = 1)
+lagged_protest(saw$X, saw$Y, lags = 0:4, period = 12,
+               deseason = "monthly", prewhiten = "prais", seed = 1)
+#> 
+#> Lagged PROTEST
+#> 
+#> Call: lagged_protest(X = saw$X, Y = saw$Y, lags = 0:4, period = 12, deseason = "monthly", 
+#>     prewhiten = "prais", seed = 1)
+#> Permutation: phase-randomized surrogates; n = 48 time points (whole cycles of period 12)
+#> Preprocessing: seasonal means removed, then Prais-Winsten AR(1) prewhitening
+#> P-value adjustment across lags: none
+#> 
+#> Optimal lag: 2  (m2 = 0.507, r = 0.702, p = 0.001)
+#> Global p across lags (minP scan): 0.005
+#> Effect at lag 2 (largest z): Z = 11.5, A = 0.404, corrected RV = 0.425
+#> Mean lag-1 autocorrelation, raw (residual after removing the cycle): X 0.024 (-0.046), Y 0.057 (-0.015)
+#> 
+#> Lag profile:
+#>  lag  n    m2     r p.value nperm        z         a
+#>    0 48 0.916 0.290   0.708   999 -0.59714 -0.020735
+#>    1 47 0.922 0.280   0.811   999 -0.85029 -0.030585
+#>    2 46 0.507 0.702   0.001   999 11.56998  0.431889
+#>    3 45 0.892 0.329   0.442   999  0.00522  0.000194
+#>    4 44 0.889 0.333   0.454   999  0.01432  0.000521
+#> Per-lag p-values are not corrected for testing several lags or for selecting
+#> the optimal lag; report the global p for the optimal lag.
 ```

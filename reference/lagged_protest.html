@@ -24,6 +24,7 @@ candidate temporal lags and tests it by permutation at each lag."><meta property
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
     <li><a class="dropdown-item" href="../articles/permutation-schemes.html">Choosing a permutation scheme</a></li>
+    <li><a class="dropdown-item" href="../articles/seasonality.html">Seasonality and autocorrelation</a></li>
     <li><a class="dropdown-item" href="../articles/simulating-series.html">Simulating lagged series</a></li>
     <li><a class="dropdown-item" href="../articles/liver-example.html">Example: seasonal liver plasticity in a treefrog</a></li>
   </ul></li>
@@ -62,6 +63,8 @@ candidate temporal lags and tests it by permutation at each lag.</p>
 <span>  stat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minP"</span>, <span class="st">"z"</span>, <span class="st">"raw"</span><span class="op">)</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  period <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  deseason <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"monthly"</span><span class="op">)</span>,</span>
+<span>  prewhiten <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"prais"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -130,6 +133,18 @@ rows (whole cycles) before analysis; a message reports the rows dropped.
 <code>NULL</code> (default) uses all rows.</p></dd>
 
 
+<dt id="arg-deseason">deseason<a class="anchor" aria-label="anchor" href="#arg-deseason"></a></dt>
+<dd><p><code>"none"</code> (default) or <code>"monthly"</code>, to subtract from both
+series the mean of each position in the cycle of length <code>period</code>
+(see Details).</p></dd>
+
+
+<dt id="arg-prewhiten">prewhiten<a class="anchor" aria-label="anchor" href="#arg-prewhiten"></a></dt>
+<dd><p><code>"none"</code> (default) or <code>"prais"</code>, for Prais-Winsten AR(1)
+prewhitening of every column of both series, applied after <code>deseason</code>
+(see Details).</p></dd>
+
+
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>Optional integer seed for the <code>"phase"</code> and <code>"free"</code> schemes.
 The global random number stream is left untouched.</p></dd>
@@ -180,8 +195,9 @@ Details).</p></dd>
 
 <dt><code>ar1</code></dt>
 <dd><p>Data frame with the mean lag-1 autocorrelation of the
-columns of <code>X</code> and <code>Y</code>, <code>raw</code> and <code>residual</code> after removing the
-harmonics of period <code>n</code> and <code>period</code>.</p></dd>
+columns of <code>X</code> and <code>Y</code>, as analyzed (after any preprocessing), <code>raw</code>
+and <code>residual</code> after removing the harmonics of period <code>n</code> and
+<code>period</code>.</p></dd>
 
 <dt><code>null</code></dt>
 <dd><p>List of permuted \(m^2\) values, one element per lag;
@@ -191,10 +207,15 @@ element <code>i</code> of every vector comes from the same permutation.</p></dd>
 <dd><p>List of permuted RV coefficients, paired with
 <code>null</code>.</p></dd>
 
+<dt><code>rho</code></dt>
+<dd><p>With <code>prewhiten = "prais"</code>, a list with the AR(1)
+coefficients used for the columns of <code>X</code> and <code>Y</code>; otherwise <code>NULL</code>.</p></dd>
+
 <dt><code>permutation</code>, <code>stat</code>, <code>mirror</code>, <code>p.adjust.method</code>, <code>n</code>, <code>period</code>,
-<code>call</code></dt>
-<dd><p>Settings used; <code>mirror</code> is <code>NA</code> unless the scheme is cyclic,
-and <code>n</code> is the number of rows after any truncation to whole cycles.</p></dd>
+<code>deseason</code>, <code>prewhiten</code>, <code>call</code></dt>
+<dd><p>Settings used; <code>mirror</code> is <code>NA</code>
+unless the scheme is cyclic, and <code>n</code> is the number of rows after any
+truncation to whole cycles.</p></dd>
 
 
 </dl></div>
@@ -223,8 +244,7 @@ new phases destroy the alignment among the harmonics of an abrupt cycle
 shape of the cycle, and the test can be strongly liberal (Type I error
 of 0.10 to 0.34 in simulations with <code>simulate_lagged_series(waveform = "sawtooth")</code> or <code>"pulse"</code>, 24 or 48 monthly samples). When the series
 span several whole cycles, removing from both the mean of each position
-in the cycle (e.g., the mean of each calendar month) before the test
-restored the Type I error in those simulations.</p></li>
+in the cycle (e.g., the mean of each calendar month; <code>deseason = "monthly"</code>) restored the Type I error in those simulations.</p></li>
 <li><p><code>"cyclic"</code>: the full <code>Y</code> series is cyclically shifted by
 <code>1, ..., n - 1</code> positions before lagging, and optionally also
 time-reversed (<code>mirror = TRUE</code>). This keeps the temporal autocorrelation
@@ -250,6 +270,39 @@ first <code>floor(n / period) * period</code> rows, so that the analysis spans w
 cycles. In simulations, this restored the Type I error of series that
 already spanned complete cycles, whereas removing the seasonal component
 by harmonic regression did not.</p>
+<p>Two optional preprocessing steps are applied to both series, in this
+order, after truncation to whole cycles and before the columns are
+standardized (<code>scale</code>):</p><ul><li><p><code>deseason = "monthly"</code> subtracts from every column the mean of each
+position in the cycle (e.g., the mean of each calendar month), so that
+the test addresses the anomalies rather than a seasonal cycle that both
+series may share. It requires <code>period</code> and at least two whole cycles;
+the first row is taken as position 1 of the cycle. In simulations, it
+restored the Type I error of the phase scheme for shared seasonal cycles
+of any shape (see the caveat on non-sinusoidal cycles above), whereas
+removing two harmonics by regression did not suffice for a sawtooth.
+The scan then measures concordance among anomalies only. With
+strongly autocorrelated noise (AR(1) of 0.9), it remained slightly
+liberal (up to about 0.08).</p></li>
+<li><p><code>prewhiten = "prais"</code> removes AR(1) autocorrelation from every column by
+the Prais-Winsten transformation, \(x_1\sqrt{1 - \rho^2}\) for the
+first row and \(x_t - \rho x_{t-1}\) for the others, with
+\(\rho\) the lag-1 autocorrelation of the column (returned in
+<code>rho</code>). Unlike ordinary prewhitening, it keeps all <code>n</code> rows: dropping
+the first row after removing seasonal means made the test strongly
+liberal in simulations, and so did prewhitening before removing them.
+For strongly autocorrelated series without seasonality, prewhitening
+brought the Type I error of the phase scheme from 0.10–0.19 back to
+the nominal level, and it increased power when the anomalies were
+strongly autocorrelated. Combined with <code>deseason</code>, it can be liberal
+when an abrupt seasonal cycle varies in amplitude among years and the
+noise is strongly autocorrelated (about 0.10 in simulations with a
+sawtooth cycle and AR(1) of 0.9), where <code>deseason</code> alone was not. A
+warning is issued when it is requested for a seasonal series (<code>period</code>
+given) without <code>deseason</code>, a combination that inflated the Type I
+error in simulations.</p></li>
+</ul><p>With a single cycle (<code>n</code> equal to <code>period</code>), seasonal means cannot be
+separated from the signal; a message then recalls that the phase scheme
+assumes a close-to-sinusoidal shared cycle.</p>
 <p>P-values are computed as <code>(b + 1) / (N + 1)</code>, where <code>b</code> is the number of
 permuted \(m^2\) values smaller than or equal to the observed one and
 <code>N</code> the number of permutations (Manly and Navarro Alberto 2020, p. 57).
@@ -418,6 +471,37 @@ Testing: Examples and Methods for p-Value Adjustment</em>. Wiley, New York.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8      8    10 0.06927409</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 9      9    11 0.07813342</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10    10    12 0.08188577</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Four years of monthly data sharing an abrupt seasonal cycle: test the</span></span></span>
+<span class="r-in"><span><span class="co"># anomalies, with AR(1) prewhitening</span></span></span>
+<span class="r-in"><span><span class="va">saw</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="fl">48</span>, true_lag <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                              waveform <span class="op">=</span> <span class="st">"sawtooth"</span>, noise_sd <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>                              seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">lagged_protest</span><span class="op">(</span><span class="va">saw</span><span class="op">$</span><span class="va">X</span>, <span class="va">saw</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, period <span class="op">=</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>               deseason <span class="op">=</span> <span class="st">"monthly"</span>, prewhiten <span class="op">=</span> <span class="st">"prais"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Lagged PROTEST</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call: lagged_protest(X = saw$X, Y = saw$Y, lags = 0:4, period = 12, deseason = "monthly", </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     prewhiten = "prais", seed = 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Permutation: phase-randomized surrogates; n = 48 time points (whole cycles of period 12)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Preprocessing: seasonal means removed, then Prais-Winsten AR(1) prewhitening</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P-value adjustment across lags: none</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Optimal lag: 2  (m2 = 0.507, r = 0.702, p = 0.001)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Global p across lags (minP scan): 0.005</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Effect at lag 2 (largest z): Z = 11.5, A = 0.404, corrected RV = 0.425</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Mean lag-1 autocorrelation, raw (residual after removing the cycle): X 0.024 (-0.046), Y 0.057 (-0.015)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Lag profile:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  lag  n    m2     r p.value nperm        z         a</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    0 48 0.916 0.290   0.708   999 -0.59714 -0.020735</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1 47 0.922 0.280   0.811   999 -0.85029 -0.030585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    2 46 0.507 0.702   0.001   999 11.56998  0.431889</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    3 45 0.892 0.329   0.442   999  0.00522  0.000194</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    4 44 0.889 0.333   0.454   999  0.01432  0.000521</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Per-lag p-values are not corrected for testing several lags or for selecting</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> the optimal lag; report the global p for the optimal lag.</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

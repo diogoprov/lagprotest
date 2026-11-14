@@ -200,7 +200,11 @@ concordant with each other than either is with the surrogates of the
 other, and the test rejects too often. Removing the mean of each
 position in the cycle (here, each calendar month) from both series
 before the test removes the shared shape and restores calibration,
-provided the series span several whole cycles:
+provided the series span several whole cycles. The helper below does
+this by hand, so that it can be passed to `calibrate()`; in an analysis,
+`lagged_protest(..., period = 12, deseason = "monthly")` does the same
+(see [Seasonality and
+autocorrelation](https://provetelab.org/lagprotest/articles/seasonality.md)):
 
 ``` r
 

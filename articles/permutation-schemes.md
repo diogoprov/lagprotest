@@ -22,8 +22,8 @@ into practical advice. The main points are:
 - the seasonal signal in this study is sinusoidal; when the series share
   an abrupt seasonal cycle (a sawtooth or a pulse), phase surrogates are
   liberal unless the mean of each position in the cycle is removed first
-  (see [Simulating lagged
-  series](https://provetelab.org/lagprotest/articles/simulating-series.html#seasonal-waveforms)).
+  (`deseason = "monthly"`; see [Seasonality and
+  autocorrelation](https://provetelab.org/lagprotest/articles/seasonality.md)).
 
 ## The simulation study
 
