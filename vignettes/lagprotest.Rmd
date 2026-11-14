@@ -54,7 +54,8 @@ dim(sim$X)
 dim(sim$Y)
 ```
 
-`simulate_lagged_series()` builds seasonal sinusoids plus AR(1) noise. With
+`simulate_lagged_series()` builds seasonal sinusoids plus AR(1) noise
+(other seasonal shapes are available through `waveform`). With
 `true_lag = NULL` it returns two independent series, which is useful for
 checking Type I error.
 

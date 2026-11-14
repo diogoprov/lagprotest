@@ -121,7 +121,15 @@ applied jointly to all lags and do not reproduce the observed alignment,
 which makes this the recommended scheme for the global p-value. It
 assumes a stationary \code{Y} and treats the series as periodic with period
 \code{n}. In simulations, it was liberal for short, strongly autocorrelated
-series (AR(1) of 0.7 or more with \code{n} of 48 or less).
+series (AR(1) of 0.7 or more with \code{n} of 48 or less). It also assumes
+that any seasonal cycle shared by \code{X} and \code{Y} is close to sinusoidal:
+new phases destroy the alignment among the harmonics of an abrupt cycle
+(a sawtooth or a short pulse), so the surrogates no longer share the
+shape of the cycle, and the test can be strongly liberal (Type I error
+of 0.10 to 0.34 in simulations with \code{simulate_lagged_series(waveform = "sawtooth")} or \code{"pulse"}, 24 or 48 monthly samples). When the series
+span several whole cycles, removing from both the mean of each position
+in the cycle (e.g., the mean of each calendar month) before the test
+restored the Type I error in those simulations.
 \item \code{"cyclic"}: the full \code{Y} series is cyclically shifted by
 \verb{1, ..., n - 1} positions before lagging, and optionally also
 time-reversed (\code{mirror = TRUE}). This keeps the temporal autocorrelation

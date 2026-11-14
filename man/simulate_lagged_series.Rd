@@ -11,6 +11,10 @@ simulate_lagged_series(
   true_lag = NULL,
   period = 12,
   amplitude = 1,
+  waveform = c("circle", "sine", "harmonics", "sawtooth", "pulse"),
+  spread = c("inphase", "anti", "random"),
+  amp_sd_vars = 0,
+  amp_sd_cycles = 0,
   autocorr = 0.5,
   noise_sd = 1,
   seed = NULL
@@ -27,7 +31,21 @@ not the absence of one.}
 
 \item{period}{Length of the seasonal cycle, in time steps.}
 
-\item{amplitude}{Amplitude of the seasonal sinusoids.}
+\item{amplitude}{Amplitude of the seasonal signal (that of an equivalent
+sinusoid for the non-sinusoidal waveforms).}
+
+\item{waveform}{Shape of the seasonal signal: \code{"circle"} (default),
+\code{"sine"}, \code{"harmonics"}, \code{"sawtooth"} or \code{"pulse"}. See Details.}
+
+\item{spread}{Phase offsets of the variables around the block phase, for
+every waveform except \code{"circle"}: \code{"inphase"} (default; normal with SD
+0.3 rad, so the variables peak at about the same time), \code{"anti"} (as
+\code{"inphase"}, with every second variable shifted by half a cycle) or
+\code{"random"} (uniform over the cycle).}
+
+\item{amp_sd_vars, amp_sd_cycles}{Standard deviations of the log-normal
+multipliers of the seasonal amplitude among variables and among cycles
+of length \code{period}. \code{0} (default) keeps amplitudes equal.}
 
 \item{autocorr}{AR(1) coefficient of the noise, in \verb{(-1, 1)}.}
 
@@ -41,14 +59,43 @@ A list with matrices \code{X} (\code{n_times} x \code{n_vars_x}) and \code{Y}
 (\code{n_times} x \code{n_vars_y}), and \code{true_lag}.
 }
 \description{
-Generates \code{X} as a multivariate seasonal series (sinusoids with a random
-common phase and staggered offsets among variables) plus AR(1) noise.
-Under the null (\code{true_lag = NULL}), \code{Y} is an independent draw from the
-same generator. Otherwise \code{Y} at time \code{t} is a linear map of \code{X} at time
+Generates \code{X} as a multivariate seasonal series plus AR(1) noise. Under
+the null (\code{true_lag = NULL}), \code{Y} is an independent draw from the same
+generator. Otherwise \code{Y} at time \code{t} is a linear map of \code{X} at time
 \code{t - true_lag} plus AR(1) noise; \code{X} is generated over \code{n_times + true_lag}
 points so that every row of \code{Y} has a source in \code{X}.
 }
 \details{
+The seasonal component is set by \code{waveform}. The default, \code{"circle"},
+gives every variable a sinusoid with a random phase common to the block
+and offsets of \eqn{(j - 1)\pi/p} among the \eqn{p} variables. These
+columns span a single plane with evenly spaced offsets, so the seasonal
+configuration is a circle and a shift in time is an exact rotation of it,
+which Procrustes analysis absorbs. Calibration estimated with this
+generator is therefore a best case. The other waveforms break
+this symmetry. Each variable follows the same periodic function, shifted
+by an offset drawn around the block phase as set by \code{spread}:
+\itemize{
+\item \code{"sine"}: \eqn{\sin\theta};
+\item \code{"harmonics"}: \eqn{\sin\theta + 0.5\sin(2\theta + \psi_2) +
+  0.3\sin(3\theta + \psi_3)}, with \eqn{\psi} drawn once per block;
+\item \code{"sawtooth"}: a linear rise over the cycle followed by an abrupt drop;
+\item \code{"pulse"}: \eqn{\exp(3\cos\theta)}, a short peak once per cycle.
+}
+
+These waveforms are centered and scaled to the standard deviation of a
+sinusoid of the same \code{amplitude} (\eqn{amplitude/\sqrt 2} over a full
+cycle), so that seasonal strength is comparable among them. When \code{X} and
+\code{Y} share a non-sinusoidal waveform (\code{"sawtooth"} or \code{"pulse"}), phase
+surrogates do not preserve the alignment of the harmonics within each
+cycle, and the phase scheme of \code{\link[=lagged_protest]{lagged_protest()}} can be strongly liberal
+(see the article "Simulating lagged series").
+
+Amplitudes can also vary among variables (\code{amp_sd_vars}) and among
+successive cycles (\code{amp_sd_cycles}): each variable, or each cycle, has its
+seasonal signal multiplied by \eqn{\exp(N(0, \sigma^2))}. Both apply to
+every waveform, including \code{"circle"}.
+
 Setting \code{amplitude = 0} removes the seasonal component and leaves pure
 AR(1) series; setting \code{autocorr = 0} gives white noise around the
 seasonal signal. The article "Simulating lagged series" shows how to use
@@ -58,4 +105,10 @@ the function for a calibration study.
 null_pair <- simulate_lagged_series(n_times = 12, seed = 42)
 lagged_pair <- simulate_lagged_series(n_times = 24, true_lag = 3, seed = 42)
 str(lagged_pair)
+
+# Abrupt seasonality that varies in amplitude between years
+saw <- simulate_lagged_series(n_times = 36, waveform = "sawtooth",
+                              amp_sd_cycles = 0.3, noise_sd = 0.3,
+                              seed = 42)
+matplot(saw$X, type = "l", lty = 1, xlab = "Time", ylab = "X")
 }

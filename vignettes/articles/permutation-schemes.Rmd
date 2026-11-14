@@ -24,7 +24,11 @@ practical advice. The main points are:
 * no scheme is calibrated when the seasonal period differs from the series
   length unless the series is truncated to whole cycles (argument `period`),
   and strong autocorrelation in short series makes all schemes
-  somewhat liberal.
+  somewhat liberal;
+* the seasonal signal in this study is sinusoidal; when the series share an
+  abrupt seasonal cycle (a sawtooth or a pulse), phase surrogates are
+  liberal unless the mean of each position in the cycle is removed first
+  (see [Simulating lagged series](simulating-series.html#seasonal-waveforms)).
 
 ## The simulation study
 

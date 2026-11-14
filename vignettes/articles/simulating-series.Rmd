@@ -20,12 +20,14 @@ study.
 
 ## What the function generates
 
-Each variable of `X` is a sine wave with period `period` and amplitude
-`amplitude`, plus AR(1) noise with coefficient `autocorr` and marginal
-standard deviation `noise_sd`. All variables share a random phase, offset
-among variables so that they do not peak at the same time, which gives the
-series a two-dimensional seasonal trajectory, as in many ecological and
-physiological data sets.
+Each variable of `X` is a seasonal signal with period `period` and
+amplitude `amplitude`, plus AR(1) noise with coefficient `autocorr` and
+marginal standard deviation `noise_sd`. By default (`waveform = "circle"`),
+every variable is a sine wave; all share a random phase, offset among
+variables by evenly spaced steps so that they do not peak at the same time.
+This default is a special case, discussed in
+[Seasonal waveforms](#seasonal-waveforms) below: the seasonal part of the
+series traces a circle.
 
 `Y` depends on `true_lag`:
 
@@ -71,6 +73,10 @@ The parameters map onto features of a real design:
   not calibrated (see [Choosing a permutation scheme](permutation-schemes.html)).
 * `amplitude`: the strength of the seasonal signal. `amplitude = 0` removes
   it and leaves pure AR(1) series.
+* `waveform`, `spread`, `amp_sd_vars` and `amp_sd_cycles`: the shape of the
+  seasonal signal, how far apart in phase the variables are, and how much
+  the seasonal amplitude varies among variables and from one cycle to the
+  next (see [Seasonal waveforms](#seasonal-waveforms)).
 * `autocorr` and `noise_sd`: the persistence and size of the non-seasonal
   variation. `noise_sd` applies both to `X` and to the noise added to `Y`.
   Because `Y` is a lagged copy of `X`, including the noise of `X`, a larger
@@ -88,14 +94,19 @@ The function below simulates `n_rep` pairs, runs `lagged_protest()` on each,
 and returns the proportion of replicates in which the global p-value was
 below α, together with the proportion in which the optimal lag matched the
 true one. Each replicate gets its own seed, so the study is reproducible.
+The optional `prep` function is applied to both series before the test.
+The scan uses `stat = "z"`: with only 99 surrogates per replicate, the
+default `stat = "minP"` is conservative, because it needs at least 100
+surrogates per lag scanned.
 
 ```{r study-function}
 calibrate <- function(n_rep, true_lag = NULL, n_times = 24, lags = 0:4,
-                      nperm = 99, alpha = 0.05, ...) {
+                      nperm = 99, alpha = 0.05, prep = identity, ...) {
   res <- vapply(seq_len(n_rep), function(i) {
     s <- simulate_lagged_series(n_times = n_times, true_lag = true_lag,
                                 seed = i, ...)
-    f <- lagged_protest(s$X, s$Y, lags = lags, nperm = nperm, seed = i)
+    f <- lagged_protest(prep(s$X), prep(s$Y), lags = lags, nperm = nperm,
+                        stat = "z", seed = i)
     c(reject = f$p.global < alpha,
       lag_found = if (is.null(true_lag)) NA else f$optimal_lag == true_lag)
   }, numeric(2))
@@ -125,6 +136,66 @@ year of noisier data, shows that the global p-value detects the lag far less
 often even when the optimal lag is still usually the true one: the lag is
 easier to locate than to declare significant.
 
+## Seasonal waveforms
+
+With the default `waveform = "circle"`, the seasonal part of each series
+spans a plane with evenly spaced phase offsets among its variables, so its
+configuration is a circle and a shift in time is an exact rotation of that
+circle. Procrustes analysis removes rotations, so a time shift of the
+seasonal cycle alone leaves the configuration unchanged. Phase surrogates
+of such a series are calibrated, but the generator is a best case and
+rarely describes real data, whose variables need not peak at evenly spaced
+times nor follow a sine wave.
+
+The other waveforms break this symmetry. Each variable follows the same
+periodic function, `"sine"`, `"harmonics"` (a sine with its second and third
+harmonics), `"sawtooth"` (a slow rise and an abrupt drop) or `"pulse"` (a
+short peak once per cycle), shifted by an offset around a common phase set
+by `spread`. All are scaled to the variance of a sine wave of the same
+amplitude. Amplitudes can vary among variables and among cycles with
+`amp_sd_vars` and `amp_sd_cycles`.
+
+```{r waveforms, fig.alt = "Four panels showing one variable over 36 time points for the circle, harmonics, sawtooth and pulse waveforms."}
+op <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+for (w in c("circle", "harmonics", "sawtooth", "pulse")) {
+  s <- simulate_lagged_series(n_times = 36, waveform = w, noise_sd = 0.1,
+                              amp_sd_cycles = 0.2, seed = 1)
+  plot(s$X[, 1], type = "l", main = w, xlab = "Time", ylab = "X[, 1]")
+}
+par(op)
+```
+
+The waveform matters for the phase scheme. A phase surrogate keeps the
+amplitude of every frequency but draws new phases, and an abrupt cycle is
+abrupt only because the phases of its harmonics are aligned. Two
+independent series with the same sawtooth cycle are therefore more
+concordant with each other than either is with the surrogates of the
+other, and the test rejects too often. Removing the mean of each position
+in the cycle (here, each calendar month) from both series before the test
+removes the shared shape and restores calibration, provided the series span
+several whole cycles:
+
+```{r sawtooth}
+deseason <- function(M, period = 12) {
+  M - apply(M, 2, stats::ave, (seq_len(nrow(M)) - 1) %% period)
+}
+rbind(
+  sawtooth = calibrate(100, n_times = 48, period = 12,
+                       waveform = "sawtooth", noise_sd = 0.5),
+  sawtooth_deseasoned = calibrate(100, n_times = 48, period = 12,
+                                  waveform = "sawtooth", noise_sd = 0.5,
+                                  prep = deseason)
+)[, "reject"]
+```
+
+In a larger run with the default `stat = "minP"` (400 replicates, 199
+surrogates, `autocorr = 0.5`, `noise_sd = 0.5`, lags 0–4), the Type I error of the phase scheme was 0.26
+with 24 monthly samples and 0.34 with 48 for a shared sawtooth, 0.10 and
+0.18 for a shared pulse, and 0.03 to 0.05 for the circle, sine and
+harmonics waveforms; after removing the monthly means it was 0.01 to 0.04
+for every waveform. With a single cycle (`n_times` equal to `period`), the
+monthly means are the series itself, so this remedy is not available.
+
 ## Extending the study
 
 The same function covers other questions by changing its arguments:
@@ -134,6 +205,8 @@ The same function covers other questions by changing its arguments:
 * test the effect of an incomplete seasonal cycle with, for example,
   `n_times = 24, period = 18`;
 * check robustness to non-seasonal series with `amplitude = 0`;
+* check robustness to the shape of the seasonal cycle with `waveform` and
+  `spread`;
 * use data sets of different dimension with `n_vars_x` different from
   `n_vars_y`.
 
