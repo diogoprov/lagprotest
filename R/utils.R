@@ -279,17 +279,23 @@ scan_scores <- function(stat, observed, p_raw, null) {
 # Message when the minP global p-value cannot fall below 0.05: the smallest
 # attainable value is reached when the observed p is 1 / (B + 1) at some
 # lag, and is then set by the permutations that are the most extreme at any
-# lag.
+# lag. Under the cyclic scheme, where `stat = "minP"` must have been
+# requested explicitly, a warning is given instead.
 check_min_p_scan <- function(null_min, n_lags, permutation) {
   B <- length(null_min)
   p_floor <- (sum(null_min <= 1 / (B + 1)) + 1) / (B + 1)
   if (p_floor >= 0.05) {
-    message("With `stat = \"minP\"`, the smallest attainable global p-value ",
-            "is ", format(p_floor, digits = 3), " (", B, " permutations, ",
-            n_lags, " lags), so p < 0.05 cannot be reached; ",
-            if (permutation == "cyclic") "use `stat = \"z\"`" else
-              paste0("use at least ", 100 * n_lags, " permutations or ",
-                     "`stat = \"z\"`"), ".")
+    msg <- paste0("With `stat = \"minP\"`, the smallest attainable global ",
+                  "p-value is ", format(p_floor, digits = 3), " (", B,
+                  " permutations, ", n_lags, " lags), so p < 0.05 cannot ",
+                  "be reached; ")
+    if (permutation == "cyclic") {
+      warning(msg, "use `stat = \"raw\"` (the default for the cyclic ",
+              "scheme).", call. = FALSE)
+    } else {
+      message(msg, "use at least ", 100 * n_lags, " permutations or ",
+              "`stat = \"z\"`.")
+    }
   }
   invisible(p_floor)
 }

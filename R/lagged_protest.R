@@ -10,7 +10,8 @@
 #' when `bidirectional = TRUE`. The statistic at each lag is the symmetric
 #' Procrustes sum of squares \eqn{m^2} from [vegan::procrustes()]. The
 #' optimal lag is chosen by the scan statistic set by `stat` (by default the
-#' lag with the smallest per-lag p-value; see below).
+#' lag with the smallest per-lag p-value, or the smallest \eqn{m^2} under
+#' the cyclic scheme; see below).
 #'
 #' Three permutation schemes are available:
 #'
@@ -42,7 +43,12 @@
 #'   the number of rows (e.g., 12 monthly samples of an annual cycle).
 #'   Because a shift of `Y` combined with lag `k` is equivalent to another
 #'   lag, some shifts reproduce the observed alignment at other lags; the
-#'   global p-value (see below) is then valid but has low power.
+#'   global p-value (see below) is then valid but has low power, and the
+#'   scheme is best used as a conservative check of the phase scheme. Its
+#'   default scan statistic is `"raw"`: with `"minP"`, many shifts tie at
+#'   the smallest per-lag p-value, and in simulations the global p-value
+#'   could not fall below 0.05 with up to 96 rows and lags -6 to 6, so the
+#'   test never rejected.
 #' * `"free"`: rows of `Y` are permuted at random, as in
 #'   [vegan::protest()], and the permuted series is then lagged like the
 #'   observed one. This assumes exchangeable rows and can
@@ -152,12 +158,14 @@
 #' single-step adjusted p-value for the chosen `stat`, and the adjusted p-value at
 #' the optimal lag equals `p.global`. Any method of [stats::p.adjust()] can be
 #' requested instead; with few permutations, as in the cyclic scheme,
-#' corrections such as Holm may make significance unattainable.
+#' corrections such as Holm may make significance unattainable: in
+#' simulations of the cyclic scheme with up to 96 rows, Holm-corrected
+#' per-lag p-values never fell below 0.05.
 #'
 #' The score compared across lags is set by `stat`:
 #'
-#' * `"minP"` (default): the per-lag p-value. The global statistic is the
-#'   smallest p-value across lags, and its null distribution is obtained by
+#' * `"minP"` (default for the phase and free schemes): the per-lag
+#'   p-value. The global statistic is the smallest p-value across lags, and its null distribution is obtained by
 #'   converting every permuted \eqn{m^2} to a p-value within its own lag,
 #'   as its rank among the observed and permuted values divided by
 #'   \eqn{N + 1}, exactly as the observed p-value is computed (the minP
@@ -168,8 +176,9 @@
 #'   of its own null distribution, with each permuted value standardized
 #'   against the others and the observed (see above). The optimal lag is the
 #'   one with the largest \eqn{z} and equals the effect lag.
-#' * `"raw"`: \eqn{m^2} itself, the statistic of versions up to 0.6. The
-#'   optimal lag is the one with the smallest \eqn{m^2}.
+#' * `"raw"` (default for the cyclic scheme): \eqn{m^2} itself, the
+#'   statistic of versions up to 0.6. The optimal lag is the one with the
+#'   smallest \eqn{m^2}.
 #'
 #' All three are computed from the same permutations and give valid global
 #' tests. They differ in how power is spread across lags, because
@@ -221,7 +230,10 @@
 #' @param scale Logical; z-score the columns of `X` and `Y` (computed on the
 #'   full series) before analysis. Ignored for `dist` inputs.
 #' @param stat Scan statistic used for the global p-value and the optimal
-#'   lag: `"minP"` (default), `"z"` or `"raw"` (see Details).
+#'   lag: `"minP"`, `"z"` or `"raw"` (see Details). The default, `NULL`,
+#'   uses `"minP"` for the phase and free schemes and `"raw"` for the cyclic
+#'   scheme. Requesting `"minP"` with the cyclic scheme gives a warning when
+#'   the global p-value cannot fall below 0.05.
 #' @param p.adjust.method Correction of the per-lag p-values for multiple
 #'   lags: `"maxT"` for the single-step max-statistic adjustment, or any
 #'   method of [stats::p.adjust()]. Defaults to `"none"`.
@@ -300,8 +312,9 @@
 #' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1)
 #' fit
 #' fit$p.global
+#' # Conservative check with cyclic shifts (scan statistic "raw")
 #' fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
-#'                              permutation = "cyclic", stat = "z")
+#'                              permutation = "cyclic")
 #' fit_cyclic$profile
 #' plot(fit)
 #' residuals(fit)
@@ -317,14 +330,18 @@
 lagged_protest <- function(X, Y, lags = 0:6,
                            permutation = c("phase", "cyclic", "free"),
                            nperm = 999, mirror = TRUE, bidirectional = FALSE,
-                           scale = TRUE, stat = c("minP", "z", "raw"),
+                           scale = TRUE, stat = NULL,
                            p.adjust.method = "none",
                            period = NULL,
                            deseason = c("none", "monthly"),
                            prewhiten = c("none", "prais"), seed = NULL) {
   call <- match.call()
   permutation <- match.arg(permutation)
-  stat <- match.arg(stat)
+  stat <- if (is.null(stat)) {
+    if (permutation == "cyclic") "raw" else "minP"
+  } else {
+    match.arg(stat, c("minP", "z", "raw"))
+  }
   deseason <- match.arg(deseason)
   prewhiten <- match.arg(prewhiten)
   p.adjust.method <- match.arg(p.adjust.method,

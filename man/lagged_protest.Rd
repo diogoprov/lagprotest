@@ -13,7 +13,7 @@ lagged_protest(
   mirror = TRUE,
   bidirectional = FALSE,
   scale = TRUE,
-  stat = c("minP", "z", "raw"),
+  stat = NULL,
   p.adjust.method = "none",
   period = NULL,
   deseason = c("none", "monthly"),
@@ -51,7 +51,10 @@ time-reversed shifts of \code{Y}, doubling the permutation set.}
 full series) before analysis. Ignored for \code{dist} inputs.}
 
 \item{stat}{Scan statistic used for the global p-value and the optimal
-lag: \code{"minP"} (default), \code{"z"} or \code{"raw"} (see Details).}
+lag: \code{"minP"}, \code{"z"} or \code{"raw"} (see Details). The default, \code{NULL},
+uses \code{"minP"} for the phase and free schemes and \code{"raw"} for the cyclic
+scheme. Requesting \code{"minP"} with the cyclic scheme gives a warning when
+the global p-value cannot fall below 0.05.}
 
 \item{p.adjust.method}{Correction of the per-lag p-values for multiple
 lags: \code{"maxT"} for the single-step max-statistic adjustment, or any
@@ -123,7 +126,8 @@ overlapping window of \code{n - k} rows. Negative lags (Y leads X) are tested
 when \code{bidirectional = TRUE}. The statistic at each lag is the symmetric
 Procrustes sum of squares \eqn{m^2} from \code{\link[vegan:procrustes]{vegan::procrustes()}}. The
 optimal lag is chosen by the scan statistic set by \code{stat} (by default the
-lag with the smallest per-lag p-value; see below).
+lag with the smallest per-lag p-value, or the smallest \eqn{m^2} under
+the cyclic scheme; see below).
 
 Three permutation schemes are available:
 \itemize{
@@ -153,7 +157,12 @@ assumes the series spans complete cycles, i.e., that its period matches
 the number of rows (e.g., 12 monthly samples of an annual cycle).
 Because a shift of \code{Y} combined with lag \code{k} is equivalent to another
 lag, some shifts reproduce the observed alignment at other lags; the
-global p-value (see below) is then valid but has low power.
+global p-value (see below) is then valid but has low power, and the
+scheme is best used as a conservative check of the phase scheme. Its
+default scan statistic is \code{"raw"}: with \code{"minP"}, many shifts tie at
+the smallest per-lag p-value, and in simulations the global p-value
+could not fall below 0.05 with up to 96 rows and lags -6 to 6, so the
+test never rejected.
 \item \code{"free"}: rows of \code{Y} are permuted at random, as in
 \code{\link[vegan:protest]{vegan::protest()}}, and the permuted series is then lagged like the
 observed one. This assumes exchangeable rows and can
@@ -265,12 +274,14 @@ With \code{p.adjust.method = "maxT"}, every lag receives the corresponding
 single-step adjusted p-value for the chosen \code{stat}, and the adjusted p-value at
 the optimal lag equals \code{p.global}. Any method of \code{\link[stats:p.adjust]{stats::p.adjust()}} can be
 requested instead; with few permutations, as in the cyclic scheme,
-corrections such as Holm may make significance unattainable.
+corrections such as Holm may make significance unattainable: in
+simulations of the cyclic scheme with up to 96 rows, Holm-corrected
+per-lag p-values never fell below 0.05.
 
 The score compared across lags is set by \code{stat}:
 \itemize{
-\item \code{"minP"} (default): the per-lag p-value. The global statistic is the
-smallest p-value across lags, and its null distribution is obtained by
+\item \code{"minP"} (default for the phase and free schemes): the per-lag
+p-value. The global statistic is the smallest p-value across lags, and its null distribution is obtained by
 converting every permuted \eqn{m^2} to a p-value within its own lag,
 as its rank among the observed and permuted values divided by
 \eqn{N + 1}, exactly as the observed p-value is computed (the minP
@@ -281,8 +292,9 @@ permutations, are broken by \eqn{z} and then by \eqn{m^2}.
 of its own null distribution, with each permuted value standardized
 against the others and the observed (see above). The optimal lag is the
 one with the largest \eqn{z} and equals the effect lag.
-\item \code{"raw"}: \eqn{m^2} itself, the statistic of versions up to 0.6. The
-optimal lag is the one with the smallest \eqn{m^2}.
+\item \code{"raw"} (default for the cyclic scheme): \eqn{m^2} itself, the
+statistic of versions up to 0.6. The optimal lag is the one with the
+smallest \eqn{m^2}.
 }
 
 All three are computed from the same permutations and give valid global
@@ -319,8 +331,9 @@ sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
 fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, seed = 1)
 fit
 fit$p.global
+# Conservative check with cyclic shifts (scan statistic "raw")
 fit_cyclic <- lagged_protest(sim$X, sim$Y, lags = 0:4,
-                             permutation = "cyclic", stat = "z")
+                             permutation = "cyclic")
 fit_cyclic$profile
 plot(fit)
 residuals(fit)

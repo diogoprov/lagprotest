@@ -232,3 +232,31 @@ test_that("invalid periods are rejected", {
   expect_error(lagged_protest(sim$X, sim$Y, period = c(6, 12)), "single")
   expect_error(lagged_protest(sim$X, sim$Y, period = 13), "fewer than 3")
 })
+
+test_that("the default scan statistic depends on the scheme", {
+  expect_equal(lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 399,
+                              seed = 1)$stat, "minP")
+  expect_equal(lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 399,
+                              permutation = "free", seed = 1)$stat, "minP")
+  cyc <- lagged_protest(sim$X, sim$Y, lags = 0:2, permutation = "cyclic")
+  expect_equal(cyc$stat, "raw")
+  expect_identical(
+    cyc$p.global,
+    lagged_protest(sim$X, sim$Y, lags = 0:2, permutation = "cyclic",
+                   stat = "raw")$p.global
+  )
+  expect_error(lagged_protest(sim$X, sim$Y, stat = "max"), "should be one of")
+})
+
+test_that("minP with cyclic shifts warns when p < 0.05 is unattainable", {
+  s <- simulate_lagged_series(n_times = 24, true_lag = 1, noise_sd = 0.3,
+                              seed = 1)
+  expect_warning(
+    fit <- lagged_protest(s$X, s$Y, lags = 0:4, permutation = "cyclic",
+                          stat = "minP"),
+    "use `stat = \"raw\"`"
+  )
+  expect_gte(fit$p.global, 0.05)
+  expect_no_warning(lagged_protest(s$X, s$Y, lags = 0:4,
+                                   permutation = "cyclic"))
+})
