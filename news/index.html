@@ -43,7 +43,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
-<ul><li>
+<ul><li><p>The default of <code>stat</code> in <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> is now <code>NULL</code>, which uses <code>"minP"</code> for the phase and free schemes and <code>"raw"</code> for the cyclic scheme. With the cyclic scheme, many shifts tie at the smallest per-lag p-value, and in simulations the <code>"minP"</code> global p-value could not fall below 0.05 with up to 96 time points, so the test never rejected. Requesting <code>stat = "minP"</code> with the cyclic scheme now gives a warning, instead of a message, when p &lt; 0.05 is unattainable. Results of the cyclic scheme without an explicit <code>stat</code> change accordingly. The documentation now presents the cyclic scheme as a conservative check, notes that Holm correction across lags is unattainable under it, and its example no longer uses <code>stat = "z"</code>.</p></li>
+<li>
 <p><code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> gains two preprocessing options, both off by default, applied to <code>X</code> and <code>Y</code> after truncation to whole cycles and before standardization:</p>
 <ul><li>
 <code>deseason = "monthly"</code> subtracts the mean of each position in the cycle of length <code>period</code> (at least two whole cycles required). It restored the Type I error of the phase scheme for shared seasonal cycles of any shape in simulations.</li>

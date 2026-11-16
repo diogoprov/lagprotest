@@ -109,9 +109,11 @@ because *m*² at lag *k* rests on `n − k` rows and is smaller and more
 variable when fewer rows overlap. The smallest *m*² therefore tends to
 fall at the longest lags even for independent series, and a test built
 on it has less power for short lags. The argument `stat` chooses the
-statistic: `"minP"` (default), `"z"` (*m*² standardized by its own null
-distribution) or `"raw"` (the smallest *m*², used up to version 0.6).
-All three are valid global tests computed from the same permutations:
+statistic: `"minP"` (default for the phase and free schemes), `"z"`
+(*m*² standardized by its own null distribution) or `"raw"` (the
+smallest *m*², used up to version 0.6, and the default for the cyclic
+scheme; see below). All three are valid global tests computed from the
+same permutations:
 
 ``` r
 
@@ -130,7 +132,7 @@ instead, and raw and adjusted values are then both reported:
 ``` r
 
 fit_holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "cyclic",
-                           stat = "z", p.adjust.method = "holm")
+                           p.adjust.method = "holm")
 fit_holm$profile[, c("lag", "p.value", "p.adjusted")]
 #>   lag    p.value p.adjusted
 #> 1   0 0.95652174  1.0000000
@@ -298,7 +300,13 @@ across lags contains the signal itself. The per-lag p-values are
 unaffected, but the global p-value loses power. Phase surrogates are new
 series rather than shifts of the observed one, so they avoid this
 problem; they also allow as many surrogates as desired, instead of the
-`2(n − 1)` cyclic permutations.
+`2(n − 1)` cyclic permutations. With so few permutations, many shifts
+tie at the smallest per-lag p-value, and with `stat = "minP"` the global
+p-value of the cyclic scheme could not fall below 0.05 in simulations
+with up to 96 time points. The cyclic scheme therefore uses
+`stat = "raw"` by default, and requesting `"minP"` with it gives a
+warning when p \< 0.05 is unattainable. Its role is a conservative check
+of the phase scheme rather than the main test.
 
 The choice matters. Under independence, a small simulation with 24
 monthly samples spanning one cycle gives the following rejection rates
@@ -367,8 +375,9 @@ nominal level, but only the phase scheme retains power.
 - **Few permutations.** With `n` time points there are only `2(n − 1)`
   cyclic permutations, so the smallest attainable p-value is
   `1 / (2(n − 1) + 1)`, 0.043 for `n = 12`. Corrections across many lags
-  may then be unattainable at α = 0.05. The phase scheme has no such
-  floor.
+  may then be unattainable at α = 0.05: in simulations with up to 96
+  time points, Holm-corrected per-lag p-values of the cyclic scheme
+  never fell below 0.05. The phase scheme has no such floor.
 - **Different window sizes.** *m*² at lag *k* is based on `n − k` rows,
   so long lags rest on fewer observations, and the smallest *m*² tends
   to fall at the longest lags scanned even for independent series. The

@@ -341,7 +341,12 @@ the object of the analysis.
   does not, give the length of the cycle in `period`.
 - With short series (*n* ≤ 48) that are strongly autocorrelated, report
   the cyclic result as a conservative check; with `mirror = FALSE` it
-  was the least liberal scheme in that range, at the cost of power.
+  was the least liberal scheme in that range, at the cost of power. Use
+  it with `stat = "raw"`, its default: with `"minP"`, many shifts tie at
+  the smallest per-lag p-value and the global p-value could not fall
+  below 0.05 with up to 96 time points, and `"z"` gained power but was
+  more liberal with strong autocorrelation. Per-lag corrections such as
+  Holm are unattainable at α = 0.05 under this scheme.
 - Do not use `permutation = "free"` for time series.
 
 ## References
