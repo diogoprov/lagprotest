@@ -1,5 +1,17 @@
 # lagprotest (development version)
 
+* The default of `stat` in `lagged_protest()` is now `NULL`, which uses
+  `"minP"` for the phase and free schemes and `"raw"` for the cyclic scheme.
+  With the cyclic scheme, many shifts tie at the smallest per-lag p-value,
+  and in simulations the `"minP"` global p-value could not fall below 0.05
+  with up to 96 time points, so the test never rejected. Requesting
+  `stat = "minP"` with the cyclic scheme now gives a warning, instead of a
+  message, when p < 0.05 is unattainable. Results of the cyclic scheme
+  without an explicit `stat` change accordingly. The documentation now
+  presents the cyclic scheme as a conservative check, notes that Holm
+  correction across lags is unattainable under it, and its example no
+  longer uses `stat = "z"`.
+
 * `lagged_protest()` gains two preprocessing options, both off by default,
   applied to `X` and `Y` after truncation to whole cycles and before
   standardization:
