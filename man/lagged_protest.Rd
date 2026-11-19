@@ -356,9 +356,18 @@ partitioning: a conditional inference framework. \emph{Journal of
 Computational and Graphical Statistics} 15, 651--674.
 \doi{10.1198/106186006X133933}
 
+Jackson, D. A. (1995). PROTEST: a PROcrustean Randomization TEST of
+community environment concordance. \emph{Écoscience} 2, 297--303.
+\doi{10.1080/11956860.1995.11682297}
+
 Manly, B. F. J. and Navarro Alberto, J. A. (2020). \emph{Randomization,
 Bootstrap and Monte Carlo Methods in Biology}, 4th ed. Chapman and
 Hall/CRC, New York. \doi{10.1201/9780429329203}
+
+Peres-Neto, P. R. and Jackson, D. A. (2001). How well do multivariate
+data sets match? The advantages of a Procrustean superimposition
+approach over the Mantel test. \emph{Oecologia} 129, 169--178.
+\doi{10.1007/s004420100720}
 
 Westfall, P. H. and Young, S. S. (1993). \emph{Resampling-Based Multiple
 Testing: Examples and Methods for p-Value Adjustment}. Wiley, New York.
