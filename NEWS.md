@@ -1,3 +1,5 @@
+# lagprotest (development version)
+
 # lagprotest 0.8.0
 
 * The default of `stat` in `lagged_protest()` is now `NULL`, which uses
