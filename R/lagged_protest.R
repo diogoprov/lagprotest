@@ -261,7 +261,7 @@
 #'       `p.adjust.method` (equal to `p.value` when `"none"`).}
 #'     \item{`p.global`}{P-value of the scan across lags for `stat`,
 #'       accounting for testing several lags and selecting the optimal one.}
-#'     \item{`n_perm`}{Number of permutations or surrogates, the same at
+#'     \item{`nperm`}{Number of permutations or surrogates, the same at
 #'       every lag (the exact count for the cyclic scheme).}
 #'     \item{`profile`}{Data frame with `lag`, `n` (rows used), `m2`, `r`,
 #'       `p.value`, `p.adjusted`, `nperm`, `z` and `a` for every lag.}
@@ -297,9 +297,18 @@
 #' Computational and Graphical Statistics* 15, 651--674.
 #' \doi{10.1198/106186006X133933}
 #'
+#' Jackson, D. A. (1995). PROTEST: a PROcrustean Randomization TEST of
+#' community environment concordance. *Écoscience* 2, 297--303.
+#' \doi{10.1080/11956860.1995.11682297}
+#'
 #' Manly, B. F. J. and Navarro Alberto, J. A. (2020). *Randomization,
 #' Bootstrap and Monte Carlo Methods in Biology*, 4th ed. Chapman and
 #' Hall/CRC, New York. \doi{10.1201/9780429329203}
+#'
+#' Peres-Neto, P. R. and Jackson, D. A. (2001). How well do multivariate
+#' data sets match? The advantages of a Procrustean superimposition
+#' approach over the Mantel test. *Oecologia* 129, 169--178.
+#' \doi{10.1007/s004420100720}
 #'
 #' Westfall, P. H. and Young, S. S. (1993). *Resampling-Based Multiple
 #' Testing: Examples and Methods for p-Value Adjustment*. Wiley, New York.
@@ -500,7 +509,7 @@ lagged_protest <- function(X, Y, lags = 0:6,
       p.value = profile$p.value[best],
       p.adjusted = profile$p.adjusted[best],
       p.global = p_max[best],
-      n_perm = profile$nperm[best],
+      nperm = profile$nperm[best],
       profile = profile,
       residuals = res,
       procrustes = fit,

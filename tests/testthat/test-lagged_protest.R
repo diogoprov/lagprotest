@@ -73,7 +73,7 @@ test_that("p-values are raw by default and adjusted on request", {
   best <- fit$profile$lag == fit$optimal_lag
   expect_equal(fit$p.value, fit$profile$p.value[best])
   expect_equal(fit$p.adjusted, fit$p.value)
-  expect_equal(fit$n_perm, 22L)
+  expect_equal(fit$nperm, 22L)
   expect_output(print(fit), "not corrected")
 
   holm <- lagged_protest(sim$X, sim$Y, lags = 0:4, permutation = "cyclic",
@@ -179,7 +179,7 @@ test_that("invalid inputs are rejected", {
 test_that("nperm is ignored by the cyclic scheme", {
   fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, permutation = "cyclic",
                         nperm = NA)
-  expect_equal(fit$n_perm, 22L)
+  expect_equal(fit$nperm, 22L)
 })
 
 test_that("seed leaves the global random number stream untouched", {

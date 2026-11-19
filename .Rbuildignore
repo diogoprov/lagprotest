@@ -10,3 +10,4 @@
 ^\.github$
 ^vignettes/articles$
 ^data-raw$
+^cran-comments\.md$
