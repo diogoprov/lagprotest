@@ -1,5 +1,9 @@
 # lagprotest (development version)
 
+* Breaking change: the element `n_perm` of the object returned by
+  `lagged_protest()` is renamed `nperm`, the name of the argument and of the
+  column in `$profile`. Code that reads `fit$n_perm` must use `fit$nperm`.
+
 # lagprotest 0.8.0
 
 * The default of `stat` in `lagged_protest()` is now `NULL`, which uses

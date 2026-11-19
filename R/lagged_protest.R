@@ -261,7 +261,7 @@
 #'       `p.adjust.method` (equal to `p.value` when `"none"`).}
 #'     \item{`p.global`}{P-value of the scan across lags for `stat`,
 #'       accounting for testing several lags and selecting the optimal one.}
-#'     \item{`n_perm`}{Number of permutations or surrogates, the same at
+#'     \item{`nperm`}{Number of permutations or surrogates, the same at
 #'       every lag (the exact count for the cyclic scheme).}
 #'     \item{`profile`}{Data frame with `lag`, `n` (rows used), `m2`, `r`,
 #'       `p.value`, `p.adjusted`, `nperm`, `z` and `a` for every lag.}
@@ -500,7 +500,7 @@ lagged_protest <- function(X, Y, lags = 0:6,
       p.value = profile$p.value[best],
       p.adjusted = profile$p.adjusted[best],
       p.global = p_max[best],
-      n_perm = profile$nperm[best],
+      nperm = profile$nperm[best],
       profile = profile,
       residuals = res,
       procrustes = fit,

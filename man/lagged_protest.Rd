@@ -88,7 +88,7 @@ optimal lag.}
 \code{p.adjust.method} (equal to \code{p.value} when \code{"none"}).}
 \item{\code{p.global}}{P-value of the scan across lags for \code{stat},
 accounting for testing several lags and selecting the optimal one.}
-\item{\code{n_perm}}{Number of permutations or surrogates, the same at
+\item{\code{nperm}}{Number of permutations or surrogates, the same at
 every lag (the exact count for the cyclic scheme).}
 \item{\code{profile}}{Data frame with \code{lag}, \code{n} (rows used), \code{m2}, \code{r},
 \code{p.value}, \code{p.adjusted}, \code{nperm}, \code{z} and \code{a} for every lag.}
