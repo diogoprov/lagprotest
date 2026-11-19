@@ -17,11 +17,14 @@ permutations, with a global p-value for the scan.
 
 ## Test environments
 
-* local: macOS 27.2, R 4.6.1 (`R CMD check --as-cran`)
+* local: macOS 27.2, R 4.6.1 (`R CMD check --as-cran`, with remote checks
+  and the PDF manual)
 * GitHub Actions: macOS (release), Windows (release), Ubuntu (devel,
   release, oldrel-1)
 * win-builder: R-release (4.6.2) and R-devel (2026-11-17 r90926), 1 NOTE
   (new submission) on both
+* R-hub: Linux, Windows, macOS and macOS arm64 (R-devel), plus clang ASAN
+  and valgrind: Status OK on all, no valgrind errors
 
 ## Notes for the reviewers
 
