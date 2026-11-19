@@ -20,7 +20,8 @@ permutations, with a global p-value for the scan.
 * local: macOS 27.2, R 4.6.1 (`R CMD check --as-cran`)
 * GitHub Actions: macOS (release), Windows (release), Ubuntu (devel,
   release, oldrel-1)
-* win-builder: R-release and R-devel
+* win-builder: R-release (4.6.2) and R-devel (2026-11-17 r90926), 1 NOTE
+  (new submission) on both
 
 ## Notes for the reviewers
 
