@@ -135,7 +135,7 @@ An object of class `"lagged_protest"`, a list with:
   P-value of the scan across lags for `stat`, accounting for testing
   several lags and selecting the optimal one.
 
-- `n_perm`:
+- `nperm`:
 
   Number of permutations or surrogates, the same at every lag (the exact
   count for the cyclic scheme).
@@ -416,10 +416,19 @@ partitioning: a conditional inference framework. *Journal of
 Computational and Graphical Statistics* 15, 651–674.
 [doi:10.1198/106186006X133933](https://doi.org/10.1198/106186006X133933)
 
+Jackson, D. A. (1995). PROTEST: a PROcrustean Randomization TEST of
+community environment concordance. *Écoscience* 2, 297–303.
+[doi:10.1080/11956860.1995.11682297](https://doi.org/10.1080/11956860.1995.11682297)
+
 Manly, B. F. J. and Navarro Alberto, J. A. (2020). *Randomization,
 Bootstrap and Monte Carlo Methods in Biology*, 4th ed. Chapman and
 Hall/CRC, New York.
 [doi:10.1201/9780429329203](https://doi.org/10.1201/9780429329203)
+
+Peres-Neto, P. R. and Jackson, D. A. (2001). How well do multivariate
+data sets match? The advantages of a Procrustean superimposition
+approach over the Mantel test. *Oecologia* 129, 169–178.
+[doi:10.1007/s004420100720](https://doi.org/10.1007/s004420100720)
 
 Westfall, P. H. and Young, S. S. (1993). *Resampling-Based Multiple
 Testing: Examples and Methods for p-Value Adjustment*. Wiley, New York.
