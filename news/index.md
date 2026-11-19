@@ -1,6 +1,6 @@
 # Changelog
 
-## lagprotest (development version)
+## lagprotest 0.8.0
 
 - The default of `stat` in
   [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
