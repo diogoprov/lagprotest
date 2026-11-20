@@ -14,8 +14,8 @@ authors:
   - family-names: Provete
     given-names: Diogo B.
     orcid: "https://orcid.org/0000-0002-0097-0651"
-version: 0.8.0
-date-released: "2026-11-18"
+version: 0.9.0
+date-released: "2026-11-19"
 doi: 10.5281/zenodo.23860109
 license: MIT
 repository-code: "https://github.com/diogoprov/lagprotest"
