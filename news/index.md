@@ -1,11 +1,18 @@
 # Changelog
 
-## lagprotest (development version)
+## lagprotest 0.9.0
+
+- First version prepared for CRAN.
 
 - Breaking change: the element `n_perm` of the object returned by
   [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
   is renamed `nperm`, the name of the argument and of the column in
   `$profile`. Code that reads `fit$n_perm` must use `fit$nperm`.
+
+- The package description and the documentation of
+  [`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+  cite Jackson (1995) and Peres-Neto and Jackson (2001), the papers that
+  introduced and evaluated PROTEST.
 
 ## lagprotest 0.8.0
 
