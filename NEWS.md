@@ -1,3 +1,5 @@
+# lagprotest (development version)
+
 # lagprotest 0.9.0
 
 * First version prepared for CRAN.
