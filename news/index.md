@@ -1,6 +1,6 @@
 # Changelog
 
-## lagprotest (development version)
+## lagprotest 0.9.1
 
 - Changes made against the rOpenSci standards for statistical software
   (general and time-series standards):
