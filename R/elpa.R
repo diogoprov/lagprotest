@@ -53,7 +53,9 @@
 #'
 #' @examplesIf interactive()
 #' el <- elpa_blocks("estuary")
-#' detrend <- function(m) apply(m, 2, function(x) residuals(lm(x ~ seq_along(x))))
+#' detrend <- function(m) {
+#'   apply(m, 2, function(x) residuals(lm(x ~ seq_along(x))))
+#' }
 #' X <- detrend(log1p(el$Environment))
 #' Y <- detrend(el$Fish)
 #' fit <- lagged_protest(X, Y, lags = 0:6, period = 12, nperm = 999,
@@ -100,8 +102,8 @@ elpa_blocks <- function(habitat = c("estuary", "sandy beach"),
   missing <- setdiff(months, ev$t)
   if (length(missing)) {
     stop("No sampling in ", length(missing), " month(s) of the period (",
-         paste(ym_label(missing[seq_len(min(3, length(missing)))]),
-               collapse = ", "), if (length(missing) > 3) ", ...",
+         toString(ym_label(missing[seq_len(min(3, length(missing)))])),
+         if (length(missing) > 3) ", ...",
          "); choose `from` and `to` within a continuous stretch.",
          call. = FALSE)
   }
@@ -150,7 +152,7 @@ elpa_blocks <- function(habitat = c("estuary", "sandy beach"),
     absent <- setdiff(species, colnames(fish))
     if (length(absent)) {
       stop("Species not found in the selected habitat and period: ",
-           paste(absent, collapse = ", "), call. = FALSE)
+           toString(absent), call. = FALSE)
     }
   }
   if (hellinger) {
@@ -165,12 +167,18 @@ elpa_blocks <- function(habitat = c("estuary", "sandy beach"),
   list(Environment = env, Fish = fish)
 }
 
+#' Format a year*12 + month index as YYYY-MM.
+#' @noRd
 ym_label <- function(t) sprintf("%d-%02d", t %/% 12, t %% 12 + 1)
 
+#' URL of the ELPA data archive (SiBBr IPT).
+#' @noRd
 elpa_url <- function() {
   "https://ipt.sibbr.gov.br/peld/archive.do?r=composition_abundance_fish_elpa&v=1.16"
 }
 
+#' Download the ELPA archive to dir and return its path.
+#' @noRd
 elpa_download <- function(dir = tempdir()) {
   dest <- file.path(dir, "dwca-composition_abundance_fish_elpa-v1.16.zip")
   if (!file.exists(dest)) {
@@ -183,6 +191,8 @@ elpa_download <- function(dir = tempdir()) {
   dest
 }
 
+#' Read the occurrence and event tables of the ELPA archive.
+#' @noRd
 elpa_reader <- function(path) {
   if (!file.exists(path)) {
     stop("`path` does not exist: ", path, call. = FALSE)

@@ -56,7 +56,8 @@ test_that("defaults leave results unchanged", {
   a$call <- b$call <- NULL
   expect_identical(a, b)
   expect_null(a$rho)
-  expect_false(any(grepl("Preprocessing", utils::capture.output(print(a)))))
+  expect_false(any(grepl("Preprocessing", utils::capture.output(print(a)),
+                         fixed = TRUE)))
 })
 
 test_that("deseason works on dist inputs", {

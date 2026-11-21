@@ -81,9 +81,12 @@ lakewa_blocks <- function(from = 1962, to = 1994, interpolate = TRUE) {
        Zooplankton = block(zoo, log1p))
 }
 
+#' Is the suggested package MARSS installed?
+#' @noRd
 has_marss <- function() requireNamespace("MARSS", quietly = TRUE)
 
-# Linear interpolation over the index; end gaps take the nearest value.
+#' Linear interpolation over the index; end gaps take the nearest value.
+#' @noRd
 fill_linear <- function(x) {
   if (sum(!is.na(x)) < 2) {
     stop("Too few observed values to interpolate in the selected period.",

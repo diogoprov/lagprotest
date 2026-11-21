@@ -1,3 +1,18 @@
+#' @srrstats {G5.2, G5.2a, G5.2b} Every error, warning and message names
+#'   the argument or condition concerned and is unique; tests here and in
+#'   the other files trigger them and match their text.
+#' @srrstats {G5.4} The statistic is tested against vegan::protest() at lag
+#'   0 and against the rows paired at each lag.
+#' @srrstats {G5.4a} A trivial case with a known answer, an exact lagged
+#'   copy, gives \eqn{m^2 = 0} at the true lag.
+#' @srrstats {G5.5} Tests with random components use a fixed seed.
+#' @srrstats {G5.8c} A constant column is an error, and missing values are
+#'   errors.
+#' @srrstats {G5.8d} Lags that leave fewer than 3 overlapping rows are
+#'   errors.
+#' @noRd
+NULL
+
 sim <- simulate_lagged_series(n_times = 12, n_vars_y = 4, true_lag = 2,
                               noise_sd = 0.3, seed = 1)
 
@@ -180,9 +195,13 @@ test_that("nperm is ignored by the cyclic scheme", {
   fit <- lagged_protest(sim$X, sim$Y, lags = 0:2, permutation = "cyclic",
                         nperm = NA)
   expect_equal(fit$nperm, 22L)
+  expect_error(lagged_protest(sim$X, sim$Y, lags = 0:2, permutation = "cyclic",
+                              nperm = c(99, 199)),
+               "ignored by the cyclic scheme")
 })
 
 test_that("seed leaves the global random number stream untouched", {
+  skip_if_traced()
   set.seed(99)
   before <- .Random.seed
   a <- lagged_protest(sim$X, sim$Y, lags = 0:2, nperm = 39, seed = 5)
@@ -223,7 +242,8 @@ test_that("a period dividing n leaves the series unchanged", {
                           seed = 1, stat = "raw"),
     "^The series spans a single cycle"
   )
-  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99, seed = 1, stat = "raw")
+  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99, seed = 1,
+                        stat = "raw")
   expect_equal(fit$profile, ref$profile)
 })
 

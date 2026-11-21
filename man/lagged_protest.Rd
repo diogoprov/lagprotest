@@ -31,8 +31,8 @@ infinite values are errors, and gaps in time must be filled (e.g., by
 interpolation) before the test. Data-frame columns must be numeric;
 numeric columns with a class (e.g., \code{difftime} or units) are used as
 plain numbers, with a message. Time-series objects (\code{ts}) are accepted
-as matrices; their time attributes are not kept, so rows are labelled
-by position unless they have row names.}
+as matrices; their time attributes are not kept (a message says so),
+so rows are labeled by position unless they have row names.}
 
 \item{lags}{Integer vector of non-negative candidate lags (default
 \code{0:6}). Every lag must leave at least 3 overlapping rows; long lags rest
@@ -148,9 +148,16 @@ drawn. Each surrogate keeps the amplitude spectrum of every column of
 but receives new Fourier phases, shared by all columns. Surrogates are
 applied jointly to all lags and do not reproduce the observed alignment,
 which makes this the recommended scheme for the global p-value. It
-assumes a stationary \code{Y} and treats the series as periodic with period
-\code{n}. In simulations, it was liberal for short, strongly autocorrelated
-series (AR(1) of 0.7 or more with \code{n} of 48 or less). It also assumes
+assumes that \code{Y} is second-order stationary (constant mean and
+variance, and an autocovariance that depends only on the time
+separation), so trends should be removed before the test, as in the
+example of \code{\link[=elpa_blocks]{elpa_blocks()}}; a message is given when a linear time
+trend explains, on average, more than 70\% of the variance of the
+columns of \code{X} or \code{Y} (after \code{deseason} and \code{prewhiten}), a level that
+a single seasonal cycle does not reach. It also
+treats the series as periodic with period \code{n}. In simulations, it was
+liberal for short, strongly autocorrelated series (AR(1) of 0.7 or more
+with \code{n} of 48 or less). It also assumes
 that any seasonal cycle shared by \code{X} and \code{Y} is close to sinusoidal:
 new phases destroy the alignment among the harmonics of an abrupt cycle
 (a sawtooth or a short pulse), so the surrogates no longer share the
@@ -282,17 +289,18 @@ finds it from the data (Manly and Navarro Alberto 2020, pp. 83--84). The
 same source recommends at least \eqn{100m} randomizations for \eqn{m}
 tests.
 With \code{p.adjust.method = "maxT"}, every lag receives the corresponding
-single-step adjusted p-value for the chosen \code{stat}, and the adjusted p-value at
-the optimal lag equals \code{p.global}. Any method of \code{\link[stats:p.adjust]{stats::p.adjust()}} can be
-requested instead; with few permutations, as in the cyclic scheme,
-corrections such as Holm may make significance unattainable: in
-simulations of the cyclic scheme with up to 96 rows, Holm-corrected
-per-lag p-values never fell below 0.05.
+single-step adjusted p-value for the chosen \code{stat}, and the adjusted
+p-value at the optimal lag equals \code{p.global}. Any method of
+\code{\link[stats:p.adjust]{stats::p.adjust()}} can be requested instead; with few permutations, as
+in the cyclic scheme, corrections such as Holm may make significance
+unattainable: in simulations of the cyclic scheme with up to 96 rows,
+Holm-corrected per-lag p-values never fell below 0.05.
 
 The score compared across lags is set by \code{stat}:
 \itemize{
 \item \code{"minP"} (default for the phase and free schemes): the per-lag
-p-value. The global statistic is the smallest p-value across lags, and its null distribution is obtained by
+p-value. The global statistic is the smallest p-value across lags,
+and its null distribution is obtained by
 converting every permuted \eqn{m^2} to a p-value within its own lag,
 as its rank among the observed and permuted values divided by
 \eqn{N + 1}, exactly as the observed p-value is computed (the minP

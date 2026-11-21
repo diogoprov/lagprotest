@@ -1,3 +1,8 @@
+#' @srrstats {G5.4b} The \eqn{m^2} of the internal Procrustes routine
+#'   matches vegan::procrustes() to floating-point tolerance.
+#' @noRd
+NULL
+
 test_that("effect measures and RV nulls are returned", {
   sim <- simulate_lagged_series(n_times = 24, true_lag = 2, noise_sd = 0.3,
                                 seed = 1)
@@ -44,8 +49,8 @@ test_that("the m2 of pair_stats() matches vegan::procrustes()", {
 test_that("mean_ar1 removes a pure harmonic", {
   t <- 1:24
   M <- cbind(sin(2 * pi * t / 12), cos(2 * pi * t / 24))
-  expect_gt(lagprotest:::mean_ar1(M), 0.8)
-  expect_true(is.na(lagprotest:::mean_ar1(M, c(24, 12))))
+  expect_gt(mean_ar1(M), 0.8)
+  expect_true(is.na(mean_ar1(M, c(24, 12))))
 })
 
 test_that("a message flags an unattainable p < 0.05", {

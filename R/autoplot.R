@@ -39,7 +39,7 @@ autoplot.lagged_protest <- function(object, alpha = 0.05, ...) {
                         fill = if (object$p.global < alpha) "grey50" else NA) +
     ggplot2::scale_shape_manual(values = c(`FALSE` = 1, `TRUE` = 19)) +
     ggplot2::scale_x_continuous(breaks = prof$lag) +
-    ggplot2::labs(x = "Lag", y = expression(italic(m)^2),
+    ggplot2::labs(x = "Lag (rows)", y = expression(italic(m)^2),
                   subtitle = paste0("Optimal lag ", object$optimal_lag,
                                     ", global p = ",
                                     format(object$p.global, digits = 2)))

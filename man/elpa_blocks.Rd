@@ -76,7 +76,9 @@ National Water Agency (not included here).
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 el <- elpa_blocks("estuary")
-detrend <- function(m) apply(m, 2, function(x) residuals(lm(x ~ seq_along(x))))
+detrend <- function(m) {
+  apply(m, 2, function(x) residuals(lm(x ~ seq_along(x))))
+}
 X <- detrend(log1p(el$Environment))
 Y <- detrend(el$Fish)
 fit <- lagged_protest(X, Y, lags = 0:6, period = 12, nperm = 999,

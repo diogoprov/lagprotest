@@ -21,9 +21,16 @@
 #'   but receives new Fourier phases, shared by all columns. Surrogates are
 #'   applied jointly to all lags and do not reproduce the observed alignment,
 #'   which makes this the recommended scheme for the global p-value. It
-#'   assumes a stationary `Y` and treats the series as periodic with period
-#'   `n`. In simulations, it was liberal for short, strongly autocorrelated
-#'   series (AR(1) of 0.7 or more with `n` of 48 or less). It also assumes
+#'   assumes that `Y` is second-order stationary (constant mean and
+#'   variance, and an autocovariance that depends only on the time
+#'   separation), so trends should be removed before the test, as in the
+#'   example of [elpa_blocks()]; a message is given when a linear time
+#'   trend explains, on average, more than 70% of the variance of the
+#'   columns of `X` or `Y` (after `deseason` and `prewhiten`), a level that
+#'   a single seasonal cycle does not reach. It also
+#'   treats the series as periodic with period `n`. In simulations, it was
+#'   liberal for short, strongly autocorrelated series (AR(1) of 0.7 or more
+#'   with `n` of 48 or less). It also assumes
 #'   that any seasonal cycle shared by `X` and `Y` is close to sinusoidal:
 #'   new phases destroy the alignment among the harmonics of an abrupt cycle
 #'   (a sawtooth or a short pulse), so the surrogates no longer share the
@@ -155,17 +162,18 @@
 #' same source recommends at least \eqn{100m} randomizations for \eqn{m}
 #' tests.
 #' With `p.adjust.method = "maxT"`, every lag receives the corresponding
-#' single-step adjusted p-value for the chosen `stat`, and the adjusted p-value at
-#' the optimal lag equals `p.global`. Any method of [stats::p.adjust()] can be
-#' requested instead; with few permutations, as in the cyclic scheme,
-#' corrections such as Holm may make significance unattainable: in
-#' simulations of the cyclic scheme with up to 96 rows, Holm-corrected
-#' per-lag p-values never fell below 0.05.
+#' single-step adjusted p-value for the chosen `stat`, and the adjusted
+#' p-value at the optimal lag equals `p.global`. Any method of
+#' [stats::p.adjust()] can be requested instead; with few permutations, as
+#' in the cyclic scheme, corrections such as Holm may make significance
+#' unattainable: in simulations of the cyclic scheme with up to 96 rows,
+#' Holm-corrected per-lag p-values never fell below 0.05.
 #'
 #' The score compared across lags is set by `stat`:
 #'
 #' * `"minP"` (default for the phase and free schemes): the per-lag
-#'   p-value. The global statistic is the smallest p-value across lags, and its null distribution is obtained by
+#'   p-value. The global statistic is the smallest p-value across lags,
+#'   and its null distribution is obtained by
 #'   converting every permuted \eqn{m^2} to a p-value within its own lag,
 #'   as its rank among the observed and permuted values divided by
 #'   \eqn{N + 1}, exactly as the observed p-value is computed (the minP
@@ -217,8 +225,8 @@
 #'   interpolation) before the test. Data-frame columns must be numeric;
 #'   numeric columns with a class (e.g., `difftime` or units) are used as
 #'   plain numbers, with a message. Time-series objects (`ts`) are accepted
-#'   as matrices; their time attributes are not kept, so rows are labelled
-#'   by position unless they have row names.
+#'   as matrices; their time attributes are not kept (a message says so),
+#'   so rows are labeled by position unless they have row names.
 #' @param lags Integer vector of non-negative candidate lags (default
 #'   `0:6`). Every lag must leave at least 3 overlapping rows; long lags rest
 #'   on few rows (6 for lag 6 with `n = 12`) and are favored by the smallest
@@ -358,6 +366,64 @@
 #'                               seed = 1)
 #' lagged_protest(saw$X, saw$Y, lags = 0:4, period = 12,
 #'                deseason = "monthly", prewhiten = "prais", seed = 1)
+#' @srrstats {G1.0} Primary references (Jackson 1995; Peres-Neto and
+#'   Jackson 2001) are given in `@references` and in the DESCRIPTION.
+#' @srrstats {G1.1} The section "Relation to vegan::protest()" and the README
+#'   ("Relation to other software") state that this is the first R
+#'   implementation of a lag-scanning PROTEST with a max-statistic global
+#'   p-value and autocorrelation-preserving nulls; the simultaneous PROTEST
+#'   is implemented in [vegan::protest()].
+#' @srrstats {G1.3} The statistics (\eqn{m^2}, \eqn{r}, RV, the scan
+#'   statistics minP, z and raw, the global and adjusted p-values and the
+#'   effect measures) are defined in Details and `@return`.
+#' @srrstats {G1.6} The section "Relation to vegan::protest()" states that
+#'   `lags = 0`, `permutation = "free"` and `scale = FALSE` reproduce the
+#'   statistic of [vegan::protest()], and the
+#'   tests compare both (test-standards.R).
+#' @srrstats {G2.0, G2.0a, G2.1, G2.1a, G2.2} Scalar arguments (`nperm`,
+#'   `mirror`, `bidirectional`, `scale`, `period`, `seed`) are checked for
+#'   length one and type by internal helpers, and their expected length and
+#'   type are stated in `@param`; `lags` must be a non-empty integer-valued
+#'   vector.
+#' @srrstats {G2.3, G2.3a, G2.3b} Character arguments use [match.arg()]; the
+#'   values are case-sensitive, as stated in the section "Relation to
+#'   vegan::protest()".
+#' @srrstats {G2.4, G2.4a} `lags` is converted with [as.integer()] after
+#'   validation.
+#' @srrstats {G2.7} Matrices, data frames (including tibbles) and `dist`
+#'   objects are accepted; `ts`, `mts` and `zoo` objects are used as
+#'   matrices.
+#' @srrstats {G2.13, G2.14, G2.14a, G2.15} Missing values are checked before
+#'   any computation and are errors: permutation and phase randomization
+#'   need complete, regular series, so imputation is left to the user, as
+#'   documented in `@param X,Y`.
+#' @srrstats {TS1.1} Accepted classes of `X` and `Y` are documented in
+#'   `@param X,Y`.
+#' @srrstats {TS1.8} `@param period` states that no calendar is used:
+#'   every row is one time step, and lags and periods are counted in rows.
+#' @srrstats {TS2.0, TS2.1, TS2.1a} The series must be regular and complete;
+#'   explicit missing values are errors, and implicit ones (gaps in time)
+#'   cannot be detected without a time index, which is documented in
+#'   `@param X,Y`.
+#' @srrstats {TS2.2, TS2.3} Details state that phase surrogates assume
+#'   second-order stationarity (constant mean and variance, autocovariance
+#'   depending only on the time separation) and preserve the amplitude
+#'   spectrum, and that the cyclic scheme assumes complete cycles; higher
+#'   moments are not considered because the test statistic depends on the
+#'   series only through their cross-products. Trends should be removed
+#'   before the test, and seasonal means can be removed with `deseason`.
+#' @srrstats {TS2.4b} Besides the trend diagnostic (`check_trend()`),
+#'   transformations are provided and advised: `deseason` removes seasonal
+#'   means, `prewhiten` removes AR(1) autocorrelation, and the mean
+#'   residual AR(1) of the series is reported (`ar1`); a warning is given
+#'   when prewhitening a seasonal series without `deseason`. The ELPA
+#'   example shows detrending.
+#' @srrstats {TS4.0, TS4.0b, TS4.2} The result has its own class,
+#'   `"lagged_protest"`, whose elements and their types are listed in
+#'   `@return`, with print, summary, plot, autoplot, as.data.frame and
+#'   residuals methods.
+#' @srrstats {TS4.3} Lags are returned in rows, and `period` is stored in
+#'   the result; plots label the axis "Lag (rows)".
 #' @export
 lagged_protest <- function(X, Y, lags = 0:6,
                            permutation = c("phase", "cyclic", "free"),
@@ -382,7 +448,15 @@ lagged_protest <- function(X, Y, lags = 0:6,
   check_flag(bidirectional, "bidirectional")
   check_flag(scale, "scale")
   check_seed(seed)
-  if (permutation != "cyclic") check_count(nperm, "nperm")
+  if (permutation != "cyclic") {
+    check_count(nperm, "nperm")
+  } else if (!is.null(nperm) && !(length(nperm) == 1 && is.na(nperm)) &&
+             !is_whole(nperm, 1)) {
+    stop("`nperm` must be NULL, NA or a single whole number of at least 1; ",
+         "it is ignored by the cyclic scheme.", call. = FALSE)
+  }
+  note_time_class(X, "X")
+  note_time_class(Y, "Y")
 
   if (n_rows(X) != n_rows(Y)) {
     stop("`X` and `Y` must have the same number of rows.", call. = FALSE)
@@ -437,6 +511,8 @@ lagged_protest <- function(X, Y, lags = 0:6,
     Yc <- py$series
     rho <- list(X = px$rho, Y = py$rho)
   }
+  check_trend(Xc, "X")
+  check_trend(Yc, "Y")
   preprocessed <- deseason != "none" || prewhiten != "none"
   if (scale && !inherits(X, "dist")) Xc <- scale_columns(Xc, "X", preprocessed)
   if (scale && !inherits(Y, "dist")) Yc <- scale_columns(Yc, "Y", preprocessed)

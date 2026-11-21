@@ -49,6 +49,7 @@ Zeileis
 Zenodo
 al
 autocorrelated
+codemeta
 de
 deseasonalization
 detrending
@@ -60,6 +61,7 @@ hemosiderin
 hepatosomatic
 histochemistry
 irradiance
+lifecycle
 limnology
 lipofuscin
 mL
@@ -70,6 +72,8 @@ photoperiod
 phytoplankton
 preprint
 prewhitening
+rOpenSci
+roxygen
 sawtooth
 sinusoid
 sinusoids

@@ -1,3 +1,22 @@
+# lagprotest (development version)
+
+* Conformity with the rOpenSci standards for statistical software (general
+  and time-series categories) is now documented with `srr` tags in the code
+  and tests (84 standards met, 39 not applicable, each with a reason).
+* `lagged_protest()` gives a message when a linear time trend explains, on
+  average, more than 70% of the variance of the columns of `X` or `Y`,
+  advising to remove it: the null distributions assume stationary series.
+* `lagged_protest()` gives a message when `X` or `Y` is a `ts`, `zoo` or
+  `xts` object, saying that its time attributes are not kept and that lags
+  are counted in rows.
+* With `permutation = "cyclic"`, an `nperm` that is not `NULL`, `NA` or a
+  single whole number is now an error; before, it was silently ignored.
+* The lag axis of `plot()` and `autoplot()` is labeled "Lag (rows)".
+* Internal functions are documented in roxygen2 format (`@noRd`).
+* New tests: lag recovery improves with series length (extended test), the
+  trend and time-series messages.
+* Added `codemeta.json`.
+
 # lagprotest 0.9.1
 
 * Changes made against the rOpenSci standards for statistical software

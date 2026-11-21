@@ -48,6 +48,18 @@ the variable, so the extended tests run on every push and pull request but
 not on CRAN. Larger calibration grids (thousands of replicates per cell)
 are not part of the test suite.
 
+## rOpenSci standards (`srr`)
+
+Conformity with the rOpenSci standards for statistical software (general and
+time-series categories) is documented with `@srrstats` and `@srrstatsNA`
+roxygen tags next to the code or tests that address each standard; the
+package-wide ones and the non-applicable ones, with their reasons, are in
+`R/srr-stats-standards.R`. `devtools::document()` uses the `srr` roclet, so
+install `srr` from the rOpenSci r-universe
+(`install.packages("srr", repos = "https://ropensci-review-tools.r-universe.dev")`).
+When a change affects a standard, update its tag, and check with
+`srr::srr_stats_pre_submit()`.
+
 ## Code of conduct
 
 Please note that this project is released with a

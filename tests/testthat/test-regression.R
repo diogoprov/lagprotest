@@ -38,7 +38,8 @@ test_that("phase scheme results are unchanged", {
 
 test_that("cyclic scheme results are unchanged", {
   fit <- lagged_protest(reg_sim$X, reg_sim$Y, lags = 0:3,
-                        bidirectional = TRUE, permutation = "cyclic", stat = "raw")
+                        bidirectional = TRUE, permutation = "cyclic",
+                        stat = "raw")
   expect_fit(fit, list(
     m2 = c(0.105080220958, 0.0806343041022, 0.0977316638572, 0.141479433217,
            0.123578369492, 0.0650119923712, 0.123875165313),
@@ -54,7 +55,8 @@ test_that("cyclic scheme results are unchanged", {
 
 test_that("free scheme results are unchanged", {
   fit <- lagged_protest(reg_sim$X, reg_sim$Y, lags = 0:2,
-                        permutation = "free", nperm = 99, seed = 3, stat = "raw")
+                        permutation = "free", nperm = 99, seed = 3,
+                        stat = "raw")
   expect_fit(fit, list(
     m2 = c(0.141479433217, 0.123578369492, 0.0650119923712),
     p = c(0.01, 0.01, 0.01), pg = 0.01,

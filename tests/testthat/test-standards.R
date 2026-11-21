@@ -1,3 +1,18 @@
+#' @srrstats {G5.0} The PROTEST of Jackson (1995) is compared with
+#'   vegan::protest() on the varespec and varechem data, the standard
+#'   example of that method.
+#' @srrstats {G5.3} Returned profiles, statistics, p-values and residuals are
+#'   tested for the absence of NA, NaN and infinite values.
+#' @srrstats {G5.8, G5.8a, G5.8b} Zero-length and too-short input, and list,
+#'   factor and character columns or matrices, are errors with clear
+#'   messages.
+#' @srrstats {G5.9, G5.9a, G5.9b} Noise at the scale of
+#'   `.Machine$double.eps` leaves the statistic and the optimal lag
+#'   unchanged, and different seeds give the same optimal lag and global
+#'   p-values within Monte Carlo error.
+#' @noRd
+NULL
+
 # Tests written against the rOpenSci statistical software standards
 # (general standards G2, G5); the standard is named in each test.
 
@@ -98,4 +113,22 @@ test_that("different seeds give consistent results (G5.9b)", {
   expect_identical(fits[[1]]$profile$m2, fits[[2]]$profile$m2)
   # ... and the global p-values agree within Monte Carlo error.
   expect_lt(diff(range(p)), 0.05)
+})
+
+test_that("ts input is used as a matrix, with a message (G2.9, TS1.4)", {
+  Xts <- stats::ts(sim$X, start = c(2000, 1), frequency = 12)
+  expect_message(fit <- lagged_protest(Xts, sim$Y, lags = 0:3, nperm = 99,
+                                       seed = 1),
+                 "time attributes of `X` \\(class mts\\) are not kept")
+  ref <- lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99, seed = 1)
+  expect_identical(fit$profile$m2, ref$profile$m2)
+})
+
+test_that("a strong linear trend gives a diagnostic message (TS2.4a)", {
+  trend <- outer(seq_len(36), rep(0.5, ncol(sim$X)))
+  expect_message(lagged_protest(sim$X + trend, sim$Y, lags = 0:3, nperm = 99,
+                                seed = 1),
+                 "trend explains on average [0-9]+% of the variance of .*`X`")
+  expect_no_message(lagged_protest(sim$X, sim$Y, lags = 0:3, nperm = 99,
+                                   seed = 1, stat = "z"))
 })
