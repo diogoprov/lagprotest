@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,9 +38,22 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.9.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
+<ul><li>Changes made against the rOpenSci standards for statistical software (general and time-series standards):
+<ul><li>Infinite values in <code>X</code> or <code>Y</code> are now an error with an informative message; before, they stopped <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> with an internal error. Missing values (<code>NA</code>, <code>NaN</code>) were and remain an error.</li>
+<li>Input with fewer than 3 rows is an error with an informative message.</li>
+<li>Data-frame columns that are numeric with a class (e.g., <code>difftime</code> or units) are used as plain numbers, with a message; list, factor and character columns give an error that names them.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code> methods gain examples. The documentation states that rows must form a regular, complete series in time order, that <code>period</code> and lags are counted in rows with no calendar, that character arguments are case-sensitive, that residuals are on the scale of the compared configurations, and how <code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> relates to <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code>.</li>
+<li>The README declares the lifecycle as stable, with the deprecation policy for future changes.</li>
+<li>New tests cover these edge cases, the absence of missing values in the output, sensitivity to trivial noise and to the seed, and agreement with <code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code> on the <code>varespec</code>/<code>varechem</code> data.</li>
+<li>The simulation-based Type I error and power tests are now extended tests, run when <code>LAGPROTEST_EXTENDED_TESTS</code> is <code>"true"</code> (as in the GitHub Actions workflows) and described in <code>CONTRIBUTING.md</code>.</li>
+</ul></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.0" id="lagprotest-090">lagprotest 0.9.0<a class="anchor" aria-label="anchor" href="#lagprotest-090"></a></h2>
 <ul><li><p>First version prepared for CRAN.</p></li>

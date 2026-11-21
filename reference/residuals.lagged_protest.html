@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,7 +38,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Per-observation Procrustes residuals at the optimal lag</h1>
-      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.9.0/R/methods.R" class="external-link"><code>R/methods.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/R/methods.R" class="external-link"><code>R/methods.R</code></a></small>
       <div class="d-none name"><code>residuals.lagged_protest.Rd</code></div>
     </div>
 
@@ -67,9 +67,34 @@
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame with the paired row labels of <code>X</code> and <code>Y</code> and the
-residual of each pair after superimposition.</p>
+residual of each pair after superimposition. Residuals are on the scale
+of the configurations that were compared: after standardization
+(<code>scale = TRUE</code>) and after any <code>deseason</code> or <code>prewhiten</code> step, not on
+the scale of the original variables. They are not back-transformed.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="fl">36</span>, true_lag <span class="op">=</span> <span class="fl">2</span>, noise_sd <span class="op">=</span> <span class="fl">0.3</span>,</span></span>
+<span class="r-in"><span>                              seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, nperm <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   x_row y_row   residual</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1     3 0.06270259</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     2     4 0.04671930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     3     5 0.03868620</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4     4     6 0.05368182</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5     5     7 0.05948441</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6     6     8 0.08208955</span>
+<span class="r-in"><span><span class="co"># Pairs that fit worst at the optimal lag</span></span></span>
+<span class="r-in"><span><span class="va">res</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">residual</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="op">]</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    x_row y_row   residual</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6      6     8 0.08208955</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13    13    15 0.07193485</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28    28    30 0.06775567</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

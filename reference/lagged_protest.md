@@ -30,7 +30,15 @@ lagged_protest(
 
   Numeric matrices or data frames with rows as ordered time points and
   columns as variables, or `dist` objects, which are converted to
-  principal coordinates. Both must have the same number of rows.
+  principal coordinates. Both must have the same number of rows (at
+  least 3). Rows must be in time order and form a regular, complete
+  series: the order is not checked, missing values (`NA`, `NaN`) and
+  infinite values are errors, and gaps in time must be filled (e.g., by
+  interpolation) before the test. Data-frame columns must be numeric;
+  numeric columns with a class (e.g., `difftime` or units) are used as
+  plain numbers, with a message. Time-series objects (`ts`) are accepted
+  as matrices; their time attributes are not kept, so rows are labelled
+  by position unless they have row names.
 
 - lags:
 
@@ -84,10 +92,13 @@ lagged_protest(
 
 - period:
 
-  Optional length of the seasonal cycle, in rows. If given, `X` and `Y`
-  are truncated to their first `floor(n / period) * period` rows (whole
-  cycles) before analysis; a message reports the rows dropped. `NULL`
-  (default) uses all rows.
+  Optional length of the seasonal cycle, in rows (e.g., 12 for monthly
+  data with an annual cycle). No calendar is assumed: months of
+  different lengths and leap years are ignored, and every row counts as
+  one time step. Lags are counted in the same rows. If given, `X` and
+  `Y` are truncated to their first `floor(n / period) * period` rows
+  (whole cycles) before analysis; a message reports the rows dropped.
+  `NULL` (default) uses all rows.
 
 - deseason:
 
@@ -404,6 +415,21 @@ scheme, permutations are few, and `"z"` is then preferable. When the
 optimal lag and the effect lag differ,
 [`print()`](https://rdrr.io/r/base/print.html) says so; candidate lags
 should be kept within a range justified by the biology of the system.
+
+## Relation to vegan
+
+:protest():
+[`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html)
+tests concordance at a single alignment of rows with free permutation.
+At `lags = 0` with `permutation = "free"` and `scale = FALSE`,
+`lagged_protest()` returns the same \\m^2\\ and correlation. It extends
+that implementation for ordered series with the scan across lags, null
+distributions that preserve autocorrelation, and the global p-value for
+the scan.
+
+Character arguments (`permutation`, `stat`, `p.adjust.method`,
+`deseason`, `prewhiten`) are case-sensitive and may be abbreviated, as
+in [`match.arg()`](https://rdrr.io/r/base/match.arg.html).
 
 ## References
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,7 +38,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="logo.svg" class="logo" alt=""><h1>Contributing to lagprotest</h1>
-      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.9.0/.github/CONTRIBUTING.md" class="external-link"><code>.github/CONTRIBUTING.md</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/.github/CONTRIBUTING.md" class="external-link"><code>.github/CONTRIBUTING.md</code></a></small>
     </div>
 
 <div id="contributing-to-lagprotest" class="section level1">
@@ -61,6 +61,14 @@
 <li>Add a bullet to the top of <code>NEWS.md</code> describing the change.</li>
 <li>Follow the existing code style: base R, native pipe <code>|&gt;</code> where a pipe is needed, and few dependencies.</li>
 </ul></div>
+<div class="section level2">
+<h2 id="extended-tests">Extended tests<a class="anchor" aria-label="anchor" href="#extended-tests"></a></h2>
+<p>The simulation-based checks of Type I error and power in <code>tests/testthat/test-type1_error.R</code> and <code>tests/testthat/test-power.R</code> are extended tests. They run only when the environment variable <code>LAGPROTEST_EXTENDED_TESTS</code> is <code>"true"</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>LAGPROTEST_EXTENDED_TESTS <span class="op">=</span> <span class="st">"true"</span><span class="op">)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>They need no data downloads or special hardware, take under a minute on a laptop, and produce no files to inspect; failures appear as ordinary test failures. The GitHub Actions workflows (R-CMD-check and test-coverage) set the variable, so the extended tests run on every push and pull request but not on CRAN. Larger calibration grids (thousands of replicates per cell) are not part of the test suite.</p>
+</div>
 <div class="section level2">
 <h2 id="code-of-conduct">Code of conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a></h2>
 <p>Please note that this project is released with a <a href="CODE_OF_CONDUCT.html">Contributor Code of Conduct</a>. By participating you agree to abide by its terms.</p>

@@ -21,7 +21,7 @@ optimal lag."><meta property="og:image" content="https://provetelab.org/lagprote
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,7 @@ optimal lag."><meta property="og:image" content="https://provetelab.org/lagprote
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Plot the lag profile of a lagged PROTEST</h1>
-      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.9.0/R/methods.R" class="external-link"><code>R/methods.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/R/methods.R" class="external-link"><code>R/methods.R</code></a></small>
       <div class="d-none name"><code>plot.lagged_protest.Rd</code></div>
     </div>
 
@@ -98,6 +98,17 @@ optimal lag.</p>
     <p><code>x</code>, invisibly.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_lagged_series.html">simulate_lagged_series</a></span><span class="op">(</span>n_times <span class="op">=</span> <span class="fl">36</span>, true_lag <span class="op">=</span> <span class="fl">2</span>, noise_sd <span class="op">=</span> <span class="fl">0.3</span>,</span></span>
+<span class="r-in"><span>                              seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="lagged_protest.html">lagged_protest</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">X</span>, <span class="va">sim</span><span class="op">$</span><span class="va">Y</span>, lags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>, nperm <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.lagged_protest-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, alpha <span class="op">=</span> <span class="fl">0.01</span>, global <span class="op">=</span> <span class="cn">FALSE</span>, main <span class="op">=</span> <span class="st">"Lag profile"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.lagged_protest-2.png" alt="" width="700" height="433"></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

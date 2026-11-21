@@ -9,7 +9,7 @@ candidate temporal lags and tests it by permutation at each lag."><meta property
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@ candidate temporal lags and tests it by permutation at each lag."><meta property
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Lagged Procrustean randomization test</h1>
-      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.9.0/R/lagged_protest.R" class="external-link"><code>R/lagged_protest.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/R/lagged_protest.R" class="external-link"><code>R/lagged_protest.R</code></a></small>
       <div class="d-none name"><code>lagged_protest.Rd</code></div>
     </div>
 
@@ -76,7 +76,15 @@ candidate temporal lags and tests it by permutation at each lag.</p>
 <dl><dt id="arg-x-y">X, Y<a class="anchor" aria-label="anchor" href="#arg-x-y"></a></dt>
 <dd><p>Numeric matrices or data frames with rows as ordered time
 points and columns as variables, or <code>dist</code> objects, which are converted
-to principal coordinates. Both must have the same number of rows.</p></dd>
+to principal coordinates. Both must have the same number of rows (at
+least 3). Rows must be in time order and form a regular, complete
+series: the order is not checked, missing values (<code>NA</code>, <code>NaN</code>) and
+infinite values are errors, and gaps in time must be filled (e.g., by
+interpolation) before the test. Data-frame columns must be numeric;
+numeric columns with a class (e.g., <code>difftime</code> or units) are used as
+plain numbers, with a message. Time-series objects (<code>ts</code>) are accepted
+as matrices; their time attributes are not kept, so rows are labelled
+by position unless they have row names.</p></dd>
 
 
 <dt id="arg-lags">lags<a class="anchor" aria-label="anchor" href="#arg-lags"></a></dt>
@@ -130,7 +138,10 @@ method of <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-
 
 
 <dt id="arg-period">period<a class="anchor" aria-label="anchor" href="#arg-period"></a></dt>
-<dd><p>Optional length of the seasonal cycle, in rows. If given,
+<dd><p>Optional length of the seasonal cycle, in rows (e.g., 12
+for monthly data with an annual cycle). No calendar is assumed: months
+of different lengths and leap years are ignored, and every row counts
+as one time step. Lags are counted in the same rows. If given,
 <code>X</code> and <code>Y</code> are truncated to their first <code>floor(n / period) * period</code>
 rows (whole cycles) before analysis; a message reports the rows dropped.
 <code>NULL</code> (default) uses all rows.</p></dd>
@@ -410,6 +421,19 @@ cyclic scheme, permutations are few, and <code>"z"</code> is then preferable.
 When the optimal lag and the effect lag differ, <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> says so;
 candidate lags should be kept within a range justified by the biology of
 the system.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="relation-to-vegan">Relation to vegan<a class="anchor" aria-label="anchor" href="#relation-to-vegan"></a></h2>
+    <p>:protest():
+<code><a href="https://vegandevs.github.io/vegan/reference/procrustes.html" class="external-link">vegan::protest()</a></code> tests concordance at a single alignment of rows with
+free permutation. At <code>lags = 0</code> with <code>permutation = "free"</code> and
+<code>scale = FALSE</code>, <code>lagged_protest()</code> returns the same \(m^2\) and
+correlation. It extends that implementation for ordered series with the
+scan across lags, null distributions that preserve autocorrelation, and
+the global p-value for the scan.</p>
+<p>Character arguments (<code>permutation</code>, <code>stat</code>, <code>p.adjust.method</code>,
+<code>deseason</code>, <code>prewhiten</code>) are case-sensitive and may be abbreviated, as in
+<code><a href="https://rdrr.io/r/base/match.arg.html" class="external-link">match.arg()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

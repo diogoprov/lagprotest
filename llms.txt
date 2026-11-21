@@ -73,14 +73,35 @@ treefrog](https://provetelab.org/lagprotest/articles/liver-example.html).
 
 Inputs can be matrices or data frames (rows = ordered time points,
 columns = variables) or `dist` objects, which are converted to principal
-coordinates. See the
+coordinates. Rows must form a regular, complete series in time order:
+missing or infinite values are errors, and the package has no calendar,
+so `period` and lags are counted in rows. See the
 [articles](https://provetelab.org/lagprotest/articles/) for choosing a
 permutation scheme and simulating series for a calibration study.
 
-## Status
+## Relation to other software
 
-Under development. The method and its calibration are described in a
-manuscript in preparation.
+[`vegan::protest()`](https://vegandevs.github.io/vegan/reference/procrustes.html)
+tests Procrustes concordance between two configurations at a single
+alignment of their rows, with free permutation of rows. At lag 0 with
+`permutation = "free"` and `scale = FALSE`,
+[`lagged_protest()`](https://provetelab.org/lagprotest/reference/lagged_protest.md)
+returns the same *m*² and correlation. lagprotest improves on that
+implementation for ordered series in three ways: it scans concordance
+across temporal lags in one or both directions, it provides null
+distributions that preserve temporal autocorrelation (phase-randomized
+surrogates and cyclic shifts), and it reports a global p-value that
+accounts for scanning several lags and selecting the best one.
+
+## Lifecycle
+
+lagprotest is stable. Since version 0.9.0 the names and defaults of
+arguments and of the elements of returned objects are frozen; any future
+change will go through a deprecation period of at least one minor
+release, with a warning, before the old behaviour is removed. New
+arguments are added with defaults that keep earlier results unchanged.
+The method and its calibration are described in a manuscript in
+preparation.
 
 ## License
 
