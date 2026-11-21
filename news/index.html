@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,9 +38,22 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.9.1/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="lagprotest-development-version">lagprotest (development version)<a class="anchor" aria-label="anchor" href="#lagprotest-development-version"></a></h2>
+<ul><li>Conformity with the rOpenSci standards for statistical software (general and time-series categories) is now documented with <code>srr</code> tags in the code and tests (84 standards met, 39 not applicable, each with a reason).</li>
+<li>
+<code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> gives a message when a linear time trend explains, on average, more than 70% of the variance of the columns of <code>X</code> or <code>Y</code>, advising to remove it: the null distributions assume stationary series.</li>
+<li>
+<code><a href="../reference/lagged_protest.html">lagged_protest()</a></code> gives a message when <code>X</code> or <code>Y</code> is a <code>ts</code>, <code>zoo</code> or <code>xts</code> object, saying that its time attributes are not kept and that lags are counted in rows.</li>
+<li>With <code>permutation = "cyclic"</code>, an <code>nperm</code> that is not <code>NULL</code>, <code>NA</code> or a single whole number is now an error; before, it was silently ignored.</li>
+<li>The lag axis of <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> is labeled “Lag (rows)”.</li>
+<li>Internal functions are documented in roxygen2 format (<code>@noRd</code>).</li>
+<li>New tests: lag recovery improves with series length (extended test), the trend and time-series messages.</li>
+<li>Added <code>codemeta.json</code>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.1" id="lagprotest-091">lagprotest 0.9.1<a class="anchor" aria-label="anchor" href="#lagprotest-091"></a></h2>
 <ul><li>Changes made against the rOpenSci standards for statistical software (general and time-series standards):

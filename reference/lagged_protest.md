@@ -37,8 +37,8 @@ lagged_protest(
   interpolation) before the test. Data-frame columns must be numeric;
   numeric columns with a class (e.g., `difftime` or units) are used as
   plain numbers, with a message. Time-series objects (`ts`) are accepted
-  as matrices; their time attributes are not kept, so rows are labelled
-  by position unless they have row names.
+  as matrices; their time attributes are not kept (a message says so),
+  so rows are labeled by position unless they have row names.
 
 - lags:
 
@@ -219,14 +219,22 @@ Three permutation schemes are available:
   columns, but receives new Fourier phases, shared by all columns.
   Surrogates are applied jointly to all lags and do not reproduce the
   observed alignment, which makes this the recommended scheme for the
-  global p-value. It assumes a stationary `Y` and treats the series as
-  periodic with period `n`. In simulations, it was liberal for short,
-  strongly autocorrelated series (AR(1) of 0.7 or more with `n` of 48 or
-  less). It also assumes that any seasonal cycle shared by `X` and `Y`
-  is close to sinusoidal: new phases destroy the alignment among the
-  harmonics of an abrupt cycle (a sawtooth or a short pulse), so the
-  surrogates no longer share the shape of the cycle, and the test can be
-  strongly liberal (Type I error of 0.10 to 0.34 in simulations with
+  global p-value. It assumes that `Y` is second-order stationary
+  (constant mean and variance, and an autocovariance that depends only
+  on the time separation), so trends should be removed before the test,
+  as in the example of
+  [`elpa_blocks()`](https://provetelab.org/lagprotest/reference/elpa_blocks.md);
+  a message is given when a linear time trend explains, on average, more
+  than 70% of the variance of the columns of `X` or `Y` (after
+  `deseason` and `prewhiten`), a level that a single seasonal cycle does
+  not reach. It also treats the series as periodic with period `n`. In
+  simulations, it was liberal for short, strongly autocorrelated series
+  (AR(1) of 0.7 or more with `n` of 48 or less). It also assumes that
+  any seasonal cycle shared by `X` and `Y` is close to sinusoidal: new
+  phases destroy the alignment among the harmonics of an abrupt cycle (a
+  sawtooth or a short pulse), so the surrogates no longer share the
+  shape of the cycle, and the test can be strongly liberal (Type I error
+  of 0.10 to 0.34 in simulations with
   `simulate_lagged_series(waveform = "sawtooth")` or `"pulse"`, 24 or 48
   monthly samples). When the series span several whole cycles, removing
   from both the mean of each position in the cycle (e.g., the mean of

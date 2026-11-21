@@ -98,7 +98,7 @@ accounts for scanning several lags and selecting the best one.
 lagprotest is stable. Since version 0.9.0 the names and defaults of
 arguments and of the elements of returned objects are frozen; any future
 change will go through a deprecation period of at least one minor
-release, with a warning, before the old behaviour is removed. New
+release, with a warning, before the old behavior is removed. New
 arguments are added with defaults that keep earlier results unchanged.
 The method and its calibration are described in a manuscript in
 preparation.

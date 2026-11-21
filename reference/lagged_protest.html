@@ -9,7 +9,7 @@ candidate temporal lags and tests it by permutation at each lag."><meta property
 
     <a class="navbar-brand me-2" href="../index.html">lagprotest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@ candidate temporal lags and tests it by permutation at each lag."><meta property
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Lagged Procrustean randomization test</h1>
-      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/v0.9.1/R/lagged_protest.R" class="external-link"><code>R/lagged_protest.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/diogoprov/lagprotest/blob/main/R/lagged_protest.R" class="external-link"><code>R/lagged_protest.R</code></a></small>
       <div class="d-none name"><code>lagged_protest.Rd</code></div>
     </div>
 
@@ -83,8 +83,8 @@ infinite values are errors, and gaps in time must be filled (e.g., by
 interpolation) before the test. Data-frame columns must be numeric;
 numeric columns with a class (e.g., <code>difftime</code> or units) are used as
 plain numbers, with a message. Time-series objects (<code>ts</code>) are accepted
-as matrices; their time attributes are not kept, so rows are labelled
-by position unless they have row names.</p></dd>
+as matrices; their time attributes are not kept (a message says so),
+so rows are labeled by position unless they have row names.</p></dd>
 
 
 <dt id="arg-lags">lags<a class="anchor" aria-label="anchor" href="#arg-lags"></a></dt>
@@ -250,9 +250,16 @@ drawn. Each surrogate keeps the amplitude spectrum of every column of
 but receives new Fourier phases, shared by all columns. Surrogates are
 applied jointly to all lags and do not reproduce the observed alignment,
 which makes this the recommended scheme for the global p-value. It
-assumes a stationary <code>Y</code> and treats the series as periodic with period
-<code>n</code>. In simulations, it was liberal for short, strongly autocorrelated
-series (AR(1) of 0.7 or more with <code>n</code> of 48 or less). It also assumes
+assumes that <code>Y</code> is second-order stationary (constant mean and
+variance, and an autocovariance that depends only on the time
+separation), so trends should be removed before the test, as in the
+example of <code><a href="elpa_blocks.html">elpa_blocks()</a></code>; a message is given when a linear time
+trend explains, on average, more than 70% of the variance of the
+columns of <code>X</code> or <code>Y</code> (after <code>deseason</code> and <code>prewhiten</code>), a level that
+a single seasonal cycle does not reach. It also
+treats the series as periodic with period <code>n</code>. In simulations, it was
+liberal for short, strongly autocorrelated series (AR(1) of 0.7 or more
+with <code>n</code> of 48 or less). It also assumes
 that any seasonal cycle shared by <code>X</code> and <code>Y</code> is close to sinusoidal:
 new phases destroy the alignment among the harmonics of an abrupt cycle
 (a sawtooth or a short pulse), so the surrogates no longer share the
@@ -373,14 +380,15 @@ finds it from the data (Manly and Navarro Alberto 2020, pp. 83–84). The
 same source recommends at least \(100m\) randomizations for \(m\)
 tests.
 With <code>p.adjust.method = "maxT"</code>, every lag receives the corresponding
-single-step adjusted p-value for the chosen <code>stat</code>, and the adjusted p-value at
-the optimal lag equals <code>p.global</code>. Any method of <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code> can be
-requested instead; with few permutations, as in the cyclic scheme,
-corrections such as Holm may make significance unattainable: in
-simulations of the cyclic scheme with up to 96 rows, Holm-corrected
-per-lag p-values never fell below 0.05.</p>
+single-step adjusted p-value for the chosen <code>stat</code>, and the adjusted
+p-value at the optimal lag equals <code>p.global</code>. Any method of
+<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code> can be requested instead; with few permutations, as
+in the cyclic scheme, corrections such as Holm may make significance
+unattainable: in simulations of the cyclic scheme with up to 96 rows,
+Holm-corrected per-lag p-values never fell below 0.05.</p>
 <p>The score compared across lags is set by <code>stat</code>:</p><ul><li><p><code>"minP"</code> (default for the phase and free schemes): the per-lag
-p-value. The global statistic is the smallest p-value across lags, and its null distribution is obtained by
+p-value. The global statistic is the smallest p-value across lags,
+and its null distribution is obtained by
 converting every permuted \(m^2\) to a p-value within its own lag,
 as its rank among the observed and permuted values divided by
 \(N + 1\), exactly as the observed p-value is computed (the minP
