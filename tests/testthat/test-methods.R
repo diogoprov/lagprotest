@@ -30,9 +30,9 @@ test_that("summary() prints the profile and the scan-level measures", {
   expect_identical(attr(s, "p.global"), fit$p.global)
   expect_identical(attr(s, "optimal_lag"), fit$optimal_lag)
   out <- capture.output(print(s))
-  expect_true(any(grepl("global p = ", out)))
-  expect_true(any(grepl("Effect at lag", out)))
-  expect_true(any(grepl("autocorrelation", out)))
+  expect_true(any(grepl("global p = ", out, fixed = TRUE)))
+  expect_true(any(grepl("Effect at lag", out, fixed = TRUE)))
+  expect_true(any(grepl("autocorrelation", out, fixed = TRUE)))
   # Subsets drop the attributes and print as a plain profile
   expect_no_error(capture.output(print(s[s$optimal, c("lag", "m2")])))
 })
@@ -43,7 +43,8 @@ test_that("print() notes when the optimal and effect lags differ", {
                       nperm = 199, seed = 1, stat = "raw")
   expect_false(f$optimal_lag == f$effect$lag)
   expect_output(print(f), "smallest m2.*differ")
-  expect_false(any(grepl("differ", capture.output(print(fit)))))
+  expect_false(any(grepl("differ", capture.output(print(fit)),
+                         fixed = TRUE)))
 })
 
 test_that("print() uses the p-based wording for minP and z scans", {
@@ -51,5 +52,6 @@ test_that("print() uses the p-based wording for minP and z scans", {
   g$stat <- "minP"
   g$effect$lag <- setdiff(g$profile$lag, g$optimal_lag)[1]
   expect_output(print(g), "smallest p\\).*differ\\.")
-  expect_false(any(grepl("favors long lags", capture.output(print(g)))))
+  expect_false(any(grepl("favors long lags", capture.output(print(g)),
+                         fixed = TRUE)))
 })

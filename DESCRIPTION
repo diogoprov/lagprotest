@@ -1,6 +1,6 @@
 Package: lagprotest
 Title: Lagged Procrustean Randomization Test for Multivariate Time Series
-Version: 0.9.1
+Version: 0.9.1.9000
 Authors@R:
     person("Diogo B.", "Provete", email = "dbprovete@gmail.com",
            role = c("aut", "cre"),
@@ -17,7 +17,7 @@ Description: Extends the Procrustean randomization test (PROTEST;
     residuals.
 License: MIT + file LICENSE
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
+Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd", "srr::srr_stats_roclet"))
 Depends:
     R (>= 4.1.0)
 Imports:

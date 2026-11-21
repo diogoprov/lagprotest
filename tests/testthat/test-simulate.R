@@ -8,6 +8,7 @@ test_that("simulated series have the requested shape", {
 })
 
 test_that("seed is reproducible and leaves the global stream untouched", {
+  skip_if_traced()
   set.seed(99)
   before <- .Random.seed
   a <- simulate_lagged_series(seed = 5)

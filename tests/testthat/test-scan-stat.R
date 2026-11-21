@@ -66,7 +66,7 @@ test_that("stat is validated and printed", {
 
 test_that("z is refused when a null has no variance", {
   null <- list(rep(0.5, 9), seq(0.1, 0.9, by = 0.1))
-  expect_error(lagprotest:::scan_scores("z", c(0.5, 0.2), c(1, 0.1), null),
+  expect_error(scan_scores("z", c(0.5, 0.2), c(1, 0.1), null),
                "no variance")
 })
 

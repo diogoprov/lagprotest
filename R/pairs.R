@@ -109,6 +109,8 @@ lagged_protest_pairs <- function(data, pairs = NULL, lags = 0:6,
   out
 }
 
+#' Validate pairs and return them as a two-column character matrix.
+#' @noRd
 as_pairs <- function(pairs, nms) {
   if (is.null(pairs)) return(utils::combn(nms, 2, simplify = FALSE))
   if (is.matrix(pairs)) {
@@ -125,7 +127,7 @@ as_pairs <- function(pairs, nms) {
   }
   bad <- setdiff(unlist(pairs), nms)
   if (length(bad)) {
-    stop("Unknown data sets in `pairs`: ", paste(bad, collapse = ", "), ".",
+    stop("Unknown data sets in `pairs`: ", toString(bad), ".",
          call. = FALSE)
   }
   if (any(vapply(pairs, function(p) p[1] == p[2], logical(1)))) {

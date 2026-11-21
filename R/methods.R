@@ -1,7 +1,7 @@
 #' @export
 print.lagged_protest <- function(x, digits = 3, ...) {
   cat("\nLagged PROTEST\n\n")
-  cat("Call: ", paste(deparse(x$call, width.cutoff = 70L), collapse = "\n"),
+  cat("Call: ", deparse1(x$call, collapse = "\n", width.cutoff = 70L),
       "\n", sep = "")
   scheme <- switch(x$permutation,
     cyclic = paste0("cyclic shift", if (isTRUE(x$mirror)) " with mirror"),
@@ -47,7 +47,8 @@ print.lagged_protest <- function(x, digits = 3, ...) {
     }
   }
   if (!is.null(x$ar1)) {
-    cat("Mean lag-1 autocorrelation, raw (residual after removing the cycle): X ",
+    cat("Mean lag-1 autocorrelation, raw (residual after removing the ",
+        "cycle): X ",
         format(x$ar1$raw[1], digits = 2), " (",
         format(x$ar1$residual[1], digits = 2), "), Y ",
         format(x$ar1$raw[2], digits = 2), " (",
@@ -177,6 +178,9 @@ as.data.frame.lagged_protest <- function(x, row.names = NULL,
 #' head(res)
 #' # Pairs that fit worst at the optimal lag
 #' res[order(res$residual, decreasing = TRUE)[1:3], ]
+#' @srrstats {TS4.4, TS4.5, TS4.5c} `@return` states that residuals are on
+#'   the scale of the compared configurations (standardized, deseasoned or
+#'   prewhitened) and are not back-transformed.
 #' @export
 residuals.lagged_protest <- function(object, ...) {
   object$residuals
@@ -204,6 +208,9 @@ residuals.lagged_protest <- function(object, ...) {
 #' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
 #' plot(fit)
 #' plot(fit, alpha = 0.01, global = FALSE, main = "Lag profile")
+#' @srrstats {TS5.0} Default plot method for the class.
+#' @srrstats {TS5.1, TS5.2, TS5.3} The temporal variable, the lag, is on the
+#'   horizontal axis, labeled with its unit, "Lag (rows)".
 #' @export
 plot.lagged_protest <- function(x, alpha = 0.05, global = TRUE, ...) {
   prof <- as.data.frame(x, alpha = alpha)
@@ -211,7 +218,7 @@ plot.lagged_protest <- function(x, alpha = 0.05, global = TRUE, ...) {
   args <- utils::modifyList(
     list(x = prof$lag, y = prof$m2, type = "n",
          ylim = range(c(prof$m2, null_q)),
-         xlab = "Lag", ylab = expression(italic(m)^2), xaxt = "n"),
+         xlab = "Lag (rows)", ylab = expression(italic(m)^2), xaxt = "n"),
     list(...)
   )
   do.call(graphics::plot, args)
