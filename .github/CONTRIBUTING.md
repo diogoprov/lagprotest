@@ -29,6 +29,25 @@ each matrix) and what you want to test.
 * Follow the existing code style: base R, native pipe `|>` where a pipe is
   needed, and few dependencies.
 
+## Extended tests
+
+The simulation-based checks of Type I error and power in
+`tests/testthat/test-type1_error.R` and `tests/testthat/test-power.R` are
+extended tests. They run only when the environment variable
+`LAGPROTEST_EXTENDED_TESTS` is `"true"`:
+
+```r
+Sys.setenv(LAGPROTEST_EXTENDED_TESTS = "true")
+devtools::test()
+```
+
+They need no data downloads or special hardware, take under a minute on a
+laptop, and produce no files to inspect; failures appear as ordinary test
+failures. The GitHub Actions workflows (R-CMD-check and test-coverage) set
+the variable, so the extended tests run on every push and pull request but
+not on CRAN. Larger calibration grids (thousands of replicates per cell)
+are not part of the test suite.
+
 ## Code of conduct
 
 Please note that this project is released with a

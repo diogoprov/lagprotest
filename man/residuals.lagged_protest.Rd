@@ -13,8 +13,20 @@
 }
 \value{
 A data frame with the paired row labels of \code{X} and \code{Y} and the
-residual of each pair after superimposition.
+residual of each pair after superimposition. Residuals are on the scale
+of the configurations that were compared: after standardization
+(\code{scale = TRUE}) and after any \code{deseason} or \code{prewhiten} step, not on
+the scale of the original variables. They are not back-transformed.
 }
 \description{
 Per-observation Procrustes residuals at the optimal lag
+}
+\examples{
+sim <- simulate_lagged_series(n_times = 36, true_lag = 2, noise_sd = 0.3,
+                              seed = 1)
+fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
+res <- residuals(fit)
+head(res)
+# Pairs that fit worst at the optimal lag
+res[order(res$residual, decreasing = TRUE)[1:3], ]
 }

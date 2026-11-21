@@ -2,6 +2,7 @@
 # dist objects are ordinated by PCoA (all axes with positive eigenvalues).
 as_configuration <- function(M, arg) {
   if (inherits(M, "dist")) {
+    check_finite(unclass(M), arg)
     n <- attr(M, "Size")
     pcoa <- suppressWarnings(stats::cmdscale(M, k = n - 1, eig = TRUE))
     keep <- pcoa$eig[seq_len(ncol(pcoa$points))] > sqrt(.Machine$double.eps)
@@ -9,13 +10,45 @@ as_configuration <- function(M, arg) {
     rownames(out) <- attr(M, "Labels")
     return(out)
   }
+  if (is.data.frame(M)) M <- numeric_columns(M, arg)
   M <- as.matrix(M)
   if (!is.numeric(M)) {
     stop("`", arg, "` must be numeric (matrix, data frame or dist).",
          call. = FALSE)
   }
-  if (anyNA(M)) stop("`", arg, "` contains missing values.", call. = FALSE)
+  check_finite(M, arg)
   M
+}
+
+# Columns of a data frame as plain numeric vectors. Numeric columns with a
+# class (e.g., difftime or units) lose that class with a message; list,
+# factor and character columns are errors.
+numeric_columns <- function(M, arg) {
+  bad <- vapply(M, function(x) is.list(x) || !is.numeric(unclass(x)) ||
+                  is.factor(x), logical(1))
+  if (any(bad)) {
+    stop("`", arg, "` must be numeric; non-numeric or list columns: ",
+         toString(names(M)[bad]), ".", call. = FALSE)
+  }
+  classed <- vapply(M, function(x) !is.null(attr(x, "class")), logical(1))
+  if (any(classed)) {
+    message("Dropping the class of column(s) ", toString(names(M)[classed]),
+            " of `", arg, "` (e.g., units) and using their numeric values.")
+    M[classed] <- lapply(M[classed], function(x) as.numeric(unclass(x)))
+  }
+  M
+}
+
+# Missing (NA, NaN) and infinite values cannot be permuted or scaled.
+check_finite <- function(M, arg) {
+  if (anyNA(M)) {
+    stop("`", arg, "` contains missing values (NA or NaN); remove or impute ",
+         "them before the test.", call. = FALSE)
+  }
+  if (any(is.infinite(M))) {
+    stop("`", arg, "` contains infinite values (Inf or -Inf).", call. = FALSE)
+  }
+  invisible(M)
 }
 
 # z-score the columns of a configuration.

@@ -1,7 +1,7 @@
-# Simulation-based power checks. Slow, so skipped on CRAN.
+# Simulation-based power checks. Slow, so run only as extended tests.
 
 test_that("cyclic lagged PROTEST recovers a known lag", {
-  skip_on_cran()
+  skip_if_not_extended()
   res <- vapply(seq_len(100), function(i) {
     s <- simulate_lagged_series(n_times = 12, true_lag = 2, autocorr = 0.5,
                                 noise_sd = 0.5, seed = i)
@@ -14,7 +14,7 @@ test_that("cyclic lagged PROTEST recovers a known lag", {
 })
 
 test_that("the phase global p-value detects a known lag", {
-  skip_on_cran()
+  skip_if_not_extended()
   sig <- vapply(seq_len(100), function(i) {
     s <- simulate_lagged_series(n_times = 24, period = 24, true_lag = 2,
                                 autocorr = 0.5, noise_sd = 0.5, seed = i)

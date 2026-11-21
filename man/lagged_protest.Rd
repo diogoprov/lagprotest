@@ -24,7 +24,15 @@ lagged_protest(
 \arguments{
 \item{X, Y}{Numeric matrices or data frames with rows as ordered time
 points and columns as variables, or \code{dist} objects, which are converted
-to principal coordinates. Both must have the same number of rows.}
+to principal coordinates. Both must have the same number of rows (at
+least 3). Rows must be in time order and form a regular, complete
+series: the order is not checked, missing values (\code{NA}, \code{NaN}) and
+infinite values are errors, and gaps in time must be filled (e.g., by
+interpolation) before the test. Data-frame columns must be numeric;
+numeric columns with a class (e.g., \code{difftime} or units) are used as
+plain numbers, with a message. Time-series objects (\code{ts}) are accepted
+as matrices; their time attributes are not kept, so rows are labelled
+by position unless they have row names.}
 
 \item{lags}{Integer vector of non-negative candidate lags (default
 \code{0:6}). Every lag must leave at least 3 overlapping rows; long lags rest
@@ -60,7 +68,10 @@ the global p-value cannot fall below 0.05.}
 lags: \code{"maxT"} for the single-step max-statistic adjustment, or any
 method of \code{\link[stats:p.adjust]{stats::p.adjust()}}. Defaults to \code{"none"}.}
 
-\item{period}{Optional length of the seasonal cycle, in rows. If given,
+\item{period}{Optional length of the seasonal cycle, in rows (e.g., 12
+for monthly data with an annual cycle). No calendar is assumed: months
+of different lengths and leap years are ignored, and every row counts
+as one time step. Lags are counted in the same rows. If given,
 \code{X} and \code{Y} are truncated to their first \code{floor(n / period) * period}
 rows (whole cycles) before analysis; a message reports the rows dropped.
 \code{NULL} (default) uses all rows.}
@@ -325,6 +336,20 @@ When the optimal lag and the effect lag differ, \code{print()} says so;
 candidate lags should be kept within a range justified by the biology of
 the system.
 }
+\section{Relation to vegan}{
+:protest():
+\code{\link[vegan:protest]{vegan::protest()}} tests concordance at a single alignment of rows with
+free permutation. At \code{lags = 0} with \code{permutation = "free"} and
+\code{scale = FALSE}, \code{lagged_protest()} returns the same \eqn{m^2} and
+correlation. It extends that implementation for ordered series with the
+scan across lags, null distributions that preserve autocorrelation, and
+the global p-value for the scan.
+
+Character arguments (\code{permutation}, \code{stat}, \code{p.adjust.method},
+\code{deseason}, \code{prewhiten}) are case-sensitive and may be abbreviated, as in
+\code{\link[=match.arg]{match.arg()}}.
+}
+
 \examples{
 sim <- simulate_lagged_series(n_times = 12, true_lag = 2, noise_sd = 0.3,
                               seed = 1)
