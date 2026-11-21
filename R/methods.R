@@ -165,7 +165,18 @@ as.data.frame.lagged_protest <- function(x, row.names = NULL,
 #' @param object A `"lagged_protest"` object.
 #' @param ... Unused.
 #' @return A data frame with the paired row labels of `X` and `Y` and the
-#'   residual of each pair after superimposition.
+#'   residual of each pair after superimposition. Residuals are on the scale
+#'   of the configurations that were compared: after standardization
+#'   (`scale = TRUE`) and after any `deseason` or `prewhiten` step, not on
+#'   the scale of the original variables. They are not back-transformed.
+#' @examples
+#' sim <- simulate_lagged_series(n_times = 36, true_lag = 2, noise_sd = 0.3,
+#'                               seed = 1)
+#' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
+#' res <- residuals(fit)
+#' head(res)
+#' # Pairs that fit worst at the optimal lag
+#' res[order(res$residual, decreasing = TRUE)[1:3], ]
 #' @export
 residuals.lagged_protest <- function(object, ...) {
   object$residuals
@@ -187,6 +198,12 @@ residuals.lagged_protest <- function(object, ...) {
 #' @param global Logical; mark the optimal lag with its global p-value.
 #' @param ... Further arguments passed to [graphics::plot()].
 #' @return `x`, invisibly.
+#' @examples
+#' sim <- simulate_lagged_series(n_times = 36, true_lag = 2, noise_sd = 0.3,
+#'                               seed = 1)
+#' fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
+#' plot(fit)
+#' plot(fit, alpha = 0.01, global = FALSE, main = "Lag profile")
 #' @export
 plot.lagged_protest <- function(x, alpha = 0.05, global = TRUE, ...) {
   prof <- as.data.frame(x, alpha = alpha)

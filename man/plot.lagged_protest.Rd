@@ -28,3 +28,10 @@ circled, filled when the global p-value is below \code{alpha}, and the global
 p-value is printed above the plot; this is the p-value to report for the
 optimal lag.
 }
+\examples{
+sim <- simulate_lagged_series(n_times = 36, true_lag = 2, noise_sd = 0.3,
+                              seed = 1)
+fit <- lagged_protest(sim$X, sim$Y, lags = 0:4, nperm = 199, seed = 1)
+plot(fit)
+plot(fit, alpha = 0.01, global = FALSE, main = "Lag profile")
+}

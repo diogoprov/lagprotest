@@ -210,7 +210,15 @@
 #'
 #' @param X,Y Numeric matrices or data frames with rows as ordered time
 #'   points and columns as variables, or `dist` objects, which are converted
-#'   to principal coordinates. Both must have the same number of rows.
+#'   to principal coordinates. Both must have the same number of rows (at
+#'   least 3). Rows must be in time order and form a regular, complete
+#'   series: the order is not checked, missing values (`NA`, `NaN`) and
+#'   infinite values are errors, and gaps in time must be filled (e.g., by
+#'   interpolation) before the test. Data-frame columns must be numeric;
+#'   numeric columns with a class (e.g., `difftime` or units) are used as
+#'   plain numbers, with a message. Time-series objects (`ts`) are accepted
+#'   as matrices; their time attributes are not kept, so rows are labelled
+#'   by position unless they have row names.
 #' @param lags Integer vector of non-negative candidate lags (default
 #'   `0:6`). Every lag must leave at least 3 overlapping rows; long lags rest
 #'   on few rows (6 for lag 6 with `n = 12`) and are favored by the smallest
@@ -237,7 +245,10 @@
 #' @param p.adjust.method Correction of the per-lag p-values for multiple
 #'   lags: `"maxT"` for the single-step max-statistic adjustment, or any
 #'   method of [stats::p.adjust()]. Defaults to `"none"`.
-#' @param period Optional length of the seasonal cycle, in rows. If given,
+#' @param period Optional length of the seasonal cycle, in rows (e.g., 12
+#'   for monthly data with an annual cycle). No calendar is assumed: months
+#'   of different lengths and leap years are ignored, and every row counts
+#'   as one time step. Lags are counted in the same rows. If given,
 #'   `X` and `Y` are truncated to their first `floor(n / period) * period`
 #'   rows (whole cycles) before analysis; a message reports the rows dropped.
 #'   `NULL` (default) uses all rows.
@@ -313,6 +324,18 @@
 #' Westfall, P. H. and Young, S. S. (1993). *Resampling-Based Multiple
 #' Testing: Examples and Methods for p-Value Adjustment*. Wiley, New York.
 #'
+#' @section Relation to vegan::protest():
+#' [vegan::protest()] tests concordance at a single alignment of rows with
+#' free permutation. At `lags = 0` with `permutation = "free"` and
+#' `scale = FALSE`, `lagged_protest()` returns the same \eqn{m^2} and
+#' correlation. It extends that implementation for ordered series with the
+#' scan across lags, null distributions that preserve autocorrelation, and
+#' the global p-value for the scan.
+#'
+#' Character arguments (`permutation`, `stat`, `p.adjust.method`,
+#' `deseason`, `prewhiten`) are case-sensitive and may be abbreviated, as in
+#' [match.arg()].
+#'
 #' @seealso [vegan::protest()], [vegan::procrustes()]
 #'
 #' @examples
@@ -363,6 +386,10 @@ lagged_protest <- function(X, Y, lags = 0:6,
 
   if (n_rows(X) != n_rows(Y)) {
     stop("`X` and `Y` must have the same number of rows.", call. = FALSE)
+  }
+  if (n_rows(X) < 3) {
+    stop("`X` and `Y` need at least 3 rows (time points); they have ",
+         n_rows(X), ".", call. = FALSE)
   }
   if (!is.null(period)) {
     n_all <- n_rows(X)

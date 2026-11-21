@@ -1,5 +1,29 @@
 # lagprotest (development version)
 
+* Changes made against the rOpenSci standards for statistical software
+  (general and time-series standards):
+  - Infinite values in `X` or `Y` are now an error with an informative
+    message; before, they stopped `lagged_protest()` with an internal error.
+    Missing values (`NA`, `NaN`) were and remain an error.
+  - Input with fewer than 3 rows is an error with an informative message.
+  - Data-frame columns that are numeric with a class (e.g., `difftime` or
+    units) are used as plain numbers, with a message; list, factor and
+    character columns give an error that names them.
+  - `plot()` and `residuals()` methods gain examples. The documentation
+    states that rows must form a regular, complete series in time order,
+    that `period` and lags are counted in rows with no calendar, that
+    character arguments are case-sensitive, that residuals are on the scale
+    of the compared configurations, and how `lagged_protest()` relates to
+    `vegan::protest()`.
+  - The README declares the lifecycle as stable, with the deprecation policy
+    for future changes.
+  - New tests cover these edge cases, the absence of missing values in the
+    output, sensitivity to trivial noise and to the seed, and agreement with
+    `vegan::protest()` on the `varespec`/`varechem` data.
+  - The simulation-based Type I error and power tests are now extended tests,
+    run when `LAGPROTEST_EXTENDED_TESTS` is `"true"` (as in the GitHub
+    Actions workflows) and described in `CONTRIBUTING.md`.
+
 # lagprotest 0.9.0
 
 * First version prepared for CRAN.
