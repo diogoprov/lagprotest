@@ -28,10 +28,9 @@ permutations, with a global p-value for the scan.
   and the PDF manual)
 * GitHub Actions: macOS (release), Windows (release), Ubuntu (devel,
   release, oldrel-1)
-* win-builder: R-devel (2026-11-17 r90926) on 0.9.0, 1 NOTE (above);
+* win-builder: R-devel (2026-11-17 r90926) on 0.9.1, 1 NOTE (above);
   R-release (4.6.2) and R-devel on 0.8.0, 1 NOTE (new submission).
-  0.9.1 adds input validation, documentation and tests to 0.9.0.
-* R-hub (on 0.9.0): Linux, Windows, macOS and macOS arm64 (R-devel), plus
+* R-hub (on 0.9.1): Linux, Windows, macOS and macOS arm64 (R-devel), plus
   clang ASAN and valgrind: Status OK on all, no valgrind errors
 
 ## Notes for the reviewers
