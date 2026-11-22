@@ -1,10 +1,15 @@
 # lagprotest <img src="man/figures/logo.png" align="right" height="139" alt="lagprotest hex logo" />
 
 <!-- badges: start -->
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23860109.svg)](https://doi.org/10.5281/zenodo.23860109)
 [![R-CMD-check](https://github.com/diogoprov/lagprotest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/diogoprov/lagprotest/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/diogoprov/lagprotest/graph/badge.svg)](https://app.codecov.io/gh/diogoprov/lagprotest)
+<!-- Uncomment once lagprotest is on CRAN (the badges show an error or "null" before that):
+[![CRAN status](https://www.r-pkg.org/badges/version/lagprotest)](https://CRAN.R-project.org/package=lagprotest)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/lagprotest)](https://CRAN.R-project.org/package=lagprotest)
+-->
 [![r-universe](https://diogoprov.r-universe.dev/badges/lagprotest)](https://diogoprov.r-universe.dev/lagprotest)
+[![Zenodo concept DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23860109.svg)](https://doi.org/10.5281/zenodo.23860109)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/mit)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
